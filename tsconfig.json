@@ -12,6 +12,7 @@
       "strict": true,
       "strictNullChecks": true,
       "sourceMap": true,
+      "composite" : true,
       "declaration": true,
       "declarationMap": true,
       "allowSyntheticDefaultImports": true,
