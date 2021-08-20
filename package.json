@@ -8,13 +8,20 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/lib/lib.js",
-    "dev": "ts-node ./src/lib.ts"
+    "dev": "ts-node ./src/lib.ts",
+    "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
   },
   "dependencies": {
     "@types/node": "^16.6.1",
     "typescript": "^4.3.5"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.2",
     "ts-node": "^10.2.1"
   }
 }
