@@ -1,0 +1,40 @@
+{
+  "name": "sonification",
+  "version": "0.1.0",
+  "description": "library that provides sonification primitives to make data accessible.",
+  "main": "src/lib.ts",
+  "repository": "https://github.com/make4all/sonification.git",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/lib/lib.js",
+    "dev": "ts-node ./src/lib.ts",
+    "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix"
+    ]
+  },
+  "dependencies": {
+    "@types/node": "^16.6.1",
+    "typescript": "^4.3.5",
+    "vega": "^5.20.2",
+    "vega-embed": "^6.18.2",
+    "vega-lite": "^5.1.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.2",
+    "ts-node": "^10.2.1"
+  }
+}
