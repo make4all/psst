@@ -11,6 +11,16 @@
     "dev": "ts-node ./src/lib.ts",
     "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
   },
+  "husky": {
+    "hooks": {
+        "pre-commit": "lint-staged"
+    }
+},
+"lint-staged": {
+    "*.{js,ts}": [
+        "eslint --fix"
+    ]
+},
   "dependencies": {
     "@types/node": "^16.6.1",
     "typescript": "^4.3.5"
