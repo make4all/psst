@@ -8,6 +8,7 @@ import * as vegaLite from "vega-lite"
 import * as vegaEmbed from "vega-embed"
 //import * as tone from "tone"
 import { exec } from 'child_process';
+import { View } from "vega";
 
 console.log("test")
 
@@ -56,6 +57,19 @@ function newGenerator() {
 var valueGenerator = newGenerator();
 var minimumX = -100;
 
+chart.addDataListener('table', (name, value) => {
+    console.log("new data");
+    console.log(name, value);
+    value.map((entry: Entry) => {
+        //const synth = new tone.Synth().toDestination();
+        //const now = tone.now()
+        //synth.triggerAttackRelease("C4","C5", now)
+        //process.stdout.write('\x07');
+        
+        exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
+    });
+});
+
 while (true) {
     minimumX++;
     let entries : Entry[] = valueGenerator();
@@ -66,16 +80,8 @@ while (true) {
         return t.x < minimumX;
       });
     chart.change('table', changeSet).run();
-    console.log("new data:")
-    console.log(entries);
-    entries.map((entry) => {
-        //const synth = new tone.Synth().toDestination();
-        //const now = tone.now()
-        //synth.triggerAttackRelease("C4","C5", now)
-        //process.stdout.write('\x07');
-        
-        exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
-    }
-    );
+    //console.log("new data:")
+    //console.log(entries);
+    
     setTimeout(() => { }, 500);
 }
