@@ -6,6 +6,8 @@
 import * as vega from "vega"
 import * as vegaLite from "vega-lite"
 import * as vegaEmbed from "vega-embed"
+//import * as tone from "tone"
+import { exec } from 'child_process';
 
 console.log("test")
 
@@ -29,23 +31,51 @@ var chart = new vega.View(vega.parse(vegaSpec.spec),
     { renderer: 'none' })
 
 console.log("set up chart")
+//console.log(chart)
 
-function* chartUpdater() {
-    let y = 0;
-    for (let x = 0; ; x++) {
-        y += Math.random() - 0.5;
-        var changeSet = chart.changeset()
-            // This changeset adds a new datapoint
-            .insert({ x, y });
-            // And removes any datapoints from more than 10 ticks ago
-           // .remove(({ x : vegaLite.xValue }) => xValue < x - 50);
-        chart.change('table', changeSet).run();
-        yield new Promise(() => setTimeout(() => {return chart }, 100));
-    }
+class Entry {
+    constructor(public x: number, public y: number) { }
 }
+//const synth = new tone.Synth().toDestination();
 
-let iterator = chartUpdater();
+function newGenerator() {
+    var counter = -1;
+    var previousY = [5, 5, 5, 5];
+    return function () {
+        counter++;
+        var newVals = previousY.map(function (v, c) {
+            return new Entry(counter, v + Math.round(Math.random() * 10 - c * 3));
+        });
+        previousY = newVals.map(function (v) {
+            return v.y;
+        });
+        return newVals;
+    };
+}
+  
+var valueGenerator = newGenerator();
+var minimumX = -100;
+
 while (true) {
-    console.log("looping")
-    console.log(iterator.next())
+    minimumX++;
+    let entries : Entry[] = valueGenerator();
+    var changeSet = vega
+      .changeset()
+      .insert(entries)
+        .remove(function (t: { x: number, y: number }) {
+        return t.x < minimumX;
+      });
+    chart.change('table', changeSet).run();
+    console.log("new data:")
+    console.log(entries);
+    entries.map((entry) => {
+        //const synth = new tone.Synth().toDestination();
+        //const now = tone.now()
+        //synth.triggerAttackRelease("C4","C5", now)
+        //process.stdout.write('\x07');
+        
+        exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
+    }
+    );
+    setTimeout(() => { }, 500);
 }
