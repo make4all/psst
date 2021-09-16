@@ -10,8 +10,8 @@
     "license": "MIT",
     "scripts": {
         "build": "tsc",
-        "start": "node ./dist/lib/lib.js",
-        "dev": "ts-node ./src/lib.ts",
+        "start": "node ./dist/lib/sonification.js",
+        "dev": "ts-node ./src/sonification.ts",
         "test": "mocha",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
         "bundle": "microbundle"
