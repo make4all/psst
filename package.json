@@ -13,7 +13,7 @@
         "build": "tsc",
         "start": "node ./dist/lib/lib.js",
         "dev": "ts-node ./src/lib.ts",
-        "test": "mocha -r ts-node/register test/**/*.test.ts",
+        "test": "mocha",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
         "bundle": "microbundle"
     },

@@ -1,4 +1,4 @@
-import { hello } from '../src/sonification'
+import { hello } from './sonification'
 import 'mocha'
 import { expect } from 'chai'
 
