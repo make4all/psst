@@ -1,42 +1,50 @@
 {
-  "name": "sonification",
-  "version": "0.1.0",
-  "description": "library that provides sonification primitives to make data accessible.",
-  "main": "src/lib.ts",
-  "repository": "https://github.com/make4all/sonification.git",
-  "license": "MIT",
-  "scripts": {
-    "build": "tsc",
-    "start": "node ./dist/lib/lib.js",
-    "dev": "ts-node ./src/lib.ts",
-    "test": "mocha -r ts-node/register test/**/*.test.ts",
-    "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
+    "name": "sonification",
+    "version": "0.1.0",
+    "description": "library that provides sonification primitives to make data accessible.",
+    "source": "src/sonification.ts",
+    "exports": "./dist/sonification.modern.js",
+    "main": "./dist/sonification.cjs",
+    "module": "./dist/sonification.module.js",
+    "unpkg": "./dist/sonification.umd.js",
+    "license": "MIT",
+    "scripts": {
+        "build": "tsc",
+        "start": "node ./dist/lib/sonification.js",
+        "dev": "ts-node ./src/sonification.ts",
+        "test": "mocha",
+        "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
+        "bundle": "microbundle"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.{js,ts}": [
+            "eslint --fix"
+        ]
+    },
+    "dependencies": {
+        "@types/node": "^16.9.1"
+    },
+    "devDependencies": {
+        "@semantic-release/exec": "^5.0.0",
+        "@semantic-release/git": "^9.0.1",
+        "semantic-release": "^17.4.7",
+        "microbundle": "^0.13.3",
+        "typescript": "^4.4.3",
+        "@types/chai": "^4.2.21",
+        "@types/mocha": "^9.0.0",
+        "@typescript-eslint/eslint-plugin": "^4.31.1",
+        "@typescript-eslint/parser": "^4.31.1",
+        "chai": "^4.3.4",
+        "eslint": "^7.32.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "mocha": "^9.1.1",
+        "prettier": "^2.4.0",
+        "ts-node": "^10.2.1"
     }
-  },
-  "lint-staged": {
-    "*.{js,ts}": [
-      "eslint --fix"
-    ]
-  },
-  "dependencies": {
-    "@types/node": "^16.6.1",
-    "typescript": "^4.3.5"
-  },
-  "devDependencies": {
-    "@types/chai": "^4.2.21",
-    "@types/mocha": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.29.2",
-    "@typescript-eslint/parser": "^4.29.2",
-    "chai": "^4.3.4",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "mocha": "^9.1.0",
-    "prettier": "^2.3.2",
-    "ts-node": "^10.2.1"
-  }
 }
