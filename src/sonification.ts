@@ -9,6 +9,8 @@ import * as vegaEmbed from "vega-embed"
 //import * as tone from "tone"
 import { exec } from 'child_process';
 // import { View } from "vega";
+import { AudioContext, OfflineAudioContext } from 'standardized-audio-context';
+import { privateEncrypt } from "crypto";
 
 console.log("test")
 
@@ -86,7 +88,11 @@ tutorial: https://itnext.io/building-a-synthesizer-in-typescript-5a85ea17e2f2
 Code (we don't need to implement the tutorial)
 https://github.com/kenreilly/typescript-synth-demo
 */
-// ctx: AudioContext = new AudioContext()
+const audioCtx = new AudioContext();
+const oscillatorNode = audioCtx.createOscillator();
+oscillatorNode.connect(audioCtx.destination);
+console.log("playing sin wave")
+oscillatorNode.start();
 
 class Entry {
     constructor(public x: number, public y: number) { }
