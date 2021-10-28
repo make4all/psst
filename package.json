@@ -1,20 +1,27 @@
 {
     "name": "sonification",
+    "type": "module",
     "version": "0.1.0",
     "description": "library that provides sonification primitives to make data accessible.",
     "source": "src/sonification.ts",
-    "exports": "./dist/sonification.modern.js",
+    "exports": {
+        "require": "./dist/sonification.cjs",
+        "default": "./dist/sonification.modern.js"
+    },
     "main": "./dist/sonification.cjs",
     "module": "./dist/sonification.module.js",
     "unpkg": "./dist/sonification.umd.js",
     "license": "MIT",
+    "files": [
+        "dist",
+        "src"
+    ],
     "scripts": {
-        "build": "tsc",
+        "build": "microbundle",
+        "dev": "microbundle watch",
         "start": "node ./dist/lib/sonification.js",
-        "dev": "ts-node ./src/sonification.ts",
         "test": "mocha",
-        "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
-        "bundle": "microbundle"
+        "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
     },
     "husky": {
         "hooks": {
@@ -42,7 +49,7 @@
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-prettier": "^4.0.0",
-        "microbundle": "^0.13.3",
+        "microbundle": "^0.14.1",
         "mocha": "^9.1.1",
         "prettier": "^2.4.0",
         "semantic-release": "^17.4.7",
