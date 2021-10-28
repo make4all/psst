@@ -1,6 +1,5 @@
 {
     "name": "sonification",
-    "type": "module",
     "version": "0.1.0",
     "description": "library that provides sonification primitives to make data accessible.",
     "source": "src/sonification.ts",
@@ -18,9 +17,10 @@
     ],
     "scripts": {
         "build": "microbundle",
-        "dev": "microbundle watch",
-        "start": "node ./dist/lib/sonification.js",
+        "watch:build": "microbundle watch",
         "test": "mocha",
+        "watch:test": "mocha --watch",
+        "watch": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
     },
     "husky": {
