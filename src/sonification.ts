@@ -7,10 +7,13 @@ import * as vega from "vega"
 // import * as vegaLite from "vega-lite"
 import * as vegaEmbed from "vega-embed"
 //import * as tone from "tone"
-import { exec } from 'child_process';
 // import { View } from "vega";
 
 console.log("test")
+
+export function hello() {
+    return "hello world!"
+}
 
 // let spec : vegaLite.TopLevelSpec =  {
 //   $schema: "https://vega.github.io/schema/vega-lite/v2.json",
@@ -60,22 +63,22 @@ let rankSpec: vega.Spec = {
                 { student: 'V', score: 46 },
             ],
             "transform": [
-                {"type": "filter", "expr": "datum.score > 50"}
+                { "type": "filter", "expr": "datum.score > 50" }
             ]
         },
     ],
 }
-    
+
 
 //const config: vegaLite.Config = { line: { color: 'firebrick' } };
 //const vegaSpec = vegaLite.compile(spec, {config}).spec;
 //console.log(vegaSpec)
 // let vegaSpec = vega.compile(rankSpec); // compiling to vega spec.
-var chart = new vega.View(vega.parse(rankSpec), 
+const chart = new vega.View(vega.parse(rankSpec),
     { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
 chart.run() // running so that the transforms happen
 console.log("set up chart")
-console.log(chart.data("ranks")) 
+console.log(chart.data("ranks"))
 // console.log("charte object:")
 // console.log(chart)
 /******help****** 
@@ -107,7 +110,7 @@ function newGenerator() {
         return newVals;
     };
 }
-  
+
 var valueGenerator = newGenerator();
 var minimumX = -100;
 
@@ -119,7 +122,7 @@ var minimumX = -100;
 //         //const now = tone.now()
 //         //synth.triggerAttackRelease("C4","C5", now)
 //         //process.stdout.write('\x07');
-        
+
 //         exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
 //     });
 // });
@@ -136,6 +139,6 @@ var minimumX = -100;
 //     chart.change('table', changeSet).run();
 //     //console.log("new data:")
 //     //console.log(entries);
-    
+
 //     setTimeout(() => { }, 500);
 // }
