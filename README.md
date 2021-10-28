@@ -18,7 +18,7 @@ Compiles and bundles the library into the dist folder.
 
 Runs the mocha test suite
 
-### yarn watch
+### yarn dev
 
 Start a compile watch of the library build and tests for iterative development.
 
