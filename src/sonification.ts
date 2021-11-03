@@ -9,7 +9,7 @@ import * as vegaEmbed from "vega-embed"
 //import * as tone from "tone"
 // import { View } from "vega";
 
-console.log("test")
+console.log("test2")
 
 export function hello() {
     return "hello world!"

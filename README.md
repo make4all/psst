@@ -10,7 +10,11 @@ We use node LTS 14.17.5. We recommend using [NVM](https://github.com/nvm-sh/nvm)
 
 Install all the necessary dependencies
 
-### yarn build
+## yarn start
+
+Start a development server on http://localhost:3000
+
+### yarn bundle
 
 Compiles and bundles the library into the dist folder.
 
