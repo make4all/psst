@@ -12,7 +12,7 @@ import * as vegaEmbed from "vega-embed"
 console.log("test2")
 
 export function hello() {
-    return "hello world!"
+    return "hello world!!!!"
 }
 
 // let spec : vegaLite.TopLevelSpec =  {
