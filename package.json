@@ -20,8 +20,6 @@
         "watch:bundle": "microbundle watch",
         "start": "react-scripts start",
         "eject": "react-scripts eject",
-        "test": "mocha",
-        "watch:test": "mocha --watch",
         "serve": "live-server --open=public/index.html",
         "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix"
