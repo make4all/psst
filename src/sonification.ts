@@ -89,56 +89,54 @@ tutorial: https://itnext.io/building-a-synthesizer-in-typescript-5a85ea17e2f2
 Code (we don't need to implement the tutorial)
 https://github.com/kenreilly/typescript-synth-demo
 */
-// ctx: AudioContext = new AudioContext()
+export function playTone(){
+    var audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-don.d.ts.
+    let startTime = audioCtx.currentTime;
+    var dummyData = [20, 50, 30, 40, 7, 300,800,400,1000,900,123,20,40,12500];
+    var sweepLength = 0.2;
+    var previousFrequencyOfset = 200;
+    for (let i = 0; i < dummyData.length; i++)
+      {
+        console.log("in for loop. I = ", i)
+        console.log("startTime:",startTime);
+        var frequencyOfset = 20 * dummyData[i];
+        // frequencyOfset = frequencyOfset%1000;
+        // time=audioCtx.currentTime;
+        console.log("frequency ofset", frequencyOfset);
+        var osc = audioCtx.createOscillator();
+        osc.frequency.value = previousFrequencyOfset;
+        var endTime = startTime+sweepLength;
+        // var loopTime = time*i*sweepLength;
+        // console.log("start time ",startTime);
+        // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag);
+        // osc.setPeriodicWave(wave);
+        // aucilators[i] = osc;
+        // osc.frequency.linearRampToValueAtTime(0,previousFrequencyOfset);
+        osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+sweepLength);
+        // console.log("time after increasing");
+        // console.log(audioCtx.currentTime);
+        // console.log(osc.frequency.value);
+        // osc.frequency.exponentialRampToValueAtTime(380,startTime+sweepLength);
+        // console.log("time after decreasing")
+        // console.log(audioCtx.currentTime);
+        osc.connect(audioCtx.destination);
+        osc.start(startTime)
+        // console.log("started");
+        osc.stop(endTime);
+        // console.log("stopping");
+        // console.log(audioCtx.currentTime);
+startTime = endTime;
+previousFrequencyOfset = frequencyOfset;
 
-class Entry {
-    constructor(public x: number, public y: number) { }
+
+
+        
+      }
+
+     
+
 }
-//const synth = new tone.Synth().toDestination();
 
-function newGenerator() {
-    var counter = -1;
-    var previousY = [5, 5, 5, 5];
-    return function () {
-        counter++;
-        var newVals = previousY.map(function (v, c) {
-            return new Entry(counter, v + Math.round(Math.random() * 10 - c * 3));
-        });
-        previousY = newVals.map(function (v) {
-            return v.y;
-        });
-        return newVals;
-    };
-}
 
-var valueGenerator = newGenerator();
-var minimumX = -100;
 
-// chart.addDataListener('table', (name, value) => {
-//     console.log("new data");
-//     console.log(name, value);
-//     value.map((entry: Entry) => {
-//         //const synth = new tone.Synth().toDestination();
-//         //const now = tone.now()
-//         //synth.triggerAttackRelease("C4","C5", now)
-//         //process.stdout.write('\x07');
 
-//         exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
-//     });
-// });
-
-// while (true) {
-//     minimumX++;
-//     let entries : Entry[] = valueGenerator();
-//     var changeSet = vega
-//       .changeset()
-//       .insert(entries)
-//         .remove(function (t: { x: number, y: number }) {
-//         return t.x < minimumX;
-//       });
-//     chart.change('table', changeSet).run();
-//     //console.log("new data:")
-//     //console.log(entries);
-
-//     setTimeout(() => { }, 500);
-// }
