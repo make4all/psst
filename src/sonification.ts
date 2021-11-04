@@ -13,7 +13,7 @@ import * as vegaEmbed from "vega-embed"
 console.log("test2")
 
 export function hello() {
-    return "hello world!!!!"
+    return "please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only."
 }
 
 // let spec : vegaLite.TopLevelSpec =  {
@@ -78,47 +78,40 @@ let rankSpec: vega.Spec = {
 const chart = new vega.View(vega.parse(rankSpec),
     { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
 chart.run() // running so that the transforms happen
-console.log("set up chart")
-console.log(chart.data("ranks"))
-// console.log("charte object:")
+
+ 
+
 // console.log(chart)
-/******help****** 
-Jen, please help with getting WebAudio in typescript. AudioContext is one of the core components, and uncommenting the line below this comment block will give you an error.
-Fixing this could potentially imply that we have WebAudio support. However, there may be type declarations *only** for web audio so that may not solve all our problems.
-Here is an example that works:
+/******resolved****** 
+WebAudio now seems to work as it is being picked up from the type definitions of react.dom.ts. We will need to make sure we don't break this when we move away from react eventually.
+Here is an example of WebAudio without react that is supposed to work, but didn't for me:
 tutorial: https://itnext.io/building-a-synthesizer-in-typescript-5a85ea17e2f2
 Code (we don't need to implement the tutorial)
-https://github.com/kenreilly/typescript-synth-demo
+https://github.com/kenreilly/typescript-synth-demo. We used a third-party library, refer to code in jen-audio branch if we need to in the future.
 */
-export function playTone(){
-    var audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-don.d.ts.
+
+//function that takes an array of numbers and sonifies them. This will evolve as we keep implementing more sonification features.
+export function playTone(dummyData:number[]){
+    var audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
     let startTime = audioCtx.currentTime;
-    var dummyData = [20, 50, 30, 40, 7, 300,800,400,1000,900,123,20,40,12500];
-    var sweepLength = 0.2;
-    var previousFrequencyOfset = 200;
+    
+    let pointSonificationLength:number = 0.3;
+    var previousFrequencyOfset = 50;
     for (let i = 0; i < dummyData.length; i++)
       {
-        console.log("in for loop. I = ", i)
-        console.log("startTime:",startTime);
-        var frequencyOfset = 20 * dummyData[i];
+        
+        var frequencyOfset = 2* dummyData[i];
         // frequencyOfset = frequencyOfset%1000;
-        // time=audioCtx.currentTime;
+        
         console.log("frequency ofset", frequencyOfset);
         var osc = audioCtx.createOscillator();
         osc.frequency.value = previousFrequencyOfset;
-        var endTime = startTime+sweepLength;
-        // var loopTime = time*i*sweepLength;
+        var endTime = startTime+pointSonificationLength;
         // console.log("start time ",startTime);
-        // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag);
+        // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
         // osc.setPeriodicWave(wave);
-        // aucilators[i] = osc;
-        // osc.frequency.linearRampToValueAtTime(0,previousFrequencyOfset);
-        osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+sweepLength);
-        // console.log("time after increasing");
-        // console.log(audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
         // console.log(osc.frequency.value);
-        // osc.frequency.exponentialRampToValueAtTime(380,startTime+sweepLength);
-        // console.log("time after decreasing")
         // console.log(audioCtx.currentTime);
         osc.connect(audioCtx.destination);
         osc.start(startTime)
@@ -126,15 +119,10 @@ export function playTone(){
         osc.stop(endTime);
         // console.log("stopping");
         // console.log(audioCtx.currentTime);
-startTime = endTime;
-previousFrequencyOfset = frequencyOfset;
+        startTime = endTime;
+        previousFrequencyOfset = frequencyOfset;
 
-
-
-        
       }
-
-     
 
 }
 
