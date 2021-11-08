@@ -92,7 +92,7 @@ https://github.com/kenreilly/typescript-synth-demo. We used a third-party librar
 
 //function that takes an array of numbers and sonifies them. This will evolve as we keep implementing more sonification features.
 export function playTone(dummyData:number[]){
-    var audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
+    const audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
     let startTime = audioCtx.currentTime;
     
     let pointSonificationLength:number = 0.3;
