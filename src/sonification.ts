@@ -6,6 +6,8 @@
 import * as vega from "vega"
 // import * as vegaLite from "vega-lite"
 import * as vegaEmbed from "vega-embed"
+import { validateVegaSpec } from "./sonificationUtils"
+
 
 //import * as tone from "tone"
 // import { View } from "vega";
@@ -16,7 +18,7 @@ export function hello() {
     return "please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only."
 }
 
-// let spec : vegaLite.TopLevelSpec =  {
+// let wrongSpec: vega.Spec  =  {
 //   $schema: "https://vega.github.io/schema/vega-lite/v2.json",
 //   data: {name: "table"},
 //   width: 1152,
@@ -70,14 +72,60 @@ let rankSpec: vega.Spec = {
     ],
 }
 
+let carSpec: vega.Spec = {
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "width": 400,
+    "height": 200,
+    "padding": 5,
+  
+    "data": [
+      {
+        "name": "cars",
+        "url": "https://raw.githubusercontent.com/vega/vega/master/docs/data/cars.json"
+      }
+    ],
+  
+    "scales": [
+      {
+        "name": "xscale",
+        "domain": {"data": "cars", "field": "Acceleration"},
+        "range": "width"
+      },
+      {
+        "name": "yscale",
+        "domain": {"data": "cars", "field": "Miles_per_Gallon"},
+        "range": "height"
+      }
+    ],
+    "axes": [
+      {"orient": "bottom", "scale": "xscale", "grid": true},
+      {"orient": "left", "scale": "yscale", "grid": true}
+    ],
+    "marks": [
+      {
+        "type": "symbol",
+        "from": {"data":"cars"},
+        "encode": {
+          "enter": {
+            "x": {"scale": "xscale", "field": "Acceleration"},
+            "y": {"scale": "yscale", "field": "Miles_per_Gallon"}
+          }
+        }
+      }
+    ]
+  }
+
 
 //const config: vegaLite.Config = { line: { color: 'firebrick' } };
 //const vegaSpec = vegaLite.compile(spec, {config}).spec;
 //console.log(vegaSpec)
 // let vegaSpec = vega.compile(rankSpec); // compiling to vega spec.
-const chart = new vega.View(vega.parse(rankSpec),
+
+console.log("is vega spec valid?",validateVegaSpec(carSpec));
+const chart = new vega.View(vega.parse(carSpec),
     { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
-chart.run() // running so that the transforms happen
+chart.runAsync().then(() => console.log(chart.data('cars')) ) // running so that the transforms happen
+  
 
  
 
