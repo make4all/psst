@@ -6,13 +6,14 @@
 import * as vega from "vega"
 // import * as vegaLite from "vega-lite"
 import * as vegaEmbed from "vega-embed"
+
 //import * as tone from "tone"
 // import { View } from "vega";
 
 console.log("test2")
 
 export function hello() {
-    return "hello world!!!!"
+    return "please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only."
 }
 
 // let spec : vegaLite.TopLevelSpec =  {
@@ -77,68 +78,55 @@ let rankSpec: vega.Spec = {
 const chart = new vega.View(vega.parse(rankSpec),
     { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
 chart.run() // running so that the transforms happen
-console.log("set up chart")
-console.log(chart.data("ranks"))
-// console.log("charte object:")
+
+ 
+
 // console.log(chart)
-/******help****** 
-Jen, please help with getting WebAudio in typescript. AudioContext is one of the core components, and uncommenting the line below this comment block will give you an error.
-Fixing this could potentially imply that we have WebAudio support. However, there may be type declarations *only** for web audio so that may not solve all our problems.
-Here is an example that works:
+/******resolved****** 
+WebAudio now seems to work as it is being picked up from the type definitions of react.dom.ts. We will need to make sure we don't break this when we move away from react eventually.
+Here is an example of WebAudio without react that is supposed to work, but didn't for me:
 tutorial: https://itnext.io/building-a-synthesizer-in-typescript-5a85ea17e2f2
 Code (we don't need to implement the tutorial)
-https://github.com/kenreilly/typescript-synth-demo
+https://github.com/kenreilly/typescript-synth-demo. We used a third-party library, refer to code in jen-audio branch if we need to in the future.
 */
-// ctx: AudioContext = new AudioContext()
 
-class Entry {
-    constructor(public x: number, public y: number) { }
+//function that takes an array of numbers and sonifies them. This will evolve as we keep implementing more sonification features.
+export function playTone(dummyData:number[]){
+    console.log("playTone: sonifying data", dummyData)
+    const audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
+    let startTime = audioCtx.currentTime;
+    
+    let pointSonificationLength:number = 0.3;
+    var previousFrequencyOfset = 50;
+    for (let i = 0; i < dummyData.length; i++)
+      {
+        
+        var frequencyOfset = 2* dummyData[i];
+        // frequencyOfset = frequencyOfset%1000;
+        
+        console.log("frequency ofset", frequencyOfset);
+        var osc = audioCtx.createOscillator();
+        osc.frequency.value = previousFrequencyOfset;
+        var endTime = startTime+pointSonificationLength;
+        // console.log("start time ",startTime);
+        // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
+        // osc.setPeriodicWave(wave);
+        osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
+        // console.log(osc.frequency.value);
+        // console.log(audioCtx.currentTime);
+        osc.connect(audioCtx.destination);
+        osc.start(startTime)
+        // console.log("started");
+        osc.stop(endTime);
+        // console.log("stopping");
+        // console.log(audioCtx.currentTime);
+        startTime = endTime;
+        previousFrequencyOfset = frequencyOfset;
+
+      }
+
 }
-//const synth = new tone.Synth().toDestination();
 
-function newGenerator() {
-    var counter = -1;
-    var previousY = [5, 5, 5, 5];
-    return function () {
-        counter++;
-        var newVals = previousY.map(function (v, c) {
-            return new Entry(counter, v + Math.round(Math.random() * 10 - c * 3));
-        });
-        previousY = newVals.map(function (v) {
-            return v.y;
-        });
-        return newVals;
-    };
-}
 
-var valueGenerator = newGenerator();
-var minimumX = -100;
 
-// chart.addDataListener('table', (name, value) => {
-//     console.log("new data");
-//     console.log(name, value);
-//     value.map((entry: Entry) => {
-//         //const synth = new tone.Synth().toDestination();
-//         //const now = tone.now()
-//         //synth.triggerAttackRelease("C4","C5", now)
-//         //process.stdout.write('\x07');
 
-//         exec('play -n -c1 synth  ' + entry.y + '  fade q 0.1 0.1 0.1')
-//     });
-// });
-
-// while (true) {
-//     minimumX++;
-//     let entries : Entry[] = valueGenerator();
-//     var changeSet = vega
-//       .changeset()
-//       .insert(entries)
-//         .remove(function (t: { x: number, y: number }) {
-//         return t.x < minimumX;
-//       });
-//     chart.change('table', changeSet).run();
-//     //console.log("new data:")
-//     //console.log(entries);
-
-//     setTimeout(() => { }, 500);
-// }
