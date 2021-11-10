@@ -9,13 +9,11 @@ import * as vegaEmbed from "vega-embed"
 
 //import * as tone from "tone"
 // import { View } from "vega";
-import { AudioContext, OfflineAudioContext } from 'standardized-audio-context';
+// import { AudioContext, OfflineAudioContext } from 'standardized-audio-context';
 import { privateEncrypt } from "crypto";
 
-console.log("test2")
-
 export function hello() {
-    return "please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only."
+    return "Please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only. "
 }
 
 // let spec : vegaLite.TopLevelSpec =  {
