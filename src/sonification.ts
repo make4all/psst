@@ -1,11 +1,8 @@
-//import * as dataflow from "../vega/packages/vega-dataflow";
-//import type { Dataflow } from "../vega/packages/vega-dataflow"
-//const vega-dataflow = require('../vega/packages/vega-dataflow')
-//import "vega/build/"
-//import * as vega from "react-vega"
+
 import * as vega from "vega"
-// import * as vegaLite from "vega-lite"
+
 import * as vegaEmbed from "vega-embed"
+import { SupportedSpecs } from "./constents"
 import { validateVegaSpec } from "./sonificationUtils"
 
 
@@ -29,7 +26,7 @@ export function hello() {
 //         x: { field: 'x', type: 'quantitative', scale: { zero: false} },
 //         y: {field: 'y', type: 'quantitative'}}
 // }
-// the Vega-lite spec from the tutorial:
+// Tried moving this to a separate file, into a string, but nothing worked. I need help understanding why this is the case.
 let rankSpec: vega.Spec = {
     $schema: 'https://vega.github.io/schema/vega/v5.json',
     description:
@@ -72,6 +69,7 @@ let rankSpec: vega.Spec = {
     ],
 }
 
+// an other dataset. loads data from file. tried moving this also to file.
 let carSpec: vega.Spec = {
     "$schema": "https://vega.github.io/schema/vega/v5.json",
     "width": 400,
@@ -115,16 +113,48 @@ let carSpec: vega.Spec = {
     ]
   }
 
+  export function validateSpec(specType:SupportedSpecs, spec: vega.Spec): boolean // need to decide if we want to expose validation to the frontend.
+  {
+    var isValid:boolean = false;
+    if(specType == SupportedSpecs.vegaSpec){ // refactor to switch case when we have more specs supported.
+      try{
+        isValid = validateVegaSpec(spec) // need to change to spec. Also function always returns true.
+      } catch {
+        console.log("Validation error"); // doesn't seem to enter this code block.
+      }
 
-//const config: vegaLite.Config = { line: { color: 'firebrick' } };
-//const vegaSpec = vegaLite.compile(spec, {config}).spec;
-//console.log(vegaSpec)
+  }
+  return isValid;
+  }
+
+  export function  parseVegaSpec(spec: vega.Spec)
+  {
+    const chart = new vega.View(vega.parse(spec),
+    { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
+
+chart.runAsync().then(() =>{
+  // console.log(chart.data(spec['data']['name']))
+
+   } ) // running so that the transforms happen
+  return chart // todo. make sure this return happens after the promise.
+  }
+  var dataSetName:string = '';
+  var parsedChart = parseVegaSpec(carSpec);
+  console.log("chart.data:",carSpec['data'])
+  if(carSpec['data'] )
+  {
+    for(var dataSet of carSpec['data']){
+      console.log("dataset name",dataSet['name'])
+      dataSetName = dataSet['name']
+      console.log("dataset",parsedChart.data(dataSetName))
+    }
+  }
+  // console.log("data set name",carSpec['data']['name'])
+  console.log("car spec data",carSpec.data)
 // let vegaSpec = vega.compile(rankSpec); // compiling to vega spec.
 
-console.log("is vega spec valid?",validateVegaSpec(carSpec));
-const chart = new vega.View(vega.parse(carSpec),
-    { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
-chart.runAsync().then(() => console.log(chart.data('cars')) ) // running so that the transforms happen
+// console.log("is vega spec valid?",validateVegaSpec(carSpec));
+
   
 
  
@@ -177,4 +207,10 @@ export function playTone(dummyData:number[]){
 
 
 
+
+function processData(data: { (name: string): any[]; (name: string, tuples: any): vega.View }): any {
+  
+  // data('hello');
+  throw new Error("Function not implemented.")
+}
 
