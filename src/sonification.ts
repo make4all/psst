@@ -2,8 +2,11 @@
 import * as vega from "vega"
 
 import * as vegaEmbed from "vega-embed"
-import { SupportedSpecs } from "./constents"
+import { SupportedFormats, SupportedSpecs } from "./constents"
 import { validateVegaSpec } from "./sonificationUtils"
+import * as fs from "fs";
+import csv from "csv-parser";
+import { resourceLimits } from "worker_threads";
 
 
 //import * as tone from "tone"
@@ -131,31 +134,51 @@ let carSpec: vega.Spec = {
   {
     const chart = new vega.View(vega.parse(spec),
     { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
-
+var data;
+var dataSetName:string; 
 chart.runAsync().then(() =>{
-  // console.log(chart.data(spec['data']['name']))
+  if(spec['data']){
+for (let dataset of spec['data'])
+dataSetName = dataset['name'];
+data = chart.data(dataSetName);
+  }  
 
    } ) // running so that the transforms happen
-  return chart // todo. make sure this return happens after the promise.
+  return  data // todo. make sure this return happens after the promise.
   }
-  var dataSetName:string = '';
+  // var dataSetName:string = '';
   var parsedChart = parseVegaSpec(carSpec);
-  console.log("chart.data:",carSpec['data'])
-  if(carSpec['data'] )
+  // console.log("chart.data:",carSpec['data'])
+  // console.log("data",parsedChart);
+  if(parsedChart)
   {
-    for(var dataSet of carSpec['data']){
-      console.log("dataset name",dataSet['name'])
-      dataSetName = dataSet['name']
-      console.log("dataset",parsedChart.data(dataSetName))
-    }
+    // for(var dataSet of parsedChart){
+    //   console.log("dataset name",dataSet['name'])
+    //   dataSetName = dataSet['name']
+    //   // console.log("dataset",parsedChart.data(dataSetName))
+    // }
   }
   // console.log("data set name",carSpec['data']['name'])
-  console.log("car spec data",carSpec.data)
+  // console.log("car spec data",carSpec.data)
 // let vegaSpec = vega.compile(rankSpec); // compiling to vega spec.
 
 // console.log("is vega spec valid?",validateVegaSpec(carSpec));
 
-  
+export function parseInput(fileName: string | undefined, format: SupportedFormats) {
+  console.log("in parseInput function");
+  const results: any[] = []
+  if(format == SupportedFormats.CSV)
+  {
+    console.log("format is CSV")
+    if(fileName){
+console.log("file name",fileName)
+      var rs = fs.createReadStream(fileName)
+rs.pipe(csv()).on('data',(data) => results.push(data) )
+// .pipe(csv()).on('data',(data) => results.push(data)); 
+console.log("parsed CSV data:",results);
+  }
+}
+}
 
  
 
