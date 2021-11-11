@@ -1,7 +1,7 @@
-export enum SupportedSpecs{
+export enum SupportedSpecs{ // types of data and sonification specification.
 vegaSpec
 }
 
-export enum SupportedFormats{
+export enum SupportedFormats{ // support formats of input data.
     CSV
     }

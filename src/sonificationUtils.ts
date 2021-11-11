@@ -1,7 +1,7 @@
 import Ajv from "ajv";
 import { Spec } from "vega-typings/types";
 import * as schema from "./Vega-schema.json"
-export function validateVegaSpec(data: Spec)
+export function validateVegaSpec(data: Spec | string)
 {
     const ajv = new Ajv();
     const validate = ajv.compile(schema)
