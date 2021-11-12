@@ -1,7 +1,6 @@
 import React from 'react';
 import Container from 'react-bootstrap/Container'
 import { Vega, createClassFromSpec, VisualizationSpec } from "react-vega";
-import { action } from '@storybook/addon-actions';
 import {PlainObject} from 'react-vega'
 
 type State = {
@@ -24,9 +23,9 @@ export default class DataSource extends React.PureComponent<{}, State> {
   }
     
 
-    // updated the dataa
+    // updated the data
     public setData(data: { x: number; y: number; c: number; }[]) {
-        action('update data')(data);
+    	   // todo
     }
 
     public getData() {
