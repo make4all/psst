@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Button, Card, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography } from '@mui/material';
-import { ContentPaste, UploadFile, Link } from '@mui/icons-material';
+import { Button, Card, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import { ContentPaste, UploadFile, Link, BreakfastDiningOutlined } from '@mui/icons-material';
 
 import DataManager from '../DataManager';
 
@@ -16,6 +16,7 @@ export interface ImportViewProps {
 export class ImportView extends React.Component<ImportViewProps, ImportViewState> {
     private _textArea : React.RefObject<HTMLTextAreaElement>;
     private _inputFile: React.RefObject<HTMLInputElement>;
+    private _textField: React.RefObject<HTMLDivElement>;
 
     constructor(props: ImportViewProps) {
         super(props);
@@ -25,6 +26,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
 
         this._textArea = React.createRef();
         this._inputFile = React.createRef();
+        this._textField = React.createRef();
     }
 
     public render() {
@@ -64,13 +66,18 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                     </Grid>
                     <Grid item sm={12} md={6}>
                         <TextareaAutosize
-                            ref={this._textArea}
+                            ref={ this._textArea }
                             aria-label="data entry textarea"
                             placeholder="Enter data here"
                             style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
                             minRows={5}
                             />
-                        <Input ref={ this._inputFile } type="file" onChange={ this._handleFileChange }/>
+                        <Input
+                            ref={ this._inputFile }
+                            type="file"
+                            onChange={ this._handleFileChange }
+                            />
+                            <TextField ref={this._textField} id="my-input" label="Data URL"/>
                     </Grid>
                 </Grid>
                 <Button
@@ -85,11 +92,27 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
     }
 
     private _handleClickContinue = (event: React.MouseEvent<HTMLElement>) => {
-        if (this._textArea && this._textArea.current) {
-            let text = this._textArea.current.value.trim();
-            DataManager.getInstance().loadDataFromText(text);
+        switch(this.state.importType) {
+            case "paste":
+                if (this._textArea && this._textArea.current) {
+                    let text = this._textArea.current.value.trim();
+                    DataManager.getInstance().loadDataFromText(text);
+                }
+                break;
+            case "link":
+                if (this._textField && this._textField.current) {
+                    let input = this._textField.current.querySelector('input');
+                    if (input && input.value) {
+                        let url = input.value.trim();
+                        DataManager.getInstance().loadDataFromUrl(url);
+                    }
+                }
+                break;
         }
+        
     }
+
+    // https://raw.githubusercontent.com/vega/vega-datasets/next/data/stocks.csv
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
         let target: any = event.target;

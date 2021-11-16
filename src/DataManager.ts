@@ -14,8 +14,15 @@ export default class DataManager {
 
     public dataTable: any;
 
-    public loadDataFromUrl() {
+    public loadDataFromUrl(url: string) {
+        // Check for empty strings
+        // TODO check for valid url formats, or try to clean up incomplete urls - e.g. add https://
+        if (!url || url.trim() === "") {
+            console.log("Invalid url provided for data. Could not load.");
+            return;
+        }
 
+        fetch(url).then(res => (res.text().then(text => DataManager.instance.loadDataFromText(text))));
     }
 
     public loadDataFromText(text: string) {
