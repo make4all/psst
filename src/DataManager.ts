@@ -1,6 +1,7 @@
 import * as aq from 'arquero';
 
-export default class DataManager {
+export type DataListener = (table: any) => void;
+export class DataManager {
     private static instance: DataManager;
 
     private constructor() {}
@@ -12,7 +13,8 @@ export default class DataManager {
         return DataManager.instance;
     }
 
-    public dataTable: any;
+    private _listeners: DataListener[] = [];
+    public table: any;
 
     public loadDataFromUrl(url: string) {
         // Check for empty strings
@@ -22,6 +24,7 @@ export default class DataManager {
             return;
         }
 
+        // TODO Handle error responses
         fetch(url).then(res => (res.text().then(text => DataManager.instance.loadDataFromText(text))));
     }
 
@@ -35,7 +38,7 @@ export default class DataManager {
         // Determine if the input text is tab or comma separated values
         // Compute the number of tabs and lines
         let tabNum = 0, lineNum = 0;
-        for(let i = 0; i < text.length; i++) {
+        for (let i = 0; i < text.length; i++) {
             if (text.charAt(i) === "\t") tabNum++;
             if (text.charAt(i) === "\n") lineNum++;
         }
@@ -48,12 +51,32 @@ export default class DataManager {
         let header = lineNum > 0;
         console.log(header, tabNum, lineNum);
 
-        let dataTable = aq.fromCSV(text, { delimiter, header });
-        console.log(dataTable);
+        this.table = aq.fromCSV(text, { delimiter, header });
+        console.log(this.table.columns());
+        console.log(this.table);
+        this.handleDataChange();
     }
 
     public loadDataFromFile(file: File) {
         file.text().then(text => DataManager.instance.loadDataFromText(text));
+    }
+
+    public handleDataChange() {
+        for (let i = 0; i < this._listeners.length; i++) {
+            this._listeners[i](this.table);
+        }
+    }
+
+    public addListener(listener: DataListener) {
+        this._listeners.push(listener);
+    }
+
+    public removeListener(listener: DataListener) {
+        for (let i = 0; i < this._listeners.length; i++) {
+            if (listener === this._listeners[i]) {
+                this._listeners.splice(i, 1);
+            }
+        }
     }
 
 

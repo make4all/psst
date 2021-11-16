@@ -1,9 +1,11 @@
 import React from 'react';
 
-import { Button, Input, Stack } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
+import { DataManager } from '../DataManager';
 
 export interface DataViewState {
-
+    columns: any[],
+    rows: any[]
 };
 
 export interface DataViewProps {
@@ -13,13 +15,37 @@ export interface DataViewProps {
 export class DataView extends React.Component<DataViewProps, DataViewState> {
     constructor(props: DataViewProps) {
         super(props);
-        this.state = {};
+        this.state = {
+            rows: [],
+            columns: []
+        };
+
+        DataManager.getInstance().addListener(this.handleDataUpdate)
     }
 
     public render() {
+        const { rows, columns } = this.state;
+        console.log(columns);
+
         return (
-            undefined
+            <div style={{ height: 500, width: '100%' }}>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    pageSize={10}
+                    rowsPerPageOptions={[10, 25, 50, 100]}
+                    />
+            </div>
         );
+    }
+
+    public handleDataUpdate = (table: any): void => {
+        const columns = table.columnNames().map(c => ({ field: c, headerName: c }));
+        const rows = table.objects().map((o, i) => (Object.assign({id: i}, o)));
+
+        console.log(columns);
+
+        this.setState({ columns, rows })
     }
 }
 

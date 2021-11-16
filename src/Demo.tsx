@@ -4,6 +4,8 @@ import { hello, parseInput, playTone } from './sonification'
 
 import { SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
+import { DataView } from './views/DataView';
+
 export const Demo = () => {
     const [editorText, setEditorText] = useState('1,20,500,340,400,20,30,1000,800')
     const [selectedFile, setSelectedFile] = useState<File>();
@@ -28,6 +30,11 @@ export const Demo = () => {
         <div>
             <ImportView />
         </div>
+        
+        <div>
+            <DataView />
+        </div>
+
         <div>
         <textarea value={editorText}onChange={handleEditorChange}/> 
         {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}

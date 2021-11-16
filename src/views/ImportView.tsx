@@ -3,7 +3,7 @@ import React from 'react';
 import { Button, Card, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText } from '@mui/material';
 import { ContentPaste, UploadFile, Link, BreakfastDiningOutlined } from '@mui/icons-material';
 
-import DataManager from '../DataManager';
+import { DataManager } from '../DataManager';
 
 export interface ImportViewState {
     importType: string;
@@ -124,7 +124,10 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
     }
 
     private _handleImportTypeChange = (event: React.MouseEvent<HTMLElement>, importType: string) => {
-        this.setState({ importType });
+        // Only change import type if another one has been selected, otherwise keep the same
+        if (importType) {
+            this.setState({ importType });
+        }
     }
 }
 
