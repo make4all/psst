@@ -15,6 +15,7 @@ export interface ImportViewProps {
 
 export class ImportView extends React.Component<ImportViewProps, ImportViewState> {
     private _textArea : React.RefObject<HTMLTextAreaElement>;
+    private _inputFile: React.RefObject<HTMLInputElement>;
 
     constructor(props: ImportViewProps) {
         super(props);
@@ -23,6 +24,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         };
 
         this._textArea = React.createRef();
+        this._inputFile = React.createRef();
     }
 
     public render() {
@@ -39,14 +41,13 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                                 <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Copy & paste data table</span>
                             </ToggleButton>
                             <ToggleButton value="file">
-                            <label htmlFor="button-upload-csv-xls">
-                                <Input id="button-upload-csv-xls" type="file" style={{ 'display': 'none' }} />
-                            </label>
-                                <UploadFile /> <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Upload CSV or Excel file</span>
+                                <UploadFile />
+                                <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Upload CSV or Excel file</span>
                             </ToggleButton>
                             <ToggleButton value="link">
-                                <Link /> <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Link to external url</span>
-                                </ToggleButton>
+                                <Link />
+                                <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Link to external url</span>
+                            </ToggleButton>
                         </ToggleButtonGroup>
                     </Grid>
                     <Grid item sm={8} md={4}>
@@ -62,13 +63,14 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                         </Card>
                     </Grid>
                     <Grid item sm={12} md={6}>
-                    <TextareaAutosize
-                        ref={this._textArea}
-                        aria-label="data entry textarea"
-                        placeholder="Enter data here"
-                        style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
-                        minRows={5}
-                        />
+                        <TextareaAutosize
+                            ref={this._textArea}
+                            aria-label="data entry textarea"
+                            placeholder="Enter data here"
+                            style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
+                            minRows={5}
+                            />
+                        <Input ref={ this._inputFile } type="file" onChange={ this._handleFileChange }/>
                     </Grid>
                 </Grid>
                 <Button
@@ -84,8 +86,17 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
 
     private _handleClickContinue = (event: React.MouseEvent<HTMLElement>) => {
         if (this._textArea && this._textArea.current) {
-            let text = this._textArea.current.value;
+            let text = this._textArea.current.value.trim();
             DataManager.getInstance().loadDataFromText(text);
+        }
+    }
+
+    private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
+        let target: any = event.target;
+        if (target && target.files && target.files.length === 1) {
+            console.log(event);
+            let file: File = target.files[0];
+            DataManager.getInstance().loadDataFromFile(file);
         }
     }
 

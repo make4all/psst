@@ -37,14 +37,16 @@ export default class DataManager {
         let isTabSeparated = ( tabNum / lineNum ) >= 1;
         let delimiter = isTabSeparated ? "\t" : ",";
 
-        // TODO: Determine if the input has headers
+        // TODO: Determine if the input has headers, for now check if only one line of data
+        let header = lineNum > 0;
+        console.log(header, tabNum, lineNum);
 
-        let dataTable = aq.fromCSV(text, { delimiter });
+        let dataTable = aq.fromCSV(text, { delimiter, header });
         console.log(dataTable);
     }
 
-    public loadDataFromFile() {
-
+    public loadDataFromFile(file: File) {
+        file.text().then(text => DataManager.instance.loadDataFromText(text));
     }
 
 
