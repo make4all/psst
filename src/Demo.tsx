@@ -7,14 +7,17 @@ import { Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
 import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
 export const Demo = () => {
-    const [editorText, setEditorText] = useState('1,20,500,340,400,20,30,1000,800')
+    const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
     const [selectedFile, setSelectedFile] = useState<File>();
     const [isFilePicked, setIsFilePicked] = useState(false);
     
     const [fileName, setFileName] = useState<string>()
     const [sonificationOption, setSonificationOption] = useState <string>('simple')
     const [showHighlightValueEditor,setShowHighlightValueEditor] = useState(false)
-    const [highlightPoint, setHighlightPoint] = useState(50)
+    const [showRegionValueEditors,setShowRegionValueEditors] = useState(false)
+    const [highlightPoint, setHighlightPoint] = useState(500)
+    const [beginRegion, setBeginRegion] = useState(300)
+    const [endRegion, setEndRegion] = useState(500)
      
     const handleEditorChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (event.target.value)
@@ -24,6 +27,16 @@ export const Demo = () => {
     const handelHighlightPointChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         if (event.target.value)
           setHighlightPoint(parseInt(event.target.value))
+      }
+
+      const handelBeginRegionChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (event.target.value)
+          setBeginRegion(parseInt(event.target.value))
+      }
+
+      const handelEndRegionChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (event.target.value)
+          setEndRegion(parseInt(event.target.value))
       }
 
     const playButtonHandeler = () => {
@@ -41,8 +54,13 @@ export const Demo = () => {
                 if(sonificationOption == "simple"){
                     console.log("playing simple tone")  
                     sonifierInstance.playSimpleTone(data)
-        } else{
+        } else if (sonificationOption == "highlightNoise"){
             sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
+        } else if (sonificationOption == "highlightRegion"){
+            sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
+        } else{
+            throw console.error("not implemented");
+            
         }
     }
     }
@@ -54,10 +72,20 @@ export const Demo = () => {
         {
             console.log("debug: setting show highlight edit field")
             setShowHighlightValueEditor(true)
+            setShowRegionValueEditors(false)
             
-        } else {
+        } else if (event.target.value == "highlightRegion") {
             setShowHighlightValueEditor(false)
-            console.log("in else condition")
+            setShowRegionValueEditors(true)
+        } else if(event.target.value == "simple")
+        {
+            setShowRegionValueEditors(false)
+            setShowHighlightValueEditor(false)            
+        }
+        else
+        {
+            setShowRegionValueEditors(false)
+            setShowHighlightValueEditor(false)
         }
     setSonificationOption(event.target.value)
     }
@@ -71,9 +99,13 @@ export const Demo = () => {
       <RadioGroup aria-label="sonification" name="sonificationType" value={sonificationOption} onChange={handleSonificationSelection}>
         <FormControlLabel value="simple" control={<Radio />} label="simple sonification" />
         <FormControlLabel value="highlightNoise" control={<Radio />} label="highlight points with noise" />
+        <FormControlLabel value="highlightRegion" control={<Radio />} label="play tones for region" />
     </RadioGroup>
     </FormControl>
-    {showHighlightValueEditor? (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>) : (<p> press play to hear a simple sonification</p>)}
+    {showHighlightValueEditor&& (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>)}
+    {showRegionValueEditors && (<textarea value={beginRegion}onChange = {handelBeginRegionChange}/>)}
+    {showRegionValueEditors && (<textarea value={endRegion}onChange = {handelEndRegionChange}/>)}
+    { !showHighlightValueEditor && !showRegionValueEditors && (<p> press play to hear a simple sonification</p>)}
         <button onClick={playButtonHandeler}>play</button>
         <input type="file" name="file" accept = "csv" onChange={(e) => {
             if(e.target.files && e.target.files[0].name   )

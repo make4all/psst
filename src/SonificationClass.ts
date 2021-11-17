@@ -1,3 +1,4 @@
+
 export class Sonifier { // still need to finish making this a proper singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
     protected audioCtx: AudioContext;
@@ -66,9 +67,7 @@ export class Sonifier { // still need to finish making this a proper singleton. 
             osc.frequency.value = previousFrequencyOfset;
             let noiseNode = this.createNoiseBufferNode(pointSonificationLength);
 
-            let bandPassFilterNode = this.audioCtx.createBiquadFilter();
-            bandPassFilterNode.type = 'bandpass';
-            bandPassFilterNode.frequency.value = 440;
+            let bandPassFilterNode = this.createBandPassFilterNode();
             var endTime = startTime + pointSonificationLength;
             osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
             osc.connect(this.audioCtx.destination);
@@ -80,8 +79,6 @@ export class Sonifier { // still need to finish making this a proper singleton. 
                 noiseNode.start(startTime)
                 noiseNode.stop(endTime)
             }
-            // console.log("stopping");
-            // console.log(audioCtx.currentTime);
             startTime = endTime;
             previousFrequencyOfset = frequencyOfset;
     
@@ -91,6 +88,46 @@ export class Sonifier { // still need to finish making this a proper singleton. 
 
 }
 
+    private createBandPassFilterNode() {
+        let bandPassFilterNode = this.audioCtx.createBiquadFilter();
+        bandPassFilterNode.type = 'bandpass';
+        bandPassFilterNode.frequency.value = 440;
+        return bandPassFilterNode;
+    }
+
+    public playHighlightedRegionWithTones(this: Sonifier, dummyData:number[], beginRegion:number,endRegion:number): void{
+        if(beginRegion > endRegion)
+        [beginRegion, endRegion] = [endRegion, beginRegion];
+        let pointSonificationLength:number = 0.3;
+        var previousFrequencyOfset: number = beginRegion;
+        var startTime: number = this.audioCtx.currentTime;
+        for (let i = 0; i < dummyData.length; i++)
+        {
+            var frequencyOfset = 2* dummyData[i];
+            var endTime = startTime + pointSonificationLength;
+            
+            if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion)
+            {
+                var osc = this.audioCtx.createOscillator();
+                osc.frequency.value = previousFrequencyOfset;
+                osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
+                osc.connect(this.audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(endTime);
+
+            
+            } else {
+                let noiseNode = this.createNoiseBufferNode(pointSonificationLength);
+                let bandPassFilterNode = this.createBandPassFilterNode();                
+                noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
+                noiseNode.start(startTime)
+                noiseNode.stop(endTime)
+            }
+            startTime = endTime;
+            previousFrequencyOfset = frequencyOfset;            
+        }
+    }
+    
     private createNoiseBufferNode(pointSonificationLength: number): AudioBufferSourceNode {
         const noiseBufferSize: number = this.audioCtx.sampleRate * pointSonificationLength;
         const buffer = this.audioCtx.createBuffer(1, noiseBufferSize, this.audioCtx.sampleRate);

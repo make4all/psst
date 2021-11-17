@@ -1,4 +1,4 @@
-
+// we are currently not using this file. The idea is to eventually replace the code here with the code from the SonificationClass.ts file.
 import * as vega from "vega"
 
 import * as vegaEmbed from "vega-embed"
