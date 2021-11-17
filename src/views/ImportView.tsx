@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { Button, Card, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText } from '@mui/material';
-import { ContentPaste, UploadFile, Link, BreakfastDiningOutlined } from '@mui/icons-material';
+import { Button, Box, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import { ContentPaste, UploadFile, Link } from '@mui/icons-material';
 
 import { DataManager } from '../DataManager';
 
@@ -31,12 +31,64 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
 
     public render() {
         let {importType} = this.state;
+
+        let inputElement, headerText, bodyText;
+
+        switch (importType) {
+            case "paste":
+                inputElement = (
+                    <TextareaAutosize
+                        ref={ this._textArea }
+                        aria-label="Textarea for data entry"
+                        placeholder="Enter data here"
+                        style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
+                        minRows={5}
+                        />
+                );
+                headerText = 'Copy & paste your data';
+                bodyText = 'Select your table from a spreadsheet and paste it in the text field. We support comma/tab separated values (i.e., CSV, TSV).'
+                break;
+            case "file":
+                inputElement = (
+                    <label htmlFor="input-upload-file" aria-label="Dropzone for file upload">
+                        <Box component="div" sx={{ p: 2, border: '2px dashed #aaa' }}>
+                            <Button component="label" aria-label="Button for file upload">
+                                Upload
+                                <Input
+                                    style={{ display: 'none' }}
+                                    aria-hidden={true}
+                                    ref={ this._inputFile }
+                                    type="file"
+                                    id="input-upload-file"
+                                    onChange={ this._handleFileChange }
+                                    />   
+                            </Button>
+                        </Box>
+                    </label>
+                );
+                headerText = 'Upload your data file';
+                bodyText = 'Choose your local data file (*.csv or *.tsv) to upload.';
+                break;
+            case "link":
+                inputElement = (
+                    <TextField
+                        ref={this._textField}
+                        id="my-input"
+                        aria-label="Text field for data url"
+                        label="Data URL"
+                        />
+                );
+                headerText = 'Link to your external data';
+                bodyText = 'Enter a valid url to an external data file. We support comma/tab separated values (i.e., CSV, TSV).';
+                break;
+        }
+
         return (
             <div>
                 <h2>How do you want to upload your data?</h2>
                 <div>
                 <Grid container spacing={2}>
-                    <Grid item sm={4} md={2}>
+                    <Grid item xs={4} sm={3} md={2}>
                         <ToggleButtonGroup orientation="vertical" value={importType} onChange={this._handleImportTypeChange} exclusive>
                             <ToggleButton value="paste">
                                 <ContentPaste />
@@ -44,7 +96,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                             </ToggleButton>
                             <ToggleButton value="file">
                                 <UploadFile />
-                                <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Upload CSV or Excel file</span>
+                                <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Upload CSV or TSV file</span>
                             </ToggleButton>
                             <ToggleButton value="link">
                                 <Link />
@@ -52,32 +104,22 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                             </ToggleButton>
                         </ToggleButtonGroup>
                     </Grid>
-                    <Grid item sm={8} md={4}>
-                        <Card>
-                            <CardContent>
+                    <Grid item xs={8} sm={9} md={8}>
+                        <div aria-live="polite">
+                            <Stack spacing={1}>
                                 <Typography variant="h6" color="text.secondary">
-                                    Copy & paste your data
+                                    { headerText }
                                 </Typography>
+                                { inputElement }
                                 <Typography variant="body2">
-                                    Select your table from a spreadsheet and paste it in the text field. We support comma/tab separated values (i.e., CSV, TSV).
+                                    { bodyText }
                                 </Typography>
-                            </CardContent>
-                        </Card>
+                            </Stack>
+                            
+                        </div>
+                        
                     </Grid>
-                    <Grid item sm={12} md={6}>
-                        <TextareaAutosize
-                            ref={ this._textArea }
-                            aria-label="data entry textarea"
-                            placeholder="Enter data here"
-                            style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
-                            minRows={5}
-                            />
-                        <Input
-                            ref={ this._inputFile }
-                            type="file"
-                            onChange={ this._handleFileChange }
-                            />
-                            <TextField ref={this._textField} id="my-input" label="Data URL"/>
+                    <Grid item xs={0} sm={0} md={2}>
                     </Grid>
                 </Grid>
                 <Button

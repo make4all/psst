@@ -28,7 +28,7 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
         console.log(columns);
 
         return (
-            <div style={{ height: 500, width: '100%' }}>
+            <div style={{ height: 500, width: '100%' }} aria-live="polite">
                 <DataGrid
                     rows={rows}
                     columns={columns}
@@ -40,12 +40,12 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
     }
 
     public handleDataUpdate = (table: any): void => {
-        const columns = table.columnNames().map(c => ({ field: c, headerName: c }));
+        const columns = table.columnNames().map(c => ({ field: c, headerName: c, width: 160, renderHeader: (params: any) => (
+            <strong>{c}</strong>
+          ), }));
         const rows = table.objects().map((o, i) => (Object.assign({id: i}, o)));
 
-        console.log(columns);
-
-        this.setState({ columns, rows })
+        this.setState({ columns, rows });
     }
 }
 
