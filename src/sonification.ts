@@ -4,8 +4,7 @@ import * as vega from "vega"
 import * as vegaEmbed from "vega-embed"
 import { SupportedFormats, SupportedSpecs } from "./constents"
 import { validateVegaSpec } from "./sonificationUtils"
-import * as fs from "fs";
-import csv from "csv-parser";
+
 import { resourceLimits } from "worker_threads";
 
 
@@ -164,21 +163,7 @@ data = chart.data(dataSetName);
 
 // console.log("is vega spec valid?",validateVegaSpec(carSpec));
 
-export function parseInput(fileName: string | undefined, format: SupportedFormats) {
-  console.log("in parseInput function");
-  const results: any[] = []
-  if(format == SupportedFormats.CSV)
-  {
-    console.log("format is CSV")
-    if(fileName){
-console.log("file name",fileName)
-      var rs = fs.createReadStream(fileName)
-rs.pipe(csv()).on('data',(data) => results.push(data) )
-// .pipe(csv()).on('data',(data) => results.push(data)); 
-console.log("parsed CSV data:",results);
-  }
-}
-}
+
 
  
 
@@ -192,43 +177,6 @@ https://github.com/kenreilly/typescript-synth-demo. We used a third-party librar
 */
 
 //function that takes an array of numbers and sonifies them. This will evolve as we keep implementing more sonification features.
-export function playTone(dummyData:number[]){
-    console.log("playTone: sonifying data", dummyData)
-    const audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
-    let startTime = audioCtx.currentTime;
-    
-    let pointSonificationLength:number = 0.3;
-    var previousFrequencyOfset = 50;
-    for (let i = 0; i < dummyData.length; i++)
-      {
-        
-        var frequencyOfset = 2* dummyData[i];
-        // frequencyOfset = frequencyOfset%1000;
-        
-        console.log("frequency ofset", frequencyOfset);
-        var osc = audioCtx.createOscillator();
-        osc.frequency.value = previousFrequencyOfset;
-        var endTime = startTime+pointSonificationLength;
-        // console.log("start time ",startTime);
-        // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
-        // osc.setPeriodicWave(wave);
-        osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
-        // console.log(osc.frequency.value);
-        // console.log(audioCtx.currentTime);
-        osc.connect(audioCtx.destination);
-        osc.start(startTime)
-        // console.log("started");
-        osc.stop(endTime);
-        // console.log("stopping");
-        // console.log(audioCtx.currentTime);
-        startTime = endTime;
-        previousFrequencyOfset = frequencyOfset;
-
-      }
-
-}
-
-
 
 
 function processData(data: { (name: string): any[]; (name: string, tuples: any): vega.View }): any {
