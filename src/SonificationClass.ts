@@ -1,13 +1,17 @@
-
-export class Sonifier { // still need to finish making this a proper singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
+import * as stream from 'stream';
+import { SampleDataGenerator } from './StreamingDataSimilator';
+export class Sonifier  { // still need to finish making this a proper singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
     protected audioCtx: AudioContext;
     protected audioCTXBaseTime:number;
+    protected isStreamInProgress:boolean;
     private constructor() {
+        // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
         let startTime = this.audioCtx.currentTime;
         
         this.audioCTXBaseTime = startTime;
+        this.isStreamInProgress = false;
     }
     public static getSonifierInstance(): Sonifier {
         if(!this.sonifierInstance)       
@@ -88,6 +92,51 @@ export class Sonifier { // still need to finish making this a proper singleton. 
 
 }
 
+// public sonifyReaderStream(readableDataStream: ReadableStream<any>) {
+//     const reader = readableDataStream.getReader();
+//     reader.read().then(function playDataPoint({done,value}): any{
+//         if(done)
+//         {
+//             console.log("stream complete");
+//             return;
+//     }
+//     console.log("received value",value);
+//     return reader.read().then(playDataPoint);
+//     })
+// }
+public sonifyReaderStream()
+{
+    const dataStream = new ReadableStream(new SampleDataGenerator());
+    const reader = dataStream.getReader();
+    var localSonifier = this;
+        reader.read().then(function playDataPoint({done,value}): any{
+            if(done)
+            {
+                    console.log("stream complete");
+                    return;
+        }
+        console.log("received value",value);
+        localSonifier.sonifyPoint(parseFloat(value)*10000)
+        return reader.read().then(playDataPoint);
+        })
+}
+    sonifyPoint(dataPoint: number) {
+        console.log("in sonify point. datapoint:",dataPoint);
+        let pointSonificationLength:number = 0.3;
+        var previousFrequencyOfset: number = 50;
+        var startTime: number = this.audioCtx.currentTime;   
+        var osc = this.audioCtx.createOscillator();
+                osc.frequency.value = previousFrequencyOfset;
+                
+        
+        var endTime = startTime + pointSonificationLength;
+        osc.frequency.linearRampToValueAtTime(dataPoint,startTime+pointSonificationLength);
+        console.log("start time to sonify datapoint",startTime)
+        console.log("end time for sonification",endTime)
+        osc.connect(this.audioCtx.destination)
+        osc.start(startTime);
+        osc.stop(endTime);
+    }
     private createBandPassFilterNode() {
         let bandPassFilterNode = this.audioCtx.createBiquadFilter();
         bandPassFilterNode.type = 'bandpass';
@@ -139,4 +188,7 @@ export class Sonifier { // still need to finish making this a proper singleton. 
         noiseNode.buffer = buffer;
         return noiseNode;
     }
+
+
+
 }

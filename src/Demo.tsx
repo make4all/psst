@@ -6,6 +6,7 @@ import { SupportedFormats } from './constents';
 import { Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
 import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
+import { Readable } from 'stream';
 export const Demo = () => {
     const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
     const [selectedFile, setSelectedFile] = useState<File>();
@@ -58,7 +59,12 @@ export const Demo = () => {
             sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
         } else if (sonificationOption == "highlightRegion"){
             sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
-        } else{
+        } else if (sonificationOption == "sonifyStream")
+        {
+            // generateRandomDataPush();
+           sonifierInstance.sonifyReaderStream()
+        }
+        else{
             throw console.error("not implemented");
             
         }
@@ -100,6 +106,7 @@ export const Demo = () => {
         <FormControlLabel value="simple" control={<Radio />} label="simple sonification" />
         <FormControlLabel value="highlightNoise" control={<Radio />} label="highlight points with noise" />
         <FormControlLabel value="highlightRegion" control={<Radio />} label="play tones for region" />
+        <FormControlLabel value="sonifyStream" control={<Radio />} label="play tones for random streaming data" />
     </RadioGroup>
     </FormControl>
     {showHighlightValueEditor&& (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>)}
@@ -118,3 +125,11 @@ export const Demo = () => {
         {isFilePicked ? (<Alert>{selectedFile?.name}</Alert>) : (<p>Please upload a CSV file </p>)}
     </div>)
 }
+function sonifyStreamingData(readableDataStream: Readable): void {
+    readableDataStream.on('data', function(chunk) {
+        console.log("reading chunk", chunk)
+    });
+}
+
+
+
