@@ -5,6 +5,7 @@ export class Sonifier  { // still need to finish making this a proper singleton.
     protected audioCtx: AudioContext;
     protected audioCTXBaseTime:number;
     protected isStreamInProgress:boolean;
+    protected previousFrequencyOfset: number;
     private constructor() {
         // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
@@ -12,6 +13,7 @@ export class Sonifier  { // still need to finish making this a proper singleton.
         
         this.audioCTXBaseTime = startTime;
         this.isStreamInProgress = false;
+        this.previousFrequencyOfset = 50;
     }
     public static getSonifierInstance(): Sonifier {
         if(!this.sonifierInstance)       
@@ -112,10 +114,13 @@ public sonifyReaderStream()
         reader.read().then(function playDataPoint({done,value}): any{
             if(done)
             {
-                    console.log("stream complete");
+                localSonifier.previousFrequencyOfset = 50;    
+                console.log("stream complete");
+                    // localSonifier.isStreamInProgress = false;
                     return;
         }
-        console.log("received value",value);
+        localSonifier.isStreamInProgress = true;
+        // console.log("received value",value);
         localSonifier.sonifyPoint(parseFloat(value)*10000)
         return reader.read().then(playDataPoint);
         })
@@ -123,19 +128,26 @@ public sonifyReaderStream()
     sonifyPoint(dataPoint: number) {
         console.log("in sonify point. datapoint:",dataPoint);
         let pointSonificationLength:number = 0.3;
-        var previousFrequencyOfset: number = 50;
+        
+        console.log("isStreamInProgress",this.isStreamInProgress)
+        if (!this.isStreamInProgress)
+        {
+            this.previousFrequencyOfset = 50;
+            this.isStreamInProgress = true
+        }
         var startTime: number = this.audioCtx.currentTime;   
         var osc = this.audioCtx.createOscillator();
-                osc.frequency.value = previousFrequencyOfset;
+                osc.frequency.value = this.previousFrequencyOfset;
                 
         
         var endTime = startTime + pointSonificationLength;
         osc.frequency.linearRampToValueAtTime(dataPoint,startTime+pointSonificationLength);
-        console.log("start time to sonify datapoint",startTime)
-        console.log("end time for sonification",endTime)
+        // console.log("start time to sonify datapoint",startTime)
+        // console.log("end time for sonification",endTime)
         osc.connect(this.audioCtx.destination)
         osc.start(startTime);
         osc.stop(endTime);
+        this.previousFrequencyOfset = dataPoint;
     }
     private createBandPassFilterNode() {
         let bandPassFilterNode = this.audioCtx.createBiquadFilter();
