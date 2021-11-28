@@ -28,40 +28,14 @@ export class Sonifier  { // still need to finish making this a proper singleton.
     
     public playSimpleTone(this: Sonifier, dummyData:number[]): void{
         console.log("playTone: sonifying data", dummyData)
-        this.previousFrequencyOfset = 50;
         
-
-        
-        
-        
-        this.startTime = this.audioCtx.currentTime;
         for (let i = 0; i < dummyData.length; i++)
           {
-            
-            var frequencyOfset = 2* dummyData[i];
-            // frequencyOfset = frequencyOfset%1000;
-            
-            console.log("frequency ofset", frequencyOfset);
-            var osc = this.audioCtx.createOscillator();
-            osc.frequency.value = this.previousFrequencyOfset;
-            this.endTime = this.startTime + this.pointSonificationLength;
-            // console.log("start time ",startTime);
-            // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
-            // osc.setPeriodicWave(wave);
-            osc.frequency.linearRampToValueAtTime(frequencyOfset,this.startTime+this.pointSonificationLength);
-            // console.log(osc.frequency.value);
-            // console.log(audioCtx.currentTime);
-            osc.connect(this.audioCtx.destination);
-            osc.start(this.startTime)
-            // console.log("started");
-            osc.stop(this.endTime);
-            // console.log("stopping");
-            // console.log(audioCtx.currentTime);
-            this.startTime = this.endTime;
-            this.previousFrequencyOfset = frequencyOfset;
-    
-          }
-    
+            var scaledDataPoint = 2* dummyData[i];
+            this.sonifyPoint(scaledDataPoint)
+            this.isStreamInProgress = true;
+        }
+        this.isStreamInProgress = false;
     }
 
     public playHighlightPointsWithNoise(this: Sonifier, dummyData:number[], highlightPoint:number): void{
@@ -130,8 +104,8 @@ public sonifyReaderStream()
         return reader.read().then(playDataPoint);
         })
 }
-    sonifyPoint(dataPoint: number) { // this method will be removed soon. Still keeping it to not brake existing streaming functionality.
-        console.log("in sonify point. datapoint:",dataPoint);
+    private sonifyPoint(dataPoint: number) { 
+    console.log("in sonify point. datapoint:",dataPoint);
 
         
         console.log("isStreamInProgress",this.isStreamInProgress)
@@ -214,12 +188,10 @@ public sonifyReaderStream()
     public SonifyPushedPoint(dataPoint:number, level:SonificationLevel){
         if(level == SonificationLevel.rude)
         throw console.error ("not implemented.");
-        this.playDatapoint(dataPoint);
+        this.sonifyPoint(dataPoint);
         
     }
-    private playDatapoint(dataPoint: number) {
-       
-    }
+    
 
 
 
