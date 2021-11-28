@@ -130,9 +130,9 @@ public sonifyReaderStream()
         return reader.read().then(playDataPoint);
         })
 }
-    sonifyPoint(dataPoint: number) {
+    sonifyPoint(dataPoint: number) { // this method will be removed soon. Still keeping it to not brake existing streaming functionality.
         console.log("in sonify point. datapoint:",dataPoint);
-        let pointSonificationLength:number = 0.3;
+
         
         console.log("isStreamInProgress",this.isStreamInProgress)
         if (!this.isStreamInProgress)
@@ -140,18 +140,23 @@ public sonifyReaderStream()
             this.previousFrequencyOfset = 50;
             this.isStreamInProgress = true
         }
-        var startTime: number = this.audioCtx.currentTime;   
+        if(this.audioCtx.currentTime < this.endTime) // method is called when a previous tone is still scheduled to play.
+        {
+            this.startTime = this.endTime;
+        } else {
+            this.startTime= this.audioCtx.currentTime;   
+        }
         var osc = this.audioCtx.createOscillator();
-                osc.frequency.value = this.previousFrequencyOfset;
+        osc.frequency.value = this.previousFrequencyOfset;
                 
         
-        var endTime = startTime + pointSonificationLength;
-        osc.frequency.linearRampToValueAtTime(dataPoint,startTime+pointSonificationLength);
+        this.endTime = this.startTime + this.pointSonificationLength;
+        osc.frequency.linearRampToValueAtTime(dataPoint,this.startTime+this.pointSonificationLength);
         // console.log("start time to sonify datapoint",startTime)
         // console.log("end time for sonification",endTime)
         osc.connect(this.audioCtx.destination)
-        osc.start(startTime);
-        osc.stop(endTime);
+        osc.start(this.startTime);
+        osc.stop(this.endTime);
         this.previousFrequencyOfset = dataPoint;
     }
     private createBandPassFilterNode() {
@@ -164,33 +169,33 @@ public sonifyReaderStream()
     public playHighlightedRegionWithTones(this: Sonifier, dummyData:number[], beginRegion:number,endRegion:number): void{
         if(beginRegion > endRegion)
         [beginRegion, endRegion] = [endRegion, beginRegion];
-        let pointSonificationLength:number = 0.3;
-        var previousFrequencyOfset: number = beginRegion;
-        var startTime: number = this.audioCtx.currentTime;
+        
+        this.previousFrequencyOfset= beginRegion;
+        this.startTime= this.audioCtx.currentTime;
         for (let i = 0; i < dummyData.length; i++)
         {
             var frequencyOfset = 2* dummyData[i];
-            var endTime = startTime + pointSonificationLength;
+            this.endTime = this.startTime + this.pointSonificationLength;
             
             if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion)
             {
                 var osc = this.audioCtx.createOscillator();
-                osc.frequency.value = previousFrequencyOfset;
-                osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
+                osc.frequency.value = this.previousFrequencyOfset;
+                osc.frequency.linearRampToValueAtTime(frequencyOfset,this.startTime+this.pointSonificationLength);
                 osc.connect(this.audioCtx.destination);
-                osc.start(startTime);
-                osc.stop(endTime);
+                osc.start(this.startTime);
+                osc.stop(this.endTime);
 
             
             } else {
                 let noiseNode = this.createNoiseBufferNode();
                 let bandPassFilterNode = this.createBandPassFilterNode();                
                 noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
-                noiseNode.start(startTime)
-                noiseNode.stop(endTime)
+                noiseNode.start(this.startTime)
+                noiseNode.stop(this.endTime)
             }
-            startTime = endTime;
-            previousFrequencyOfset = frequencyOfset;            
+            this.startTime = this.endTime;
+            this.previousFrequencyOfset = frequencyOfset;            
         }
     }
     
