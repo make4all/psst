@@ -1,7 +1,19 @@
 import * as stream from 'stream';
-import { SonificationLevel } from './constents';
+// import { SonificationLevel } from './constents';
+import { AudioQueue } from './sonificationUtils';
 import { SampleDataGenerator } from './StreamingDataSimilator';
-export class Sonifier  { // still need to finish making this a proper singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
+//move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building. 
+export enum SonificationLevel // similating aria-live ="polite","rude", etc. for sonification
+    {
+        polite, //does not interrupt previously sonifying data.
+        rude // cancels all current sonifications and plays the current point
+    }
+    enum SonificationType{
+        Tone, // plays tone
+        Noise, // plays noise
+        NoiseHighlight // plays both tone and noise for a point
+    }
+export class Sonifier  { // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
     protected audioCtx: AudioContext;
     protected startTime:number;
@@ -9,16 +21,18 @@ export class Sonifier  { // still need to finish making this a proper singleton.
     protected isStreamInProgress:boolean;
     protected previousFrequencyOfset: number;
     protected pointSonificationLength:number;
+    protected audioQueue:AudioQueue;
+    protected priority: SonificationLevel;
     private constructor() {
         // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
         this.startTime = this.audioCtx.currentTime;
         this.endTime = this.startTime;
-        
-        
+        this.audioQueue = new AudioQueue();
         this.isStreamInProgress = false;
         this.previousFrequencyOfset = 50;
         this.pointSonificationLength = 0.3;
+        this.priority = SonificationLevel.polite;
     }
     public static getSonifierInstance(): Sonifier {
         if(!this.sonifierInstance)       
@@ -39,39 +53,30 @@ export class Sonifier  { // still need to finish making this a proper singleton.
     }
 
     public playHighlightPointsWithNoise(this: Sonifier, dummyData:number[], highlightPoint:number): void{
-        this.previousFrequencyOfset= 50;
-        this.startTime = this.audioCtx.currentTime;
         for (let i = 0; i < dummyData.length; i++)
           {
-            
-            var frequencyOfset = 2* dummyData[i];
-            // frequencyOfset = frequencyOfset%1000;
+          let frequencyOfset:number = 2* dummyData[i];        // frequencyOfset = frequencyOfset%1000;
             
             console.log("frequency ofset", frequencyOfset);
-            var osc = this.audioCtx.createOscillator();
-            osc.frequency.value = this.previousFrequencyOfset;
-            let noiseNode = this.createNoiseBufferNode();
-
-            let bandPassFilterNode = this.createBandPassFilterNode();
-             this.endTime = this.startTime + this.pointSonificationLength;
-            osc.frequency.linearRampToValueAtTime(frequencyOfset,this.startTime+this.pointSonificationLength);
-            osc.connect(this.audioCtx.destination);
-            osc.start(this.startTime);
-            osc.stop(this.endTime);
             if(dummyData[i] == highlightPoint)
             {
-                noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
-                noiseNode.start(this.startTime)
-                noiseNode.stop(this.endTime)
+                this.sonifyPoint(frequencyOfset,SonificationLevel.polite,SonificationType.NoiseHighlight)
+            } else {
+                this.sonifyPoint(frequencyOfset)
             }
-            this.startTime = this.endTime;
-            this.previousFrequencyOfset = frequencyOfset;
+            this.isStreamInProgress = true;
     
           }
-    
-   
-
+this.isStreamInProgress = false;     
 }
+
+    private scheduleNoiseNode() {
+        let noiseNode = this.createNoiseBufferNode();
+        let bandPassFilterNode = this.createBandPassFilterNode();
+        noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
+        noiseNode.start(this.startTime);
+        noiseNode.stop(this.endTime);
+    }
 
 // public sonifyReaderStream(readableDataStream: ReadableStream<any>) {
 //     const reader = readableDataStream.getReader();
@@ -95,7 +100,7 @@ public sonifyReaderStream()
             {
                 localSonifier.previousFrequencyOfset = 50;    
                 console.log("stream complete");
-                    // localSonifier.isStreamInProgress = false;
+                    localSonifier.isStreamInProgress = false;
                     return;
         }
         localSonifier.isStreamInProgress = true;
@@ -104,35 +109,60 @@ public sonifyReaderStream()
         return reader.read().then(playDataPoint);
         })
 }
-    private sonifyPoint(dataPoint: number) { 
+    private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
     console.log("in sonify point. datapoint:",dataPoint);
 
         
         console.log("isStreamInProgress",this.isStreamInProgress)
-        if (!this.isStreamInProgress)
+        if(priority == SonificationLevel.rude && this.priority != SonificationLevel.rude)
+        {
+            this.audioQueue.emptyAudioQueue();
+            this.startTime = this.audioCtx.currentTime;
+            this.endTime = this.startTime;
+        }
+        if (!this.isStreamInProgress )
         {
             this.previousFrequencyOfset = 50;
+            this.audioQueue.emptyAudioQueue();
             this.isStreamInProgress = true
         }
         if(this.audioCtx.currentTime < this.endTime) // method is called when a previous tone is still scheduled to play.
         {
             this.startTime = this.endTime;
         } else {
+            this.audioQueue.emptyAudioQueue();
             this.startTime= this.audioCtx.currentTime;   
         }
-        var osc = this.audioCtx.createOscillator();
-        osc.frequency.value = this.previousFrequencyOfset;
-                
-        
         this.endTime = this.startTime + this.pointSonificationLength;
-        osc.frequency.linearRampToValueAtTime(dataPoint,this.startTime+this.pointSonificationLength);
-        // console.log("start time to sonify datapoint",startTime)
-        // console.log("end time for sonification",endTime)
-        osc.connect(this.audioCtx.destination)
-        osc.start(this.startTime);
-        osc.stop(this.endTime);
+        this.priority = priority; // to keep track of priority of previous point
+        if(sonificationType == SonificationType.Tone)
+        {
+            this.scheduleOscilatorNode(dataPoint);
+        }
+        else if (sonificationType == SonificationType.Noise)
+            {
+            this.scheduleNoiseNode()
+        }
+        else if(sonificationType == SonificationType.NoiseHighlight)
+        {
+            this.scheduleNoiseNode()
+            this.scheduleOscilatorNode(dataPoint)
+        } else{
+            throw new Error("not implemented.")
+        }
+
         this.previousFrequencyOfset = dataPoint;
     }
+    private scheduleOscilatorNode(dataPoint: number) {
+        var osc = this.audioCtx.createOscillator();
+        osc.frequency.value = this.previousFrequencyOfset;
+        osc.frequency.linearRampToValueAtTime(dataPoint, this.startTime + this.pointSonificationLength);
+        osc.connect(this.audioCtx.destination);
+        osc.start(this.startTime);
+        osc.stop(this.endTime);
+        this.audioQueue.enqueue(osc);
+    }
+
     private createBandPassFilterNode() {
         let bandPassFilterNode = this.audioCtx.createBiquadFilter();
         bandPassFilterNode.type = 'bandpass';
@@ -144,33 +174,19 @@ public sonifyReaderStream()
         if(beginRegion > endRegion)
         [beginRegion, endRegion] = [endRegion, beginRegion];
         
-        this.previousFrequencyOfset= beginRegion;
-        this.startTime= this.audioCtx.currentTime;
+        
         for (let i = 0; i < dummyData.length; i++)
         {
             var frequencyOfset = 2* dummyData[i];
-            this.endTime = this.startTime + this.pointSonificationLength;
-            
             if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion)
             {
-                var osc = this.audioCtx.createOscillator();
-                osc.frequency.value = this.previousFrequencyOfset;
-                osc.frequency.linearRampToValueAtTime(frequencyOfset,this.startTime+this.pointSonificationLength);
-                osc.connect(this.audioCtx.destination);
-                osc.start(this.startTime);
-                osc.stop(this.endTime);
-
-            
+                this.sonifyPoint(frequencyOfset)
             } else {
-                let noiseNode = this.createNoiseBufferNode();
-                let bandPassFilterNode = this.createBandPassFilterNode();                
-                noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
-                noiseNode.start(this.startTime)
-                noiseNode.stop(this.endTime)
+                this.sonifyPoint(frequencyOfset,SonificationLevel.polite,SonificationType.Noise)
             }
-            this.startTime = this.endTime;
-            this.previousFrequencyOfset = frequencyOfset;            
+            this.isStreamInProgress = true;
         }
+    this.isStreamInProgress = false;
     }
     
     private createNoiseBufferNode(): AudioBufferSourceNode {
@@ -186,9 +202,7 @@ public sonifyReaderStream()
     }
 
     public SonifyPushedPoint(dataPoint:number, level:SonificationLevel){
-        if(level == SonificationLevel.rude)
-        throw console.error ("not implemented.");
-        this.sonifyPoint(dataPoint);
+        this.sonifyPoint(2*dataPoint,level);
         
     }
     
