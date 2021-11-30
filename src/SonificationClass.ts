@@ -74,6 +74,8 @@ this.isStreamInProgress = false;
         noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
         noiseNode.start(this.startTime);
         noiseNode.stop(this.endTime);
+        this.audioQueue.enqueue(noiseNode)
+        // this.audioQueue.enqueue(bandPassFilterNode)
     }
     private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
     console.log("in sonify point. datapoint:",dataPoint);
