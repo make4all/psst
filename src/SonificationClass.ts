@@ -1,7 +1,5 @@
-import * as stream from 'stream';
 // import { SonificationLevel } from './constents';
 import { AudioQueue } from './sonificationUtils';
-import { SampleDataGenerator } from './StreamingDataSimilator';
 //move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building. 
 export enum SonificationLevel // similating aria-live ="polite","rude", etc. for sonification
     {
@@ -77,38 +75,6 @@ this.isStreamInProgress = false;
         noiseNode.start(this.startTime);
         noiseNode.stop(this.endTime);
     }
-
-// public sonifyReaderStream(readableDataStream: ReadableStream<any>) {
-//     const reader = readableDataStream.getReader();
-//     reader.read().then(function playDataPoint({done,value}): any{
-//         if(done)
-//         {
-//             console.log("stream complete");
-//             return;
-//     }
-//     console.log("received value",value);
-//     return reader.read().then(playDataPoint);
-//     })
-// }
-public sonifyReaderStream()
-{
-    const dataStream = new ReadableStream(new SampleDataGenerator());
-    const reader = dataStream.getReader();
-    var localSonifier = this;
-        reader.read().then(function playDataPoint({done,value}): any{
-            if(done)
-            {
-                localSonifier.previousFrequencyOfset = 50;    
-                console.log("stream complete");
-                    localSonifier.isStreamInProgress = false;
-                    return;
-        }
-        localSonifier.isStreamInProgress = true;
-        // console.log("received value",value);
-        localSonifier.sonifyPoint(parseFloat(value)*10000)
-        return reader.read().then(playDataPoint);
-        })
-}
     private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
     console.log("in sonify point. datapoint:",dataPoint);
 

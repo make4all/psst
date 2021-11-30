@@ -59,14 +59,8 @@ export const Demo = () => {
             sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
         } else if (sonificationOption == "highlightRegion"){
             sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
-        } else if (sonificationOption == "sonifyStream")
-        {
-            // generateRandomDataPush();
-           sonifierInstance.sonifyReaderStream()
-        }
-        else{
+        }         else{
             throw console.error("not implemented");
-            
         }
     }
     }
@@ -117,8 +111,7 @@ export const Demo = () => {
         <FormControlLabel value="simple" control={<Radio />} label="simple sonification" />
         <FormControlLabel value="highlightNoise" control={<Radio />} label="highlight points with noise" />
         <FormControlLabel value="highlightRegion" control={<Radio />} label="play tones for region" />
-        <FormControlLabel value="sonifyStream" control={<Radio />} label="play tones for random streaming data" />
-    </RadioGroup>
+        </RadioGroup>
     </FormControl>
     {showHighlightValueEditor&& (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>)}
     {showRegionValueEditors && (<textarea value={beginRegion}onChange = {handelBeginRegionChange}/>)}
@@ -127,22 +120,5 @@ export const Demo = () => {
         <button onClick={playButtonHandeler}>play</button>
         <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
         <button onClick={handelPushRudeData}>interrupt with random data</button>
-        <input type="file" name="file" accept = "csv" onChange={(e) => {
-            if(e.target.files && e.target.files[0].name   )
-            setSelectedFile(e.target.files[0]);
-            setFileName(selectedFile?.name)
-            setIsFilePicked(true)
-            var rawData = parseInput(fileName,SupportedFormats.CSV);
-
-        }} />
-        {isFilePicked ? (<Alert>{selectedFile?.name}</Alert>) : (<p>Please upload a CSV file </p>)}
-    </div>)
+            </div>)
 }
-function sonifyStreamingData(readableDataStream: Readable): void {
-    readableDataStream.on('data', function(chunk) {
-        console.log("reading chunk", chunk)
-    });
-}
-
-
-
