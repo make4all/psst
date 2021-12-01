@@ -25,16 +25,21 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
 
     public render() {
         const { rows, columns } = this.state;
+        const loaded = rows && columns;
         console.log(columns);
 
         return (
             <div style={{ height: 500, width: '100%' }} aria-live="polite">
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    pageSize={10}
-                    rowsPerPageOptions={[10, 25, 50, 100]}
-                    />
+                {
+                    loaded && 
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        pageSize={10}
+                        rowsPerPageOptions={[10, 25, 50, 100]}
+                        />
+                }
+                
             </div>
         );
     }
@@ -48,4 +53,3 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
         this.setState({ columns, rows });
     }
 }
-

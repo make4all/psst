@@ -50,9 +50,9 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                 break;
             case "file":
                 inputElement = (
-                    <label htmlFor="input-upload-file" aria-label="Dropzone for file upload">
+                    <label htmlFor="input-upload-file" aria-label="Choose file">
                         <Box component="div" sx={{ p: 2, border: '2px dashed #aaa' }}>
-                            <Button component="label" aria-label="Button for file upload">
+                            <Button component="label">
                                 Upload
                                 <Input
                                     style={{ display: 'none' }}
