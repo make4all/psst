@@ -25,7 +25,7 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
 
     public render() {
         const { rows, columns } = this.state;
-        const loaded = rows && columns;
+        const loaded = rows.length > 0 && columns.length > 0;
         console.log(columns);
 
         return (
@@ -35,8 +35,6 @@ export class DataView extends React.Component<DataViewProps, DataViewState> {
                     <DataGrid
                         rows={rows}
                         columns={columns}
-                        pageSize={10}
-                        rowsPerPageOptions={[10, 25, 50, 100]}
                         />
                 }
                 

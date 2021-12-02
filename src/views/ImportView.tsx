@@ -1,12 +1,19 @@
 import React from 'react';
 
-import { Button, Box, CardContent, Chip, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText } from '@mui/material';
-import { ContentPaste, UploadFile, Link } from '@mui/icons-material';
+import { Button, Box, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText, Select, SelectChangeEvent, MenuItem } from '@mui/material';
+import { ContentPaste, UploadFile, Link, ListAlt } from '@mui/icons-material';
 
 import { DataManager } from '../DataManager';
 
+const EXAMPLE_LIST = [
+    {fileName: 'sawtooth_wave.csv', displayName: 'Sawtooth Wave'},
+    {fileName: 'sine_wave.csv', displayName: 'Sine Wave'},
+    {fileName: 'square_wave.csv', displayName: 'Square Wave'},
+];
+
 export interface ImportViewState {
     importType: string;
+    exampleValue: string;
 };
 
 export interface ImportViewProps {
@@ -14,27 +21,51 @@ export interface ImportViewProps {
 };
 
 export class ImportView extends React.Component<ImportViewProps, ImportViewState> {
+    private _selectExample: React.RefObject<HTMLDivElement>;
     private _textArea : React.RefObject<HTMLTextAreaElement>;
     private _inputFile: React.RefObject<HTMLInputElement>;
     private _textField: React.RefObject<HTMLDivElement>;
-
+    
     constructor(props: ImportViewProps) {
         super(props);
         this.state = {
-            importType: 'paste',
+            importType: 'example',
+            exampleValue: EXAMPLE_LIST[0].fileName,
         };
 
+        this._selectExample = React.createRef();
         this._textArea = React.createRef();
         this._inputFile = React.createRef();
         this._textField = React.createRef();
     }
 
     public render() {
-        let {importType} = this.state;
+        let { importType, exampleValue } = this.state;
 
         let inputElement, headerText, bodyText;
 
         switch (importType) {
+            case "example":
+                inputElement = (
+                    <FormControl>
+                        <InputLabel id="example-data-label">Example Data</InputLabel>
+                        <Select
+                            ref={ this._selectExample }
+                            aria-label="Choose example data"
+                            label="Example Data"
+                            labelId="example-data-label"
+                            placeholder="Enter data here"
+                            value={ exampleValue }
+                            onChange={ this._handleExampleChange }
+                            >
+                            {EXAMPLE_LIST.map( e => (<MenuItem value={ e.fileName } key={ e.fileName }>{ e.displayName }</MenuItem>))}
+                        </Select>
+                    </FormControl>
+                    
+                );
+                headerText = 'Choose from example data';
+                bodyText = 'Choose an example data file from the provided list.'
+                break;
             case "paste":
                 inputElement = (
                     <TextareaAutosize
@@ -90,6 +121,10 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                 <Grid container spacing={2}>
                     <Grid item xs={4} sm={3} md={2}>
                         <ToggleButtonGroup orientation="vertical" value={importType} onChange={this._handleImportTypeChange} exclusive>
+                            <ToggleButton value="example">
+                                <ListAlt />
+                                <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Choose from example data</span>
+                            </ToggleButton>
                             <ToggleButton value="paste">
                                 <ContentPaste />
                                 <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Copy & paste data table</span>
@@ -105,7 +140,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                         </ToggleButtonGroup>
                     </Grid>
                     <Grid item xs={8} sm={9} md={8}>
-                        <div aria-live="polite">
+                        <div>
                             <Stack spacing={1}>
                                 <Typography variant="h6" color="text.secondary">
                                     { headerText }
@@ -135,6 +170,9 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
 
     private _handleClickContinue = (event: React.MouseEvent<HTMLElement>) => {
         switch(this.state.importType) {
+            case "example":
+            case "file":
+                    break;
             case "paste":
                 if (this._textArea && this._textArea.current) {
                     let text = this._textArea.current.value.trim();
@@ -163,6 +201,13 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
             let file: File = target.files[0];
             DataManager.getInstance().loadDataFromFile(file);
         }
+    }
+
+    private _handleExampleChange = (event: SelectChangeEvent) => {
+        let exampleValue = event.target.value;
+        this.setState({ exampleValue });
+        let url = `./data/${exampleValue}`
+        DataManager.getInstance().loadDataFromUrl(url);
     }
 
     private _handleImportTypeChange = (event: React.MouseEvent<HTMLElement>, importType: string) => {
