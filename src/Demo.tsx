@@ -1,13 +1,13 @@
-import { Alert } from '@material-ui/lab'; // using alerts for quick debugging. going to the console for everything is too many key presses!
-import React, { useState } from 'react'
-import { hello} from './sonification'
+import React, { useState } from 'react';
+import { hello} from './sonification';
 
 import { SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
 import { Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
+import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { DataManager } from './DataManager';
 
 export const Demo = () => {
     const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
@@ -43,29 +43,38 @@ export const Demo = () => {
       }
 
     const playButtonHandeler = () => {
-        var data: number[] = []
-        var dataText: string[] = editorText.split(',')
-        console.log("sonificationOption when play button handeler is entered",sonificationOption)
+        // var data: number[] = []
+        // var dataText: string[] = editorText.split(',')
+        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
 
-        for (let i = 0; i < dataText.length; i++) {
-            data.push(parseInt(dataText[i]))
-        }
-        let sonifierInstance  = Sonifier.getSonifierInstance();
-        if(sonifierInstance)
-            {
+        // for (let i = 0; i < dataText.length; i++) {
+        //     data.push(parseInt(dataText[i]))
+        // }
+
+        let table = DataManager.getInstance().table;
+        if (table) {
+            let sonifierInstance  = Sonifier.getSonifierInstance();
+            if(sonifierInstance) {
+                console.log(table.columns());
+                let data = table.columns()['Value'].data;
+        
+                console.log(data);
                 console.log("sonifier instance is present")
                 if(sonificationOption == "simple"){
                     console.log("playing simple tone")  
                     sonifierInstance.playSimpleTone(data)
-        } else if (sonificationOption == "highlightNoise"){
-            sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
-        } else if (sonificationOption == "highlightRegion"){
-            sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
-        } else{
-            throw console.error("not implemented");
-            
+                } else if (sonificationOption == "highlightNoise"){
+                    sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
+                } else if (sonificationOption == "highlightRegion"){
+                    sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
+                } else{
+                    throw console.error("not implemented");
+                    
+                }
+            }
         }
-    }
+
+        
     }
     const handleSonificationSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log("changed selection of sonification type", event.target.value)

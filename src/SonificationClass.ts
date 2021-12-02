@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 
 export class Sonifier { // still need to finish making this a proper singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
@@ -16,27 +17,34 @@ export class Sonifier { // still need to finish making this a proper singleton. 
     }
     
     public playSimpleTone(this: Sonifier, dummyData:number[]): void{
-        console.log("playTone: sonifying data", dummyData)
+        console.log("playTone: sonifying data", dummyData);
         
 
         
         let pointSonificationLength:number = 0.3;
         var previousFrequencyOfset: number = 50;
         var startTime: number = this.audioCtx.currentTime;
+
+        let frequencyExtent = [16, 1e3];
+        let dataExtent = d3.extent(dummyData);
+
+        // -10 to 10
+
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
         for (let i = 0; i < dummyData.length; i++)
           {
             
-            var frequencyOfset = 2* dummyData[i];
+            var frequencyOffset = frequencyScale(dummyData[i]);
             // frequencyOfset = frequencyOfset%1000;
             
-            console.log("frequency ofset", frequencyOfset);
+            console.log("frequency offset", frequencyOffset);
             var osc = this.audioCtx.createOscillator();
             osc.frequency.value = previousFrequencyOfset;
             var endTime = startTime + pointSonificationLength;
             // console.log("start time ",startTime);
             // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
             // osc.setPeriodicWave(wave);
-            osc.frequency.linearRampToValueAtTime(frequencyOfset,startTime+pointSonificationLength);
+            osc.frequency.linearRampToValueAtTime(frequencyOffset,startTime+pointSonificationLength);
             // console.log(osc.frequency.value);
             // console.log(audioCtx.currentTime);
             osc.connect(this.audioCtx.destination);
@@ -46,7 +54,7 @@ export class Sonifier { // still need to finish making this a proper singleton. 
             // console.log("stopping");
             // console.log(audioCtx.currentTime);
             startTime = endTime;
-            previousFrequencyOfset = frequencyOfset;
+            previousFrequencyOfset = frequencyOffset;
     
           }
     
