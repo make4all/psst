@@ -3,9 +3,10 @@ import React, { useState } from 'react'
 import { hello} from './sonification'
 
 import { SupportedFormats } from './constents';
-import { Sonifier } from './SonificationClass';
+import { SonificationLevel, Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
 import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
+import { Readable } from 'stream';
 export const Demo = () => {
     const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
     const [selectedFile, setSelectedFile] = useState<File>();
@@ -58,11 +59,21 @@ export const Demo = () => {
             sonifierInstance.playHighlightPointsWithNoise(data,highlightPoint)
         } else if (sonificationOption == "highlightRegion"){
             sonifierInstance.playHighlightedRegionWithTones(data,beginRegion,endRegion)
-        } else{
+        }         else{
             throw console.error("not implemented");
-            
         }
     }
+    }
+    const handelPushRudeData = () => {
+        let sonifierInstance  = Sonifier.getSonifierInstance();
+        if(sonifierInstance)
+        {
+        for(let i=0;i<5;i++) {
+                let dataPoint:number = Math.random()
+                dataPoint = dataPoint*10000;
+                sonifierInstance.SonifyPushedPoint(dataPoint,SonificationLevel.rude)
+            }
+        }
     }
     const handleSonificationSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log("changed selection of sonification type", event.target.value)
@@ -100,21 +111,14 @@ export const Demo = () => {
         <FormControlLabel value="simple" control={<Radio />} label="simple sonification" />
         <FormControlLabel value="highlightNoise" control={<Radio />} label="highlight points with noise" />
         <FormControlLabel value="highlightRegion" control={<Radio />} label="play tones for region" />
-    </RadioGroup>
+        </RadioGroup>
     </FormControl>
     {showHighlightValueEditor&& (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>)}
     {showRegionValueEditors && (<textarea value={beginRegion}onChange = {handelBeginRegionChange}/>)}
     {showRegionValueEditors && (<textarea value={endRegion}onChange = {handelEndRegionChange}/>)}
     { !showHighlightValueEditor && !showRegionValueEditors && (<p> press play to hear a simple sonification</p>)}
         <button onClick={playButtonHandeler}>play</button>
-        <input type="file" name="file" accept = "csv" onChange={(e) => {
-            if(e.target.files && e.target.files[0].name   )
-            setSelectedFile(e.target.files[0]);
-            setFileName(selectedFile?.name)
-            setIsFilePicked(true)
-            var rawData = parseInput(fileName,SupportedFormats.CSV);
-
-        }} />
-        {isFilePicked ? (<Alert>{selectedFile?.name}</Alert>) : (<p>Please upload a CSV file </p>)}
-    </div>)
+        <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
+        <button onClick={handelPushRudeData}>interrupt with random data</button>
+            </div>)
 }
