@@ -1,7 +1,6 @@
 
 import * as d3 from 'd3';
 
-// import { SonificationLevel } from './constents';
 import { AudioQueue } from './sonificationUtils';
 //move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building. 
 export enum SonificationLevel // similating aria-live ="polite","rude", etc. for sonification
@@ -51,38 +50,10 @@ export class Sonifier  { // This is a singleton. need to create an interface and
         let frequencyExtent = [16, 1e3];
         let dataExtent = d3.extent(dummyData);
 
-        // -10 to 10
-
         let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
-        for (let i = 0; i < dummyData.length; i++)
-          {
-            
-            var frequencyOffset = frequencyScale(dummyData[i]);
-            // frequencyOfset = frequencyOfset%1000;
-            
-            console.log("frequency offset", frequencyOffset);
-            var osc = this.audioCtx.createOscillator();
-            osc.frequency.value = previousFrequencyOfset;
-            var endTime = startTime + pointSonificationLength;
-            // console.log("start time ",startTime);
-            // const wave = audioCtx.createPeriodicWave(wavetable.real, wavetable.imag); //keeping this line for future reference if we wish to use custom wavetables.
-            // osc.setPeriodicWave(wave);
-            osc.frequency.linearRampToValueAtTime(frequencyOffset,startTime+pointSonificationLength);
-            // console.log(osc.frequency.value);
-            // console.log(audioCtx.currentTime);
-            osc.connect(this.audioCtx.destination);
-            osc.start(startTime)
-            // console.log("started");
-            osc.stop(endTime);
-            // console.log("stopping");
-            // console.log(audioCtx.currentTime);
-            startTime = endTime;
-            previousFrequencyOfset = frequencyOffset;
-    
-          }
-        for (let i = 0; i < dummyData.length; i++)
-          {
-            var scaledDataPoint = 2* dummyData[i];
+
+        for (let i = 0; i < dummyData.length; i++) {
+            var scaledDataPoint = frequencyScale(dummyData[i]);
             this.sonifyPoint(scaledDataPoint)
             this.isStreamInProgress = true;
         }
@@ -90,22 +61,25 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     }
 
     public playHighlightPointsWithNoise(this: Sonifier, dummyData:number[], highlightPoint:number): void{
-        for (let i = 0; i < dummyData.length; i++)
-          {
-          let frequencyOfset:number = 2* dummyData[i];        // frequencyOfset = frequencyOfset%1000;
+        let frequencyExtent = [16, 1e3];
+        let dataExtent = d3.extent(dummyData);
+
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
+        
+        for (let i = 0; i < dummyData.length; i++) {
+          let frequencyOffset:number = frequencyScale(dummyData[i]);        // frequencyOfset = frequencyOfset%1000;
             
-            console.log("frequency ofset", frequencyOfset);
-            if(dummyData[i] == highlightPoint)
-            {
-                this.sonifyPoint(frequencyOfset,SonificationLevel.polite,SonificationType.NoiseHighlight)
+            console.log("frequency ofset", frequencyOffset);
+            if(dummyData[i] == highlightPoint) {
+                this.sonifyPoint(frequencyOffset,SonificationLevel.polite,SonificationType.NoiseHighlight)
             } else {
-                this.sonifyPoint(frequencyOfset)
+                this.sonifyPoint(frequencyOffset)
             }
             this.isStreamInProgress = true;
     
-          }
-this.isStreamInProgress = false;     
-}
+        }
+        this.isStreamInProgress = false;     
+    }
 
     private scheduleNoiseNode() {
         let noiseNode = this.createNoiseBufferNode();
@@ -116,10 +90,10 @@ this.isStreamInProgress = false;
         this.audioQueue.enqueue(noiseNode)
         // this.audioQueue.enqueue(bandPassFilterNode)
     }
-    private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
-    console.log("in sonify point. datapoint:",dataPoint);
 
-        
+    private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
+        console.log("in sonify point. datapoint:",dataPoint);
+
         console.log("isStreamInProgress",this.isStreamInProgress)
         if(priority == SonificationLevel.rude && this.priority != SonificationLevel.rude)
         {
@@ -160,6 +134,7 @@ this.isStreamInProgress = false;
 
         this.previousFrequencyOfset = dataPoint;
     }
+
     private scheduleOscilatorNode(dataPoint: number) {
         var osc = this.audioCtx.createOscillator();
         osc.frequency.value = this.previousFrequencyOfset;
@@ -177,19 +152,24 @@ this.isStreamInProgress = false;
         return bandPassFilterNode;
     }
 
-    public playHighlightedRegionWithTones(this: Sonifier, dummyData:number[], beginRegion:number,endRegion:number): void{
-        if(beginRegion > endRegion)
-        [beginRegion, endRegion] = [endRegion, beginRegion];
+    public playHighlightedRegionWithTones(this: Sonifier, dummyData:number[], beginRegion:number, endRegion:number): void{
         
-        
+        if(beginRegion > endRegion) {
+            [beginRegion, endRegion] = [endRegion, beginRegion];
+        }
+
+        let frequencyExtent = [16, 1e3];
+        let dataExtent = d3.extent(dummyData);
+
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
+
         for (let i = 0; i < dummyData.length; i++)
         {
-            var frequencyOfset = 2* dummyData[i];
-            if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion)
-            {
-                this.sonifyPoint(frequencyOfset)
+            var frequencyOffset = frequencyScale(dummyData[i]);
+            if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
+                this.sonifyPoint(frequencyOffset);
             } else {
-                this.sonifyPoint(frequencyOfset,SonificationLevel.polite,SonificationType.Noise)
+                this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.Noise);
             }
             this.isStreamInProgress = true;
         }
@@ -213,7 +193,4 @@ this.isStreamInProgress = false;
         
     }
     
-
-
-
 }
