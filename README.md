@@ -26,6 +26,10 @@ Runs the mocha test suite
 
 Start a compile watch of the library build and tests for iterative development.
 
+## yarn pretify
+
+Run Prietter and format source files.
+
 ## bundling
 
 Run yarn bundle to generate the bundles for the npm package.
