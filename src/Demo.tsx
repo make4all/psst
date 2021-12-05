@@ -19,6 +19,7 @@ export const Demo = () => {
     const [highlightPoint, setHighlightPoint] = useState(500)
     const [beginRegion, setBeginRegion] = useState(300)
     const [endRegion, setEndRegion] = useState(500)
+    const [playButtonLabel, setPlayButtonLabel] = useState("play")
      
     const handleEditorChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (event.target.value)

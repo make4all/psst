@@ -11,6 +11,12 @@ export enum SonificationLevel // similating aria-live ="polite","rude", etc. for
         Noise, // plays noise
         NoiseHighlight // plays both tone and noise for a point
     }
+
+    export enum PlayBackState { // different states of the audio context.
+        Playing,
+        Paused, //when the context is suspended
+        Stopped //when playback ends. We can close the context once playback stops in a different iteration.
+    }
 export class Sonifier  { // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
     protected audioCtx: AudioContext;
@@ -21,6 +27,11 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     protected pointSonificationLength:number;
     protected audioQueue:AudioQueue;
     protected priority: SonificationLevel;
+    protected didNodesFinishPlaying:boolean;
+    private _playBackState: PlayBackState;
+    public get playBackState(): PlayBackState {
+        return this._playBackState;
+    }
     private constructor() {
         // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
@@ -31,6 +42,8 @@ export class Sonifier  { // This is a singleton. need to create an interface and
         this.previousFrequencyOfset = 50;
         this.pointSonificationLength = 0.3;
         this.priority = SonificationLevel.polite;
+        this._playBackState = PlayBackState.Stopped;
+        this.didNodesFinishPlaying = true;
     }
     public static getSonifierInstance(): Sonifier {
         if(!this.sonifierInstance)       
@@ -125,6 +138,7 @@ this.isStreamInProgress = false;
         var osc = this.audioCtx.createOscillator();
         osc.frequency.value = this.previousFrequencyOfset;
         osc.frequency.linearRampToValueAtTime(dataPoint, this.startTime + this.pointSonificationLength);
+        osc.onended = this.handelOnEnded;
         osc.connect(this.audioCtx.destination);
         osc.start(this.startTime);
         osc.stop(this.endTime);
@@ -174,7 +188,13 @@ this.isStreamInProgress = false;
         
     }
     
-
+private handelOnEnded() {
+    if(this.audioCtx.currentTime >= this.endTime) { // This is the last node.
+        this._playBackState = PlayBackState.Stopped;
+    } else{
+        this._playBackState = PlayBackState.Playing;
+    }
+}
 
 
 }
