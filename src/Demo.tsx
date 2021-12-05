@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { hello} from './sonification'
 
 import { SupportedFormats } from './constents';
-import { SonificationLevel, Sonifier } from './SonificationClass';
+import { PlayBackState, SonificationLevel, Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
 import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
 import { Readable } from 'stream';
@@ -44,7 +44,7 @@ export const Demo = () => {
     const playButtonHandeler = () => {
         var data: number[] = []
         var dataText: string[] = editorText.split(',')
-        console.log("sonificationOption when play button handeler is entered",sonificationOption)
+        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
 
         for (let i = 0; i < dataText.length; i++) {
             data.push(parseInt(dataText[i]))
@@ -53,6 +53,12 @@ export const Demo = () => {
         if(sonifierInstance)
             {
                 console.log("sonifier instance is present")
+                sonifierInstance.onPlaybackStateChanged = handelPlaybackStateChanged;
+                if(sonifierInstance.playBackState == PlayBackState.Paused)
+                {
+                    sonifierInstance.pauseToggle();
+                    return;
+                }
                 if(sonificationOption == "simple"){
                     console.log("playing simple tone")  
                     sonifierInstance.playSimpleTone(data)
@@ -102,6 +108,15 @@ export const Demo = () => {
     setSonificationOption(event.target.value)
     }
 
+    const handelPlaybackStateChanged =  (e:PlayBackState) => {
+        if(e == PlayBackState.Playing)
+        setPlayButtonLabel("pause");
+        else if(e == PlayBackState.Paused)
+        setPlayButtonLabel("resume")
+        else
+        setPlayButtonLabel("play");
+    } 
+
     return (<div>
         <h1> basic sonification demo</h1> {hello()}
         <textarea value={editorText}onChange={handleEditorChange}/> 
@@ -118,7 +133,7 @@ export const Demo = () => {
     {showRegionValueEditors && (<textarea value={beginRegion}onChange = {handelBeginRegionChange}/>)}
     {showRegionValueEditors && (<textarea value={endRegion}onChange = {handelEndRegionChange}/>)}
     { !showHighlightValueEditor && !showRegionValueEditors && (<p> press play to hear a simple sonification</p>)}
-        <button onClick={playButtonHandeler}>play</button>
+        <button onClick={playButtonHandeler}>{playButtonLabel}</button>
         <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
         <button onClick={handelPushRudeData}>interrupt with random data</button>
             </div>)

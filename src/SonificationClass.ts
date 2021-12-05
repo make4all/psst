@@ -15,7 +15,7 @@ export enum SonificationLevel // similating aria-live ="polite","rude", etc. for
     export enum PlayBackState { // different states of the audio context.
         Playing,
         Paused, //when the context is suspended
-        Stopped //when playback ends. We can close the context once playback stops in a different iteration.
+        Stopped //when playback ends. We can close the context once playback stops if necessary.
     }
 export class Sonifier  { // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier;
@@ -32,6 +32,7 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     public get playBackState(): PlayBackState {
         return this._playBackState;
     }
+    public onPlaybackStateChanged?: (state:PlayBackState) => void;
     private constructor() {
         // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
@@ -138,7 +139,7 @@ this.isStreamInProgress = false;
         var osc = this.audioCtx.createOscillator();
         osc.frequency.value = this.previousFrequencyOfset;
         osc.frequency.linearRampToValueAtTime(dataPoint, this.startTime + this.pointSonificationLength);
-        osc.onended = this.handelOnEnded;
+        osc.onended = () => this.handelOnEnded();
         osc.connect(this.audioCtx.destination);
         osc.start(this.startTime);
         osc.stop(this.endTime);
@@ -189,9 +190,30 @@ this.isStreamInProgress = false;
     }
     
 private handelOnEnded() {
+    // console.log("venky", this._playBackState);
+    console.log("handelPlaybackChange: audio context status", this.audioCtx.state)
+    // console.log("endTime",this.endTime);
+    // console.log("context time",this.audioCtx.currentTime);
     if(this.audioCtx.currentTime >= this.endTime) { // This is the last node.
+        console.log("playback ended");
         this._playBackState = PlayBackState.Stopped;
     } else{
+        this._playBackState = PlayBackState.Playing;
+    }
+    if(this.onPlaybackStateChanged)
+    return     this.onPlaybackStateChanged(this.playBackState);
+    
+}
+
+public pauseToggle(){
+    console.log("pauseToggle.",this.playBackState);
+    if(this.playBackState == PlayBackState.Playing && this.audioCtx.state == 'running')
+    {
+        this.audioCtx.suspend();
+        this._playBackState = PlayBackState.Paused;
+    }
+    if(this.playBackState == PlayBackState.Paused && this.audioCtx.state == 'suspended') {
+        this.audioCtx.resume();
         this._playBackState = PlayBackState.Playing;
     }
 }
