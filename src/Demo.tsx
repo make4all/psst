@@ -15,11 +15,11 @@ import { DemoSimple } from './views/demos/DemoSimple';
 import { DemoHighlightRegion } from './views/demos/DemoHighlightRegion';
 import { DemoHighlightNoise } from './views/demos/DemoHighlightNoise';
 
-const DEMO_VIEW_LIST = [
-    {value: 'simple', label: 'Simple sonification'},
-    {value: 'highlightNoise', label: 'Highlight points with noise'},
-    {value: 'highlightRegion', label: 'Highlight points for region'},
-];
+const DEMO_VIEW_MAP = {
+    simple: {value: 'simple', label: 'Simple sonification', component: DemoSimple},
+    highlightNoise: {value: 'highlightNoise', label: 'Highlight points with noise', component: DemoHighlightNoise},
+    highlightRegion: {value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion},
+};
 
 export const Demo = () => {
     const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
@@ -27,9 +27,9 @@ export const Demo = () => {
     const [isFilePicked, setIsFilePicked] = useState(false);
     
     const [fileName, setFileName] = useState<string>()
-    const [demoViewValue, setDemoViewValue] = useState <string>(DEMO_VIEW_LIST[0].value);
+    const [demoViewValue, setDemoViewValue] = useState <string>('simple');
 
-    let demoRef = React.createRef();
+    let demoRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef();
 
      
     const handleEditorChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -38,6 +38,7 @@ export const Demo = () => {
     }
 
     const playButtonHandeler = () => {
+        console.log(demoRef.current);
         // var data: number[] = []
         // var dataText: string[] = editorText.split(',')
         // console.log("sonificationOption when play button handeler is entered",sonificationOption)
@@ -72,19 +73,7 @@ export const Demo = () => {
         setDemoViewValue(event.target.value)
     }
 
-    let demoView;
-
-    switch(demoViewValue) {
-        case 'simple':
-            demoView = (<DemoSimple />);
-            break;
-        case 'highlightNoise':
-            demoView = (<DemoHighlightNoise />);
-            break;
-        case 'highlightRegion':
-            demoView = (<DemoHighlightRegion />);
-            break;
-    }
+    let DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
 
     return (
         <div>
@@ -109,10 +98,10 @@ export const Demo = () => {
                         value={ demoViewValue }
                         onChange={ handleDemoViewValueChange }
                         >
-                        {DEMO_VIEW_LIST.map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
+                        {Object.values(DEMO_VIEW_MAP).map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
                     </Select>
                 </FormControl>
-                { demoView }
+                { < DemoComponent ref={demoRef} /> }
                 <button onClick={playButtonHandeler}>play</button>
                 <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
                 <button onClick={handelPushRudeData}>interrupt with random data</button>

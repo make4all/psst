@@ -25,7 +25,11 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
 
     public onPlay = (data: any) => {
 
-    }
+    };
+
+    public onDataChange = (data: any) => {
+
+    };
 
     public render() {
         const { minValue, maxValue } = this.state;

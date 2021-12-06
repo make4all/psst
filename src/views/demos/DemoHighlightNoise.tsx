@@ -22,7 +22,11 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
 
     public onPlay = (data: any) => {
 
-    }
+    };
+
+    public onDataChange = (data: any) => {
+
+    };
 
     public render() {
         const { highlightValue } = this.state;
