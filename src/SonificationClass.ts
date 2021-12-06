@@ -53,7 +53,7 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     }
     
     public playSimpleTone(this: Sonifier, dummyData:number[]): void{
-        console.log("playTone: sonifying data", dummyData)
+        // console.log("playTone: sonifying data", dummyData)
         
         for (let i = 0; i < dummyData.length; i++)
           {
@@ -95,7 +95,7 @@ this.isStreamInProgress = false;
     console.log("in sonify point. datapoint:",dataPoint);
 
         
-        console.log("isStreamInProgress",this.isStreamInProgress)
+        // console.log("isStreamInProgress",this.isStreamInProgress)
         if(priority == SonificationLevel.rude && this.priority != SonificationLevel.rude)
         {
             this.audioQueue.emptyAudioQueue();
@@ -190,32 +190,32 @@ this.isStreamInProgress = false;
     }
     
 private handelOnEnded() {
-    // console.log("venky", this._playBackState);
-    console.log("handelPlaybackChange: audio context status", this.audioCtx.state)
-    // console.log("endTime",this.endTime);
-    // console.log("context time",this.audioCtx.currentTime);
     if(this.audioCtx.currentTime >= this.endTime) { // This is the last node.
-        console.log("playback ended");
+        console.log("playback ended. state before updation:", this.playBackState);
         this._playBackState = PlayBackState.Stopped;
     } else{
         this._playBackState = PlayBackState.Playing;
     }
+    console.log("playback state before firing onPlayBackStateChanged event",this.playBackState);
     if(this.onPlaybackStateChanged)
     return     this.onPlaybackStateChanged(this.playBackState);
     
 }
 
 public pauseToggle(){
-    console.log("pauseToggle.",this.playBackState);
     if(this.playBackState == PlayBackState.Playing && this.audioCtx.state == 'running')
     {
+        console.log("playing")
         this.audioCtx.suspend();
         this._playBackState = PlayBackState.Paused;
     }
-    if(this.playBackState == PlayBackState.Paused && this.audioCtx.state == 'suspended') {
+    else {
+        console.log("paused");
         this.audioCtx.resume();
         this._playBackState = PlayBackState.Playing;
     }
+    if(this.onPlaybackStateChanged)
+    return     this.onPlaybackStateChanged(this.playBackState);
 }
 
 

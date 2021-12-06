@@ -52,13 +52,14 @@ export const Demo = () => {
         let sonifierInstance  = Sonifier.getSonifierInstance();
         if(sonifierInstance)
             {
-                console.log("sonifier instance is present")
-                sonifierInstance.onPlaybackStateChanged = handelPlaybackStateChanged;
-                if(sonifierInstance.playBackState == PlayBackState.Paused)
+                console.log("sonifier instance is present. playback state",sonifierInstance.playBackState)
+                if(sonifierInstance.playBackState == PlayBackState.Paused || sonifierInstance.playBackState == PlayBackState.Playing)
                 {
                     sonifierInstance.pauseToggle();
                     return;
                 }
+                if(sonifierInstance.playBackState == PlayBackState.Stopped)
+                sonifierInstance.onPlaybackStateChanged = handelPlaybackStateChanged;
                 if(sonificationOption == "simple"){
                     console.log("playing simple tone")  
                     sonifierInstance.playSimpleTone(data)
@@ -109,13 +110,15 @@ export const Demo = () => {
     }
 
     const handelPlaybackStateChanged =  (e:PlayBackState) => {
+        console.log("handelPlaybackStateChanged",e)
         if(e == PlayBackState.Playing)
         setPlayButtonLabel("pause");
         else if(e == PlayBackState.Paused)
         setPlayButtonLabel("resume")
         else
         setPlayButtonLabel("play");
-    } 
+        console.log("returning. play button label",playButtonLabel);
+        } 
 
     return (<div>
         <h1> basic sonification demo</h1> {hello()}
