@@ -85,6 +85,7 @@ this.isStreamInProgress = false;
     private scheduleNoiseNode() {
         let noiseNode = this.createNoiseBufferNode();
         let bandPassFilterNode = this.createBandPassFilterNode();
+        noiseNode.onended = () => this.handelOnEnded();
         noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination);
         noiseNode.start(this.startTime);
         noiseNode.stop(this.endTime);
