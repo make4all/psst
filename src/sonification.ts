@@ -1,19 +1,20 @@
 // we are currently not using this file. The idea is to eventually replace the code here with the code from the SonificationClass.ts file.
-import * as vega from 'vega'
+import * as vega from "vega"
 
-import * as vegaEmbed from 'vega-embed'
-import { SupportedFormats, SupportedSpecs } from './constents'
-import { validateVegaSpec } from './sonificationUtils'
+import * as vegaEmbed from "vega-embed"
+import { SupportedFormats, SupportedSpecs } from "./constents"
+import { validateVegaSpec } from "./sonificationUtils"
 
-import { resourceLimits } from 'worker_threads'
+import { resourceLimits } from "worker_threads";
+
 
 //import * as tone from "tone"
 // import { View } from "vega";
 
-console.log('test2')
+console.log("test2")
 
 export function hello() {
-    return 'please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only.'
+    return "please enter comma separated numeric values in the editor and press play. Please note that we currently do not have error checking and handeling for invalid inputs so please make sure to enter comma separated numbers only."
 }
 
 // let wrongSpec: vega.Spec  =  {
@@ -63,97 +64,108 @@ let rankSpec: vega.Spec = {
                 { student: 'U', score: 21 },
                 { student: 'V', score: 46 },
             ],
-            transform: [{ type: 'filter', expr: 'datum.score > 50' }],
+            "transform": [
+                { "type": "filter", "expr": "datum.score > 50" }
+            ]
         },
     ],
 }
 
 // an other dataset. loads data from file. tried moving this also to file.
 let carSpec: vega.Spec = {
-    $schema: 'https://vega.github.io/schema/vega/v5.json',
-    width: 400,
-    height: 200,
-    padding: 5,
-
-    data: [
-        {
-            name: 'cars',
-            url: 'https://raw.githubusercontent.com/vega/vega/master/docs/data/cars.json',
-        },
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "width": 400,
+    "height": 200,
+    "padding": 5,
+  
+    "data": [
+      {
+        "name": "cars",
+        "url": "https://raw.githubusercontent.com/vega/vega/master/docs/data/cars.json"
+      }
     ],
-
-    scales: [
-        {
-            name: 'xscale',
-            domain: { data: 'cars', field: 'Acceleration' },
-            range: 'width',
-        },
-        {
-            name: 'yscale',
-            domain: { data: 'cars', field: 'Miles_per_Gallon' },
-            range: 'height',
-        },
+  
+    "scales": [
+      {
+        "name": "xscale",
+        "domain": {"data": "cars", "field": "Acceleration"},
+        "range": "width"
+      },
+      {
+        "name": "yscale",
+        "domain": {"data": "cars", "field": "Miles_per_Gallon"},
+        "range": "height"
+      }
     ],
-    axes: [
-        { orient: 'bottom', scale: 'xscale', grid: true },
-        { orient: 'left', scale: 'yscale', grid: true },
+    "axes": [
+      {"orient": "bottom", "scale": "xscale", "grid": true},
+      {"orient": "left", "scale": "yscale", "grid": true}
     ],
-    marks: [
-        {
-            type: 'symbol',
-            from: { data: 'cars' },
-            encode: {
-                enter: {
-                    x: { scale: 'xscale', field: 'Acceleration' },
-                    y: { scale: 'yscale', field: 'Miles_per_Gallon' },
-                },
-            },
-        },
-    ],
-}
-
-export function validateSpec(specType: SupportedSpecs, spec: vega.Spec): boolean {
-    // need to decide if we want to expose validation to the frontend.
-    var isValid: boolean = false
-    if (specType == SupportedSpecs.vegaSpec) {
-        // refactor to switch case when we have more specs supported.
-        try {
-            isValid = validateVegaSpec(spec) // need to change to spec. Also function always returns true.
-        } catch {
-            console.log('Validation error') // doesn't seem to enter this code block.
+    "marks": [
+      {
+        "type": "symbol",
+        "from": {"data":"cars"},
+        "encode": {
+          "enter": {
+            "x": {"scale": "xscale", "field": "Acceleration"},
+            "y": {"scale": "yscale", "field": "Miles_per_Gallon"}
+          }
         }
-    }
-    return isValid
-}
+      }
+    ]
+  }
 
-export function parseVegaSpec(spec: vega.Spec) {
-    const chart = new vega.View(vega.parse(spec), { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
-    var data
-    var dataSetName: string
-    chart.runAsync().then(() => {
-        if (spec['data']) {
-            for (let dataset of spec['data']) dataSetName = dataset['name']
-            data = chart.data(dataSetName)
-        }
-    }) // running so that the transforms happen
-    return data // todo. make sure this return happens after the promise.
-}
-// var dataSetName:string = '';
-var parsedChart = parseVegaSpec(carSpec)
-// console.log("chart.data:",carSpec['data'])
-// console.log("data",parsedChart);
-if (parsedChart) {
+  export function validateSpec(specType:SupportedSpecs, spec: vega.Spec): boolean // need to decide if we want to expose validation to the frontend.
+  {
+    var isValid:boolean = false;
+    if(specType == SupportedSpecs.vegaSpec){ // refactor to switch case when we have more specs supported.
+      try{
+        isValid = validateVegaSpec(spec) // need to change to spec. Also function always returns true.
+      } catch {
+        console.log("Validation error"); // doesn't seem to enter this code block.
+      }
+
+  }
+  return isValid;
+  }
+
+  export function  parseVegaSpec(spec: vega.Spec)
+  {
+    const chart = new vega.View(vega.parse(spec),
+    { renderer: 'none' }) // creating the vega.view object. setting renderer as none as we are not interested in viewing the output visualization.
+var data;
+var dataSetName:string; 
+chart.runAsync().then(() =>{
+  if(spec['data']){
+for (let dataset of spec['data'])
+dataSetName = dataset['name'];
+data = chart.data(dataSetName);
+  }  
+
+   } ) // running so that the transforms happen
+  return  data // todo. make sure this return happens after the promise.
+  }
+  // var dataSetName:string = '';
+  var parsedChart = parseVegaSpec(carSpec);
+  // console.log("chart.data:",carSpec['data'])
+  // console.log("data",parsedChart);
+  if(parsedChart)
+  {
     // for(var dataSet of parsedChart){
     //   console.log("dataset name",dataSet['name'])
     //   dataSetName = dataSet['name']
     //   // console.log("dataset",parsedChart.data(dataSetName))
     // }
-}
-// console.log("data set name",carSpec['data']['name'])
-// console.log("car spec data",carSpec.data)
+  }
+  // console.log("data set name",carSpec['data']['name'])
+  // console.log("car spec data",carSpec.data)
 // let vegaSpec = vega.compile(rankSpec); // compiling to vega spec.
 
 // console.log("is vega spec valid?",validateVegaSpec(carSpec));
+
+
+
+ 
 
 // console.log(chart)
 /******resolved****** 
@@ -166,7 +178,10 @@ https://github.com/kenreilly/typescript-synth-demo. We used a third-party librar
 
 //function that takes an array of numbers and sonifies them. This will evolve as we keep implementing more sonification features.
 
+
 function processData(data: { (name: string): any[]; (name: string, tuples: any): vega.View }): any {
-    // data('hello');
-    throw new Error('Function not implemented.')
+  
+  // data('hello');
+  throw new Error("Function not implemented.")
 }
+
