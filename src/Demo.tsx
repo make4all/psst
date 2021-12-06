@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { hello} from './sonification'
 
 import { SupportedFormats } from './constents';
-import { PlayBackState, SonificationLevel, Sonifier } from './SonificationClass';
+import { PlaybackState, SonificationLevel, Sonifier } from './SonificationClass';
 import { parseInput } from './sonificationUtils';
 import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@material-ui/core';
 import { Readable } from 'stream';
@@ -52,13 +52,13 @@ export const Demo = () => {
         let sonifierInstance  = Sonifier.getSonifierInstance();
         if(sonifierInstance)
             {
-                console.log("sonifier instance is present. playback state",sonifierInstance.playBackState)
-                if(sonifierInstance.playBackState == PlayBackState.Paused || sonifierInstance.playBackState == PlayBackState.Playing)
+                console.log("sonifier instance is present. playback state",sonifierInstance.playbackState)
+                if(sonifierInstance.playbackState == PlaybackState.Paused || sonifierInstance.playbackState == PlaybackState.Playing)
                 {
                     sonifierInstance.pauseToggle();
                     return;
                 }
-                if(sonifierInstance.playBackState == PlayBackState.Stopped)
+                if(sonifierInstance.playbackState == PlaybackState.Stopped)
                 sonifierInstance.onPlaybackStateChanged = handelPlaybackStateChanged;
                 if(sonificationOption == "simple"){
                     console.log("playing simple tone")  
@@ -109,11 +109,11 @@ export const Demo = () => {
     setSonificationOption(event.target.value)
     }
 
-    const handelPlaybackStateChanged =  (e:PlayBackState) => {
+    const handelPlaybackStateChanged =  (e:PlaybackState) => {
         console.log("handelPlaybackStateChanged",e)
-        if(e == PlayBackState.Playing)
+        if(e == PlaybackState.Playing)
         setPlayButtonLabel("pause");
-        else if(e == PlayBackState.Paused)
+        else if(e == PlaybackState.Paused)
         setPlayButtonLabel("resume")
         else
         setPlayButtonLabel("play");

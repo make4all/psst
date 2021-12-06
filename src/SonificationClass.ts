@@ -12,7 +12,7 @@ export enum SonificationLevel // similating aria-live ="polite","rude", etc. for
         NoiseHighlight // plays both tone and noise for a point
     }
 
-    export enum PlayBackState { // different states of the audio context.
+    export enum PlaybackState { // different states of the audio context.
         Playing,
         Paused, //when the context is suspended
         Stopped //when playback ends. We can close the context once playback stops if necessary.
@@ -28,12 +28,12 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     protected audioQueue:AudioQueue;
     protected priority: SonificationLevel;
     protected didNodesFinishPlaying:boolean;
-    private _playBackState: PlayBackState;
-    private previousPlaybackState:PlayBackState;
-    public get playBackState(): PlayBackState {
-        return this._playBackState;
+    private _playbackState: PlaybackState;
+    private previousPlaybackState:PlaybackState;
+    public get playbackState(): PlaybackState {
+        return this._playbackState;
     }
-    public onPlaybackStateChanged?: (state:PlayBackState) => void;
+    public onPlaybackStateChanged?: (state:PlaybackState) => void;
     private constructor() {
         // super()
         this.audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
@@ -44,8 +44,8 @@ export class Sonifier  { // This is a singleton. need to create an interface and
         this.previousFrequencyOfset = 50;
         this.pointSonificationLength = 0.3;
         this.priority = SonificationLevel.polite;
-        this._playBackState = PlayBackState.Stopped;
-        this.previousPlaybackState = PlayBackState.Stopped;
+        this._playbackState = PlaybackState.Stopped;
+        this.previousPlaybackState = PlaybackState.Stopped;
         this.didNodesFinishPlaying = true;
     }
     public static getSonifierInstance(): Sonifier {
@@ -93,9 +93,9 @@ this.isStreamInProgress = false;
         noiseNode.stop(this.endTime);
         this.audioQueue.enqueue(noiseNode)
         // this.audioQueue.enqueue(bandPassFilterNode)
-        if(this.playBackState == PlayBackState.Stopped)
+        if(this.playbackState == PlaybackState.Stopped)
         {
-            this._playBackState = PlayBackState.Playing;
+            this._playbackState = PlaybackState.Playing;
             this.firePlaybackStateChangedEvent();
         }
     }
@@ -152,9 +152,9 @@ this.isStreamInProgress = false;
         osc.start(this.startTime);
         osc.stop(this.endTime);
         this.audioQueue.enqueue(osc);
-        if(this.playBackState == PlayBackState.Stopped)
+        if(this.playbackState == PlaybackState.Stopped)
         {
-            this._playBackState = PlayBackState.Playing;
+            this._playbackState = PlaybackState.Playing;
             this.firePlaybackStateChangedEvent();
         }
     }
@@ -204,34 +204,34 @@ this.isStreamInProgress = false;
     
 private handelOnEnded() {
     if(this.audioCtx.currentTime >= this.endTime) { // This is the last node.
-        console.log("playback ended. state before updation:", this.playBackState);
-        this._playBackState = PlayBackState.Stopped;
+        console.log("playback ended. state before updation:", this.playbackState);
+        this._playbackState = PlaybackState.Stopped;
     } else{
-        this._playBackState = PlayBackState.Playing;
+        this._playbackState = PlaybackState.Playing;
     }
-    console.log("playback state before firing onPlayBackStateChanged event",this.playBackState);
+    console.log("playback state before firing onPlayBackStateChanged event",this.playbackState);
     this.firePlaybackStateChangedEvent();
 }
 
 public pauseToggle(){
-    if(this.playBackState == PlayBackState.Playing && this.audioCtx.state == 'running')
+    if(this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running')
     {
         console.log("playing")
         this.audioCtx.suspend();
-        this._playBackState = PlayBackState.Paused;
+        this._playbackState = PlaybackState.Paused;
     }
     else {
         console.log("paused");
         this.audioCtx.resume();
-        this._playBackState = PlayBackState.Playing;
+        this._playbackState = PlaybackState.Playing;
     }
 this.firePlaybackStateChangedEvent();
 }
 private firePlaybackStateChangedEvent() {
-    if(this.playBackState!=this.previousPlaybackState){
-        this.previousPlaybackState = this.playBackState;
+    if(this.playbackState!=this.previousPlaybackState){
+        this.previousPlaybackState = this.playbackState;
         if(this.onPlaybackStateChanged)
-        return     this.onPlaybackStateChanged(this.playBackState);
+        return     this.onPlaybackStateChanged(this.playbackState);
     }
     
 }
