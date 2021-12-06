@@ -29,6 +29,7 @@ export class Sonifier  { // This is a singleton. need to create an interface and
     protected priority: SonificationLevel;
     protected didNodesFinishPlaying:boolean;
     private _playBackState: PlayBackState;
+    private previousPlaybackState:PlayBackState;
     public get playBackState(): PlayBackState {
         return this._playBackState;
     }
@@ -44,6 +45,7 @@ export class Sonifier  { // This is a singleton. need to create an interface and
         this.pointSonificationLength = 0.3;
         this.priority = SonificationLevel.polite;
         this._playBackState = PlayBackState.Stopped;
+        this.previousPlaybackState = PlayBackState.Stopped;
         this.didNodesFinishPlaying = true;
     }
     public static getSonifierInstance(): Sonifier {
@@ -91,6 +93,11 @@ this.isStreamInProgress = false;
         noiseNode.stop(this.endTime);
         this.audioQueue.enqueue(noiseNode)
         // this.audioQueue.enqueue(bandPassFilterNode)
+        if(this.playBackState == PlayBackState.Stopped)
+        {
+            this._playBackState = PlayBackState.Playing;
+            this.firePlaybackStateChangedEvent();
+        }
     }
     private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
     console.log("in sonify point. datapoint:",dataPoint);
@@ -145,6 +152,11 @@ this.isStreamInProgress = false;
         osc.start(this.startTime);
         osc.stop(this.endTime);
         this.audioQueue.enqueue(osc);
+        if(this.playBackState == PlayBackState.Stopped)
+        {
+            this._playBackState = PlayBackState.Playing;
+            this.firePlaybackStateChangedEvent();
+        }
     }
 
     private createBandPassFilterNode() {
@@ -198,9 +210,7 @@ private handelOnEnded() {
         this._playBackState = PlayBackState.Playing;
     }
     console.log("playback state before firing onPlayBackStateChanged event",this.playBackState);
-    if(this.onPlaybackStateChanged)
-    return     this.onPlaybackStateChanged(this.playBackState);
-    
+    this.firePlaybackStateChangedEvent();
 }
 
 public pauseToggle(){
@@ -215,8 +225,15 @@ public pauseToggle(){
         this.audioCtx.resume();
         this._playBackState = PlayBackState.Playing;
     }
-    if(this.onPlaybackStateChanged)
-    return     this.onPlaybackStateChanged(this.playBackState);
+this.firePlaybackStateChangedEvent();
+}
+private firePlaybackStateChangedEvent() {
+    if(this.playBackState!=this.previousPlaybackState){
+        this.previousPlaybackState = this.playBackState;
+        if(this.onPlaybackStateChanged)
+        return     this.onPlaybackStateChanged(this.playBackState);
+    }
+    
 }
 
 
