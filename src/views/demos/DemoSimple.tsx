@@ -19,6 +19,10 @@ export class DemoSimple extends React.Component<DemoSimpleProps, DemoSimpleState
 
     }
 
+    public onDataChange = (data: any) => {
+
+    }
+
     public render() {
         return (
             <div>
