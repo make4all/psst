@@ -4,7 +4,7 @@ import { hello} from './sonification';
 import { SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
-import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, InputLabel, Select, SelectChangeEvent, MenuItem } from '@mui/material';
+import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, InputLabel, Select, SelectChangeEvent, MenuItem, Grid } from '@mui/material';
 import { DataManager } from './DataManager';
 
 import { SonificationLevel, Sonifier } from './SonificationClass';
@@ -14,6 +14,7 @@ import { IDemoView } from './views/demos/IDemoView';
 import { DemoSimple } from './views/demos/DemoSimple';
 import { DemoHighlightRegion } from './views/demos/DemoHighlightRegion';
 import { DemoHighlightNoise } from './views/demos/DemoHighlightNoise';
+import { op } from 'arquero';
 
 const DEMO_VIEW_MAP = {
     simple: {value: 'simple', label: 'Simple sonification', component: DemoSimple},
@@ -21,24 +22,104 @@ const DEMO_VIEW_MAP = {
     highlightRegion: {value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion},
 };
 
-export const Demo = () => {
-    const [editorText, setEditorText] = useState('100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500')
-    const [selectedFile, setSelectedFile] = useState<File>();
-    const [isFilePicked, setIsFilePicked] = useState(false);
+let demoViewRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef();
+export interface DemoState {
+    dataSummary: any;
+    demoViewValue: string;
+};
+
+export interface DemoProps {
     
-    const [fileName, setFileName] = useState<string>()
-    const [demoViewValue, setDemoViewValue] = useState <string>('simple');
+};
 
-    let demoRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef();
+export class Demo extends React.Component<DemoProps, DemoState> {
+    constructor(props: DemoProps) {
+        super(props);
+        this.state = {
+            dataSummary: {min: 300, max: 500, median: 400, mean: 400, count: 200},
+            demoViewValue: 'simple'
+        };
 
-     
-    const handleEditorChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined= (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-      if (event.target.value)
-        setEditorText(event.target.value)
+        DataManager.getInstance().addListener(this._handleDataChange);
     }
 
-    const playButtonHandeler = () => {
-        console.log(demoRef.current);
+    public render() {
+        const { demoViewValue, dataSummary } = this.state;
+
+        const DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
+
+        return (
+            <div>
+                <h1> basic sonification demo</h1> {hello()}
+                <div>
+                    <ImportView />
+                </div>
+                
+                <div>
+                    <DataView />
+                </div>
+    
+                <div style={{ marginTop: "20px" }}>
+                    {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
+                    {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
+                    <Grid container spacing={2}>
+                        <Grid item xs={8} sm={4} md={4}>
+                            <FormControl>
+                                <InputLabel id="demo-view-label">Sonification Demo</InputLabel>
+                                <Select
+                                    aria-label="Choose demo"
+                                    label="Sonification Demo"
+                                    labelId="demo-view-label"
+                                    value={ demoViewValue }
+                                    onChange={ this._handleDemoViewValueChange }
+                                    >
+                                    {Object.values(DEMO_VIEW_MAP).map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={8} md={8}>
+                            { < DemoComponent ref={ demoViewRef } dataSummary={ dataSummary } /> }
+                        </Grid>
+                    </Grid>
+                    
+                    
+                    <button onClick={ this._playButtonHandeler }>play</button>
+                    <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
+                    <button onClick={ this._handelPushRudeData }>interrupt with random data</button>
+                </div>
+            </div>
+        );
+    }
+
+    private _handleDataChange = (data: any) => {
+        // setDataTable(data);
+
+        let dataSummary = data.rollup({
+            mean: d => op.mean(d.Value),
+            min: d => op.min(d.Value),
+            max: d => op.max(d.Value),
+            median: d => op.median(d.Value),
+            count: d => op.count(),
+        }).object();
+        console.log(dataSummary);
+
+        this.setState({ dataSummary });
+    };
+
+    private _playButtonHandeler = () => {
+        let table = DataManager.getInstance().table;
+
+        if (table) {
+            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
+            let data = table.columns()['Value'].data;
+
+            if (demoViewRef.current) {
+                let demoView: IDemoView = demoViewRef.current;
+                demoView.onPlay(data);
+            }
+        }
+
+        // This is old code for getting the data values from a TextEdit HTML element
         // var data: number[] = []
         // var dataText: string[] = editorText.split(',')
         // console.log("sonificationOption when play button handeler is entered",sonificationOption)
@@ -46,17 +127,9 @@ export const Demo = () => {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-
-        let table = DataManager.getInstance().table;
-        if (table) {
-            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-            let data = table.columns()['Value'].data;
-            
-            
-        }  
     }
 
-    const handelPushRudeData = () => {
+    private _handelPushRudeData = () => {
         let sonifierInstance  = Sonifier.getSonifierInstance();
         if(sonifierInstance)
         {
@@ -68,44 +141,10 @@ export const Demo = () => {
         }
     }
     
-    const handleDemoViewValueChange = (event: SelectChangeEvent) => {
+    private _handleDemoViewValueChange = (event: SelectChangeEvent) => {
         console.log("changed selection of demo view", event.target.value)
-        setDemoViewValue(event.target.value)
+        let demoViewValue = event.target.value;
+        this.setState({ demoViewValue });
     }
 
-    let DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
-
-    return (
-        <div>
-            <h1> basic sonification demo</h1> {hello()}
-            <div>
-                <ImportView />
-            </div>
-            
-            <div>
-                <DataView />
-            </div>
-
-            <div>
-                <textarea value={editorText}onChange={handleEditorChange}/> 
-                {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
-                <FormControl>
-                    <InputLabel id="demo-view-label">Sonification Demo</InputLabel>
-                    <Select
-                        aria-label="Choose demo"
-                        label="Sonification Demo"
-                        labelId="demo-view-label"
-                        value={ demoViewValue }
-                        onChange={ handleDemoViewValueChange }
-                        >
-                        {Object.values(DEMO_VIEW_MAP).map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
-                    </Select>
-                </FormControl>
-                { < DemoComponent ref={demoRef} /> }
-                <button onClick={playButtonHandeler}>play</button>
-                <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
-                <button onClick={handelPushRudeData}>interrupt with random data</button>
-            </div>
-        </div>
-    );
 }

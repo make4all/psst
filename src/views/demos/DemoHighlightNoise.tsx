@@ -1,18 +1,24 @@
-import { TextField } from '@mui/material';
 import React from 'react';
+import { TextField } from '@mui/material';
+
+
 import { IDemoView } from './IDemoView';
+import { SonificationLevel, Sonifier } from '../../SonificationClass';
 
 export interface DemoHighlightNoiseState {
     highlightValue: number;
 };
 
-export interface DemoHighlightNoiseProps {};
+export interface DemoHighlightNoiseProps {
+    dataSummary: any;
+};
 
 export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps, DemoHighlightNoiseState> implements IDemoView {
     constructor(props: DemoHighlightNoiseProps) {
         super(props);
+        
         this.state = {
-            highlightValue: 500,
+            highlightValue: this.props.dataSummary.mean,
         };
     }
     
@@ -21,7 +27,9 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
     };
 
     public onPlay = (data: any) => {
-
+        let sonifierInstance  = Sonifier.getSonifierInstance();
+        let { highlightValue } = this.state;
+        sonifierInstance.playHighlightPointsWithNoise(data, highlightValue);
     };
 
     public onDataChange = (data: any) => {
@@ -35,13 +43,13 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
 
         return (
             <div>
-                <p> press play to hear a simple sonification</p>
                 <TextField
                     id="text-highlight-value"
                     aria-label="Enter highlight value"
-                    label="Value"
+                    label="Highlight"
+                    type="number"
                     variant="outlined"
-                    value={ highlightValue }
+                    value={ (isNaN(highlightValue) ? '' : highlightValue ) }
                     onChange={ this._handleValueChange }
                     />
             </div>
@@ -63,6 +71,7 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
     }
 
     private _handleValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
+        let highlightValue = parseFloat(event.target.value);
+        this.setState({ highlightValue });
     }
 }

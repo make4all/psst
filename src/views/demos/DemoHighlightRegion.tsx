@@ -2,20 +2,23 @@ import React from 'react';
 
 import { TextField } from '@mui/material';
 import { IDemoView } from './IDemoView';
+import { Sonifier } from '../../SonificationClass';
 
 export interface DemoHighlightRegionState {
     minValue: number;
     maxValue: number;
 };
 
-export interface DemoHighlightRegionProps {};
+export interface DemoHighlightRegionProps {
+    dataSummary: any;
+};
 
 export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProps, DemoHighlightRegionState> implements IDemoView {
     constructor(props: DemoHighlightRegionProps) {
         super(props);
         this.state = {
-            minValue: 300,
-            maxValue: 500,
+            minValue: this.props.dataSummary.min,
+            maxValue: this.props.dataSummary.max,
         };
     }
 
@@ -24,7 +27,9 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
     };
 
     public onPlay = (data: any) => {
-
+        let sonifierInstance  = Sonifier.getSonifierInstance();
+        let { minValue, maxValue } = this.state;
+        sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue);
     };
 
     public onDataChange = (data: any) => {
@@ -39,13 +44,13 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
 
         return (
             <div>
-                <p> press play to hear a simple sonification</p>
                 <TextField
                     id="text-min-value"
                     aria-label="Enter minimum value"
                     label="Min"
                     variant="outlined"
-                    value={ minValue }
+                    type="number"
+                    value={ (isNaN(minValue) ? '' : minValue ) }
                     onChange={ (e) => (this._handleValueChange(parseFloat(e.target.value), 'min')) }
                     />
                 <TextField
@@ -53,7 +58,8 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
                     aria-label="Enter maximum value"
                     label="Max"
                     variant="outlined"
-                    value={ maxValue }
+                    type="number"
+                    value={ (isNaN(maxValue) ? '' : maxValue ) }
                     onChange={ (e) => (this._handleValueChange(parseFloat(e.target.value), 'max')) }
                     />
             </div>
@@ -83,9 +89,5 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
                 this.setState({ maxValue: value });
                 break;
         }
-    }
-
-    private _handleMinChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
     }
 }

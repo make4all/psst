@@ -1,9 +1,13 @@
 import React from 'react';
+
+import { Sonifier } from '../../SonificationClass';
 import { IDemoView } from './IDemoView';
 
 export interface DemoSimpleState {};
 
-export interface DemoSimpleProps {};
+export interface DemoSimpleProps {
+    dataSummary: any;
+};
 
 export class DemoSimple extends React.Component<DemoSimpleProps, DemoSimpleState> implements IDemoView {
     constructor(props: DemoSimpleProps) {
@@ -12,7 +16,8 @@ export class DemoSimple extends React.Component<DemoSimpleProps, DemoSimpleState
     }
 
     public onPlay = (data: any) => {
-
+        let sonifierInstance  = Sonifier.getSonifierInstance();
+        sonifierInstance.playSimpleTone(data);
     }
 
     public onPause = (data: any) => {
