@@ -35,9 +35,11 @@ export class Sonifier  { // This is a singleton. need to create an interface and
         this.priority = SonificationLevel.polite;
     }
     public static getSonifierInstance(): Sonifier {
-        if(!this.sonifierInstance)       
-        this.sonifierInstance = new Sonifier();
-        return this.sonifierInstance;
+        if(!Sonifier.sonifierInstance) {
+            Sonifier.sonifierInstance = new Sonifier();
+        }    
+        
+        return Sonifier.sonifierInstance;
     }
     
     public playSimpleTone(this: Sonifier, dummyData:number[]): void{
