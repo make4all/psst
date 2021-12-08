@@ -1,16 +1,16 @@
-import { PlaybackState, SonificationLevel, Sonifier } from './SonificationClass'
+import { PlaybackState, SonificationLevel, Sonifier } from '../SonificationClass'
 
 import React, { useState } from 'react';
-import { hello} from './sonification';
+import { hello} from '../sonification';
 
-import { SupportedFormats } from './constents';
-import { ImportView } from './views/ImportView';
-import { DataView } from './views/DataView';
+import { SupportedFormats } from '../constents';
+import { ImportView } from '../views/ImportView';
+import { DataView } from '../views/DataView';
 import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
-import { DataManager } from './DataManager';
+import { DataManager } from '../DataManager';
 
 
-import { parseInput } from './sonificationUtils';
+import { parseInput } from '../sonificationUtils';
 import { Readable } from 'stream';
 
 
