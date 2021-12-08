@@ -32,14 +32,8 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
         sonifierInstance.playHighlightPointsWithNoise(data, highlightValue);
     };
 
-    public onDataChange = (data: any) => {
-
-    };
-
     public render() {
         const { highlightValue } = this.state;
-        // TODO: Have the view update value based on data
-        // TODO: Create a slider that is in range for the values of the data
 
         return (
             <div>
@@ -54,6 +48,14 @@ export class DemoHighlightNoise extends React.Component<DemoHighlightNoiseProps,
                     />
             </div>
         );
+    }
+
+    public componentDidUpdate(prevProps: DemoHighlightNoiseProps) {
+        // When the data summary changes, update the highlight value
+        if (this.props.dataSummary.mean !== prevProps.dataSummary.mean) {
+            let highlightValue = this.props.dataSummary.mean;
+            this.setState({ highlightValue });
+        }
     }
 
     // componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).

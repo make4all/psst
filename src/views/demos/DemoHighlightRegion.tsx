@@ -32,15 +32,8 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
         sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue);
     };
 
-    public onDataChange = (data: any) => {
-
-    };
-
     public render() {
         const { minValue, maxValue } = this.state;
-
-        // TODO: Have the view update value based on data
-        // TODO: Create a slider that is in range for the values of the data
 
         return (
             <div>
@@ -64,6 +57,16 @@ export class DemoHighlightRegion extends React.Component<DemoHighlightRegionProp
                     />
             </div>
         );
+    }
+
+    public componentDidUpdate(prevProps: DemoHighlightRegionProps) {
+        // When the data summary changes, update the min & max value
+        if (this.props.dataSummary.min !== prevProps.dataSummary.min
+            || this.props.dataSummary.max !== prevProps.dataSummary.max) {
+            let minValue = this.props.dataSummary.min,
+                maxValue = this.props.dataSummary.max;
+            this.setState({ minValue, maxValue });
+        }
     }
 
     // componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
