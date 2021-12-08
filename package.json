@@ -1,6 +1,6 @@
 {
     "name": "sonification",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "library that provides sonification primitives to make data accessible.",
     "source": "src/sonification.ts",
     "exports": {
