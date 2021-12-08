@@ -1,4 +1,6 @@
-import React, { Ref, useState } from 'react';
+import React from 'react';
+import { PlaybackState, SonificationLevel, Sonifier } from './SonificationClass'
+
 import { hello} from './sonification';
 
 import { SupportedFormats } from './constents';
@@ -7,7 +9,7 @@ import { DataView } from './views/DataView';
 import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, InputLabel, Select, SelectChangeEvent, MenuItem, Grid } from '@mui/material';
 import { DataManager } from './DataManager';
 
-import { SonificationLevel, Sonifier } from './SonificationClass';
+
 import { parseInput } from './sonificationUtils';
 import { Readable } from 'stream';
 import { IDemoView } from './views/demos/IDemoView';
@@ -26,6 +28,7 @@ let demoViewRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlight
 export interface DemoState {
     dataSummary: any;
     demoViewValue: string;
+    playbackLabel:string;
 };
 
 export interface DemoProps {
@@ -37,14 +40,15 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         super(props);
         this.state = {
             dataSummary: {min: 300, max: 500, median: 400, mean: 400, count: 200},
-            demoViewValue: 'simple'
+            demoViewValue: 'simple',
+            playbackLabel: 'play',
         };
 
         DataManager.getInstance().addListener(this._handleDataChange);
     }
 
     public render() {
-        const { demoViewValue, dataSummary } = this.state;
+        const { demoViewValue, dataSummary, playbackLabel } = this.state;
 
         const DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
 
@@ -83,9 +87,9 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                     </Grid>
                     
                     
-                    <button onClick={ this._playButtonHandeler }>play</button>
+                    <button onClick={ this._handlePlayButton }>{ playbackLabel }</button>
                     <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
-                    <button onClick={ this._handelPushRudeData }>interrupt with random data</button>
+                    <button onClick={ this._handlePushRudeData }>interrupt with random data</button>
                 </div>
             </div>
         );
@@ -106,7 +110,31 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         this.setState({ dataSummary });
     };
 
-    private _playButtonHandeler = () => {
+    private _handlePlayButton = () => {
+        // This is old code for getting the data values from a TextEdit HTML element
+        // var data: number[] = []
+        // var dataText: string[] = editorText.split(',')
+        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
+
+        // for (let i = 0; i < dataText.length; i++) {
+        //     data.push(parseInt(dataText[i]))
+        // }
+        const sonifierInstance = Sonifier.getSonifierInstance();
+        
+        if (sonifierInstance) {
+            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState);
+            if (
+                sonifierInstance.playbackState == PlaybackState.Paused ||
+                sonifierInstance.playbackState == PlaybackState.Playing
+            ) {
+                sonifierInstance.pauseToggle();
+                return;
+            }
+            if (sonifierInstance.playbackState == PlaybackState.Stopped) {
+                sonifierInstance.onPlaybackStateChanged = this._handlePlaybackStateChanged;
+            }
+        }
+
         let table = DataManager.getInstance().table;
 
         if (table) {
@@ -118,18 +146,28 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 demoView.onPlay(data);
             }
         }
-
-        // This is old code for getting the data values from a TextEdit HTML element
-        // var data: number[] = []
-        // var dataText: string[] = editorText.split(',')
-        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
-
-        // for (let i = 0; i < dataText.length; i++) {
-        //     data.push(parseInt(dataText[i]))
-        // }
     }
 
-    private _handelPushRudeData = () => {
+    private _handlePlaybackStateChanged = (e: PlaybackState) => {
+        console.log('handlePlaybackStateChanged', e);
+        let playbackLabel;
+        switch(e) {
+            case PlaybackState.Playing:
+                playbackLabel = 'pause';
+                break;
+            case PlaybackState.Paused:
+                playbackLabel = 'resume';
+                break;
+            default:
+                playbackLabel = 'play';
+                break;
+        }
+        this.setState({ playbackLabel });
+
+        console.log('returning. play button label', playbackLabel);
+    }
+
+    private _handlePushRudeData = () => {
         let sonifierInstance  = Sonifier.getSonifierInstance();
         if(sonifierInstance)
         {
