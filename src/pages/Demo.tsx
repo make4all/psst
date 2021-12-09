@@ -1,18 +1,18 @@
-import { Sonifier } from './sonifier'
+import { Sonifier } from '../sonifier'
 
 import React from 'react'
 
-import { PlaybackState, SonificationLevel } from './constents'
-import { ImportView } from './views/ImportView'
-import { DataView } from './views/DataView'
+import { PlaybackState, SonificationLevel } from '../constents'
+import { ImportView } from '../views/ImportView'
+import { DataView } from '../views/DataView'
 
 import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid } from '@mui/material'
-import { DataManager } from './DataManager'
+import { DataManager } from '../DataManager'
 
-import { IDemoView } from './views/demos/IDemoView'
-import { DemoSimple } from './views/demos/DemoSimple'
-import { DemoHighlightRegion } from './views/demos/DemoHighlightRegion'
-import { DemoHighlightNoise } from './views/demos/DemoHighlightNoise'
+import { IDemoView } from '../views/demos/IDemoView'
+import { DemoSimple } from '../views/demos/DemoSimple'
+import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
+import { DemoHighlightNoise } from '../views/demos/DemoHighlightNoise'
 import { op } from 'arquero'
 
 const DEMO_VIEW_MAP = {
