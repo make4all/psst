@@ -2,7 +2,9 @@ import React from 'react'
 import { TextField } from '@mui/material'
 
 import { IDemoView } from './IDemoView'
-import { SonificationLevel, Sonifier } from '../../constents'
+import { Sonifier } from '../../sonifier'
+
+import { SonificationLevel } from '../../constents'
 
 export interface DemoHighlightNoiseState {
     highlightValue: number
