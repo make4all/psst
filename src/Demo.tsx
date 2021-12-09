@@ -3,15 +3,13 @@ import {Sonifier } from './sonifier'
 import React, { useState } from 'react';
 
 
-import { PlaybackState, SonificationLevel, SupportedFormats } from './constents';
+import { PlaybackState, SonificationLevel } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
-import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { DataManager } from './DataManager';
 
 
-import { parseInput } from './sonificationUtils';
-import { Readable } from 'stream';
 
 
 export const Demo = () => {
