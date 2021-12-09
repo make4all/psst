@@ -39,8 +39,11 @@ export class Sonifier {
         this.didNodesFinishPlaying = true
     }
     public static getSonifierInstance(): Sonifier {
-        if (!this.sonifierInstance) this.sonifierInstance = new Sonifier()
-        return this.sonifierInstance
+        if(!Sonifier.sonifierInstance) {
+            Sonifier.sonifierInstance = new Sonifier();
+        }    
+        
+        return Sonifier.sonifierInstance;
     }
 
     public playSimpleTone(dummyData:number[]): void{

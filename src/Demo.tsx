@@ -1,165 +1,195 @@
+
 import {Sonifier } from './sonifier'
 
-import React, { useState } from 'react';
+
+import React from 'react';
+
+
+
+
 
 
 import { PlaybackState, SonificationLevel } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+
+import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid } from '@mui/material';
 import { DataManager } from './DataManager';
 
 
+import { IDemoView } from './views/demos/IDemoView';
+import { DemoSimple } from './views/demos/DemoSimple';
+import { DemoHighlightRegion } from './views/demos/DemoHighlightRegion';
+import { DemoHighlightNoise } from './views/demos/DemoHighlightNoise';
+import { op } from 'arquero';
 
+const DEMO_VIEW_MAP = {
+    simple: {value: 'simple', label: 'Simple sonification', component: DemoSimple},
+    highlightNoise: {value: 'highlightNoise', label: 'Highlight points with noise', component: DemoHighlightNoise},
+    highlightRegion: {value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion},
+};
 
-export const Demo = () => {
-    const [editorText, setEditorText] = useState(
-        '100,200,300,400,500,600,700,800,900,800,700,600,500,400,300,200,100,500,400,300,200,900,500,600,700,800,900,300,400,500',
-    )
-    const [selectedFile, setSelectedFile] = useState<File>()
-    const [isFilePicked, setIsFilePicked] = useState(false)
+let demoViewRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef();
+export interface DemoState {
+    dataSummary: any;
+    demoViewValue: string;
+    playbackLabel:string;
+};
 
-    const [fileName, setFileName] = useState<string>()
-    const [sonificationOption, setSonificationOption] = useState<string>('simple')
-    const [showHighlightValueEditor, setShowHighlightValueEditor] = useState(false)
-    const [showRegionValueEditors, setShowRegionValueEditors] = useState(false)
-    const [highlightPoint, setHighlightPoint] = useState(500)
-    const [beginRegion, setBeginRegion] = useState(300)
-    const [endRegion, setEndRegion] = useState(500)
-    const [playButtonLabel, setPlayButtonLabel] = useState('play')
+export interface DemoProps {
+    
+};
 
-    const handleEditorChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined = (
-        event: React.ChangeEvent<HTMLTextAreaElement>,
-    ) => {
-        if (event.target.value) setEditorText(event.target.value)
+export class Demo extends React.Component<DemoProps, DemoState> {
+    constructor(props: DemoProps) {
+        super(props);
+        this.state = {
+            dataSummary: {min: 300, max: 500, median: 400, mean: 400, count: 200},
+            demoViewValue: 'simple',
+            playbackLabel: 'play',
+        };
+
+        DataManager.getInstance().addListener(this._handleDataChange);
+
     }
 
-    const handelHighlightPointChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined = (
-        event: React.ChangeEvent<HTMLTextAreaElement>,
-    ) => {
-        if (event.target.value) setHighlightPoint(parseInt(event.target.value))
+    public render() {
+        const { demoViewValue, dataSummary, playbackLabel } = this.state;
+
+        const DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
+
+        return (
+            <div>
+                <h1> basic sonification demo</h1> 
+                <div>
+                    <ImportView />
+                </div>
+                
+                <div>
+                    <DataView />
+                </div>
+    
+                <div style={{ marginTop: "20px" }}>
+                    {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
+                    {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
+                    <Grid container spacing={2}>
+                        <Grid item xs={8} sm={4} md={4}>
+                            <FormControl>
+                                <InputLabel id="demo-view-label">Sonification Demo</InputLabel>
+                                <Select
+                                    aria-label="Choose demo"
+                                    label="Sonification Demo"
+                                    labelId="demo-view-label"
+                                    value={ demoViewValue }
+                                    onChange={ this._handleDemoViewValueChange }
+                                    >
+                                    {Object.values(DEMO_VIEW_MAP).map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={8} md={8}>
+                            { < DemoComponent ref={ demoViewRef } dataSummary={ dataSummary } /> }
+                        </Grid>
+                    </Grid>
+                    
+                    
+                    <button onClick={ this._handlePlayButton }>{ playbackLabel }</button>
+                    <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
+                    <button onClick={ this._handlePushRudeData }>interrupt with random data</button>
+                </div>
+            </div>
+        );
     }
 
-    const handelBeginRegionChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined = (
-        event: React.ChangeEvent<HTMLTextAreaElement>,
-    ) => {
-        if (event.target.value) setBeginRegion(parseInt(event.target.value))
-    }
+    private _handleDataChange = (data: any) => {
+        // setDataTable(data);
 
-    const handelEndRegionChange: React.ChangeEventHandler<HTMLTextAreaElement> | undefined = (
-        event: React.ChangeEvent<HTMLTextAreaElement>,
-    ) => {
-        if (event.target.value) setEndRegion(parseInt(event.target.value))
-    }
+        let dataSummary = data.rollup({
+            mean: d => op.mean(d.Value),
+            min: d => op.min(d.Value),
+            max: d => op.max(d.Value),
+            median: d => op.median(d.Value),
+            count: d => op.count(),
+        }).object();
+        console.log(dataSummary);
 
-    const playButtonHandeler = () => {
-        let table = DataManager.getInstance().table;
-        if (table) {
-            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-            let data = table.columns()['Value'].data;
-        let sonifierInstance = Sonifier.getSonifierInstance()
+        this.setState({ dataSummary });
+    };
+
+    private _handlePlayButton = () => {
+        // This is old code for getting the data values from a TextEdit HTML element
+        // var data: number[] = []
+        // var dataText: string[] = editorText.split(',')
+        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
+
+        // for (let i = 0; i < dataText.length; i++) {
+        //     data.push(parseInt(dataText[i]))
+        // }
+        const sonifierInstance = Sonifier.getSonifierInstance();
+        
         if (sonifierInstance) {
-            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
+            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState);
             if (
                 sonifierInstance.playbackState == PlaybackState.Paused ||
                 sonifierInstance.playbackState == PlaybackState.Playing
             ) {
-                sonifierInstance.pauseToggle()
-                return
+                sonifierInstance.pauseToggle();
+                return;
             }
-            if (sonifierInstance.playbackState == PlaybackState.Stopped)
-                sonifierInstance.onPlaybackStateChanged = handelPlaybackStateChanged
-            if (sonificationOption == 'simple') {
-                console.log('playing simple tone')
-                sonifierInstance.playSimpleTone(data)
-            } else if (sonificationOption == 'highlightNoise') {
-                sonifierInstance.playHighlightPointsWithNoise(data, highlightPoint)
-            } else if (sonificationOption == 'highlightRegion') {
-                sonifierInstance.playHighlightedRegionWithTones(data, beginRegion, endRegion)
-            } else {
-                throw console.error('not implemented')
+            if (sonifierInstance.playbackState == PlaybackState.Stopped) {
+                sonifierInstance.onPlaybackStateChanged = this._handlePlaybackStateChanged;
+            }
+        }
+
+        let table = DataManager.getInstance().table;
+
+        if (table) {
+            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
+            let data = table.columns()['Value'].data;
+
+            if (demoViewRef.current) {
+                let demoView: IDemoView = demoViewRef.current;
+                demoView.onPlay(data);
             }
         }
     }
 
+    private _handlePlaybackStateChanged = (e: PlaybackState) => {
+        console.log('handlePlaybackStateChanged', e);
+        let playbackLabel;
+        switch(e) {
+            case PlaybackState.Playing:
+                playbackLabel = 'pause';
+                break;
+            case PlaybackState.Paused:
+                playbackLabel = 'resume';
+                break;
+            default:
+                playbackLabel = 'play';
+                break;
+        }
+        this.setState({ playbackLabel });
 
-            
-            
-        }  
+        console.log('returning. play button label', playbackLabel);
+    }
+
+    private _handlePushRudeData = () => {
+        let sonifierInstance  = Sonifier.getSonifierInstance();
+        if(sonifierInstance)
+        {
+        for(let i=0;i<5;i++) {
+                let dataPoint:number = Math.random()
+                dataPoint = dataPoint*10000;
+                sonifierInstance.SonifyPushedPoint(dataPoint,SonificationLevel.rude)
+            }
+        }
+    }
     
-
-
-    const handelPushRudeData = () => {
-        let sonifierInstance = Sonifier.getSonifierInstance()
-        if (sonifierInstance) {
-            for (let i = 0; i < 5; i++) {
-                let dataPoint: number = Math.random()
-                dataPoint = dataPoint * 10000
-                sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.rude)
-            }
-        }
-    }
-    const handleSonificationSelection = (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log('changed selection of sonification type', event.target.value)
-        setSonificationOption(event.target.value) //help: this value is not updating.
-        console.log('sonificationType', sonificationOption)
-        if (event.target.value == 'highlightNoise') {
-            console.log('debug: setting show highlight edit field')
-            setShowHighlightValueEditor(true)
-            setShowRegionValueEditors(false)
-        } else if (event.target.value == 'highlightRegion') {
-            setShowHighlightValueEditor(false)
-            setShowRegionValueEditors(true)
-        } else if (event.target.value == 'simple') {
-            setShowRegionValueEditors(false)
-            setShowHighlightValueEditor(false)
-        } else {
-            setShowRegionValueEditors(false)
-            setShowHighlightValueEditor(false)
-        }
-        setSonificationOption(event.target.value)
+    private _handleDemoViewValueChange = (event: SelectChangeEvent) => {
+        console.log("changed selection of demo view", event.target.value)
+        let demoViewValue = event.target.value;
+        this.setState({ demoViewValue });
     }
 
-    const handelPlaybackStateChanged = (e: PlaybackState) => {
-        console.log('handelPlaybackStateChanged', e)
-        if (e == PlaybackState.Playing) setPlayButtonLabel('pause')
-        else if (e == PlaybackState.Paused) setPlayButtonLabel('resume')
-        else setPlayButtonLabel('play')
-        console.log('returning. play button label', playButtonLabel)
-    }
-
-    return (
-        <div>
-            <h1> basic sonification demo</h1> 
-            <div>
-                <ImportView />
-            </div>
-            
-            <div>
-                <DataView />
-            </div>
-
-            <div>
-                <textarea value={editorText}onChange={handleEditorChange}/> 
-                {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
-                <FormControl component="fieldset">
-                    <FormLabel component="legend">Select type of sonification.</FormLabel>
-                    <RadioGroup aria-label="sonification" name="sonificationType" value={sonificationOption} onChange={handleSonificationSelection}>
-                        <FormControlLabel value="simple" control={<Radio />} label="simple sonification" />
-                        <FormControlLabel value="highlightNoise" control={<Radio />} label="highlight points with noise" />
-                        <FormControlLabel value="highlightRegion" control={<Radio />} label="play tones for region" />
-                    </RadioGroup>
-                </FormControl>
-                {showHighlightValueEditor&& (<textarea value={highlightPoint}onChange={handelHighlightPointChange}/>)}
-                {showRegionValueEditors && (<textarea value={beginRegion}onChange = {handelBeginRegionChange}/>)}
-                {showRegionValueEditors && (<textarea value={endRegion}onChange = {handelEndRegionChange}/>)}
-                { !showHighlightValueEditor && !showRegionValueEditors && (<p> press play to hear a simple sonification</p>)}
-                <button onClick={playButtonHandeler}>{playButtonLabel}</button>
-
-                <p>Press the interrupt with random data button when a tone is playing to override what is playing with random data.</p>
-                <button onClick={handelPushRudeData}>interrupt with random data</button>
-            </div>
-        </div>
-    );
 
 }
