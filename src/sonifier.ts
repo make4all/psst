@@ -56,7 +56,7 @@ export class Sonifier {
         return this.sonifierInstance
     }
 
-    public playSimpleTone(this: Sonifier, dummyData:number[]): void{
+    public playSimpleTone(dummyData:number[]): void{
         console.log("playTone: sonifying data", dummyData);
         
         let pointSonificationLength:number = 0.3;
@@ -77,7 +77,7 @@ export class Sonifier {
         this.isStreamInProgress = false
     }
 
-    public playHighlightPointsWithNoise(this: Sonifier, dummyData:number[], highlightPoint:number): void{
+    public playHighlightPointsWithNoise(dummyData:number[], highlightPoint:number): void{
         let frequencyExtent = [16, 1e3];
         let dataExtent = d3.extent(dummyData);
 
@@ -174,7 +174,7 @@ export class Sonifier {
         return bandPassFilterNode
     }
 
-    public playHighlightedRegionWithTones(this: Sonifier, dummyData:number[], beginRegion:number, endRegion:number): void{
+    public playHighlightedRegionWithTones(dummyData:number[], beginRegion:number, endRegion:number): void{
         
         if(beginRegion > endRegion) {
             [beginRegion, endRegion] = [endRegion, beginRegion];
