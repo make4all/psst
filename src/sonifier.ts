@@ -1,8 +1,7 @@
-
 // import { SonificationLevel } from './constents';
-import { AudioQueue } from './sonificationUtils';
-import * as d3 from 'd3';
-import { PlaybackState, SonificationLevel, SonificationType } from './constents';
+import { AudioQueue } from './sonificationUtils'
+import * as d3 from 'd3'
+import { PlaybackState, SonificationLevel, SonificationType } from './constents'
 //move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building.
 
 export class Sonifier {
@@ -21,7 +20,6 @@ export class Sonifier {
     private previousPlaybackState: PlaybackState
     public get playbackState(): PlaybackState {
         return this._playbackState
-
     }
     public onPlaybackStateChanged?: (state: PlaybackState) => void
     private constructor() {
@@ -39,27 +37,27 @@ export class Sonifier {
         this.didNodesFinishPlaying = true
     }
     public static getSonifierInstance(): Sonifier {
-        if(!Sonifier.sonifierInstance) {
-            Sonifier.sonifierInstance = new Sonifier();
-        }    
-        
-        return Sonifier.sonifierInstance;
+        if (!Sonifier.sonifierInstance) {
+            Sonifier.sonifierInstance = new Sonifier()
+        }
+
+        return Sonifier.sonifierInstance
     }
 
-    public playSimpleTone(dummyData:number[]): void{
-        console.log("playTone: sonifying data", dummyData);
-        
-        let pointSonificationLength:number = 0.3;
-        let previousFrequencyOfset: number = 50;
-        let startTime: number = this.audioCtx.currentTime;
+    public playSimpleTone(dummyData: number[]): void {
+        console.log('playTone: sonifying data', dummyData)
 
-        let frequencyExtent = [16, 1e3];
-        let dataExtent = d3.extent(dummyData);
+        let pointSonificationLength: number = 0.3
+        let previousFrequencyOfset: number = 50
+        let startTime: number = this.audioCtx.currentTime
 
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
+        let frequencyExtent = [16, 1e3]
+        let dataExtent = d3.extent(dummyData)
+
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
 
         for (let i = 0; i < dummyData.length; i++) {
-            let scaledDataPoint = frequencyScale(dummyData[i]);
+            let scaledDataPoint = frequencyScale(dummyData[i])
 
             this.sonifyPoint(scaledDataPoint)
             this.isStreamInProgress = true
@@ -67,25 +65,24 @@ export class Sonifier {
         this.isStreamInProgress = false
     }
 
-    public playHighlightPointsWithNoise(dummyData:number[], highlightPoint:number): void{
-        let frequencyExtent = [16, 1e3];
-        let dataExtent = d3.extent(dummyData);
+    public playHighlightPointsWithNoise(dummyData: number[], highlightPoint: number): void {
+        let frequencyExtent = [16, 1e3]
+        let dataExtent = d3.extent(dummyData)
 
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
-        
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
+
         for (let i = 0; i < dummyData.length; i++) {
-          let frequencyOffset:number = frequencyScale(dummyData[i]);        // frequencyOfset = frequencyOfset%1000;
-            
-            console.log("frequency ofset", frequencyOffset);
-            if(dummyData[i] == highlightPoint) {
-                this.sonifyPoint(frequencyOffset,SonificationLevel.polite,SonificationType.NoiseHighlight)
+            let frequencyOffset: number = frequencyScale(dummyData[i]) // frequencyOfset = frequencyOfset%1000;
+
+            console.log('frequency ofset', frequencyOffset)
+            if (dummyData[i] == highlightPoint) {
+                this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.NoiseHighlight)
             } else {
                 this.sonifyPoint(frequencyOffset)
             }
-            this.isStreamInProgress = true;
-    
+            this.isStreamInProgress = true
         }
-        this.isStreamInProgress = false;     
+        this.isStreamInProgress = false
     }
 
     private scheduleNoiseNode() {
@@ -103,16 +100,18 @@ export class Sonifier {
         }
     }
 
-    private sonifyPoint(dataPoint: number, priority:SonificationLevel = SonificationLevel.polite, sonificationType:SonificationType = SonificationType.Tone) { 
-        console.log("in sonify point. datapoint:",dataPoint);
+    private sonifyPoint(
+        dataPoint: number,
+        priority: SonificationLevel = SonificationLevel.polite,
+        sonificationType: SonificationType = SonificationType.Tone,
+    ) {
+        console.log('in sonify point. datapoint:', dataPoint)
 
-        console.log("isStreamInProgress",this.isStreamInProgress)
-        if(priority == SonificationLevel.rude && this.priority != SonificationLevel.rude)
-        {
-            this.audioQueue.emptyAudioQueue();
-            this.startTime = this.audioCtx.currentTime;
-            this.endTime = this.startTime;
-
+        console.log('isStreamInProgress', this.isStreamInProgress)
+        if (priority == SonificationLevel.rude && this.priority != SonificationLevel.rude) {
+            this.audioQueue.emptyAudioQueue()
+            this.startTime = this.audioCtx.currentTime
+            this.endTime = this.startTime
         }
         if (!this.isStreamInProgress) {
             this.previousFrequencyOfset = 50
@@ -164,25 +163,22 @@ export class Sonifier {
         return bandPassFilterNode
     }
 
-    public playHighlightedRegionWithTones(dummyData:number[], beginRegion:number, endRegion:number): void{
-        
-        if(beginRegion > endRegion) {
-            [beginRegion, endRegion] = [endRegion, beginRegion];
+    public playHighlightedRegionWithTones(dummyData: number[], beginRegion: number, endRegion: number): void {
+        if (beginRegion > endRegion) {
+            ;[beginRegion, endRegion] = [endRegion, beginRegion]
         }
 
-        let frequencyExtent = [16, 1e3];
-        let dataExtent = d3.extent(dummyData);
+        let frequencyExtent = [16, 1e3]
+        let dataExtent = d3.extent(dummyData)
 
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
 
-        for (let i = 0; i < dummyData.length; i++)
-        {
-            let frequencyOffset = frequencyScale(dummyData[i]);
-            if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
-                this.sonifyPoint(frequencyOffset);
+        for (let i = 0; i < dummyData.length; i++) {
+            let frequencyOffset = frequencyScale(dummyData[i])
+            if (dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
+                this.sonifyPoint(frequencyOffset)
             } else {
-                this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.Noise);
-
+                this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.Noise)
             }
             this.isStreamInProgress = true
         }
@@ -236,4 +232,3 @@ export class Sonifier {
         }
     }
 }
-

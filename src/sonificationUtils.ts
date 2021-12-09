@@ -1,4 +1,3 @@
-
 export class AudioQueue {
     private storage: { [index: number]: AudioScheduledSourceNode }
     private enqueuePointer: number

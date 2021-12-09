@@ -1,53 +1,44 @@
-import React from 'react';
+import React from 'react'
 
-import { DataGrid } from '@mui/x-data-grid';
-import { DataManager } from '../DataManager';
+import { DataGrid } from '@mui/x-data-grid'
+import { DataManager } from '../DataManager'
 
 export interface DataViewState {
-    columns: any[],
+    columns: any[]
     rows: any[]
-};
+}
 
-export interface DataViewProps {
-    
-};
+export interface DataViewProps {}
 
 export class DataView extends React.Component<DataViewProps, DataViewState> {
     constructor(props: DataViewProps) {
-        super(props);
+        super(props)
         this.state = {
             rows: [],
-            columns: []
-        };
+            columns: [],
+        }
 
         DataManager.getInstance().addListener(this.handleDataUpdate)
     }
 
     public render() {
-        const { rows, columns } = this.state;
-        const loaded = rows.length > 0 && columns.length > 0;
-        console.log(columns);
+        const { rows, columns } = this.state
+        const loaded = rows.length > 0 && columns.length > 0
+        console.log(columns)
 
         return (
             <div style={{ height: 500, width: '100%' }} aria-live="polite">
-                {
-                    loaded && 
-                    <DataGrid
-                        rows={rows}
-                        columns={columns}
-                        />
-                }
-                
+                {loaded && <DataGrid rows={rows} columns={columns} />}
             </div>
-        );
+        )
     }
 
     public handleDataUpdate = (table: any): void => {
-        const columns = table.columnNames().map(c => ({ field: c, headerName: c, width: 160, renderHeader: (params: any) => (
-            <strong>{c}</strong>
-          ), }));
-        const rows = table.objects().map((o, i) => (Object.assign({id: i}, o)));
+        const columns = table
+            .columnNames()
+            .map((c) => ({ field: c, headerName: c, width: 160, renderHeader: (params: any) => <strong>{c}</strong> }))
+        const rows = table.objects().map((o, i) => Object.assign({ id: i }, o))
 
-        this.setState({ columns, rows });
+        this.setState({ columns, rows })
     }
 }
