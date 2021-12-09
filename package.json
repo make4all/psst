@@ -2,14 +2,14 @@
     "name": "sonification",
     "version": "1.0.0",
     "description": "library that provides sonification primitives to make data accessible.",
-    "source": "src/sonification.ts",
+    "source": "src/sonifier.ts",
     "exports": {
-        "require": "./dist/sonification.cjs",
-        "default": "./dist/sonification.modern.js"
+        "require": "./dist/sonifier.cjs",
+        "default": "./dist/sonifier.modern.js"
     },
-    "main": "./dist/sonification.cjs",
-    "module": "./dist/sonification.module.js",
-    "unpkg": "./dist/sonification.umd.js",
+    "main": "./dist/sonifier.cjs",
+    "module": "./dist/sonifier.module.js",
+    "unpkg": "./dist/sonifier.umd.js",
     "license": "MIT",
     "files": [
         "dist",

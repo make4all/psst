@@ -1,7 +1,7 @@
-import { PlaybackState, SonificationLevel, Sonifier } from './SonificationClass'
+import { PlaybackState, SonificationLevel, Sonifier } from './sonifier'
 
 import React, { useState } from 'react';
-import { hello} from './sonification';
+
 
 import { SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
@@ -132,7 +132,7 @@ export const Demo = () => {
 
     return (
         <div>
-            <h1> basic sonification demo</h1> {hello()}
+            <h1> basic sonification demo</h1> 
             <div>
                 <ImportView />
             </div>
