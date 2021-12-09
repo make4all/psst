@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { PlaybackState, SonificationLevel, Sonifier } from './SonificationClass'
 
 import { hello} from './sonification';
@@ -6,7 +6,7 @@ import { hello} from './sonification';
 import { SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
-import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, InputLabel, Select, SelectChangeEvent, MenuItem, Grid } from '@mui/material';
+import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, InputLabel, Select, SelectChangeEvent, MenuItem, Grid, NativeSelect } from '@mui/material';
 import { DataManager } from './DataManager';
 
 
@@ -69,16 +69,20 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                     <Grid container spacing={2}>
                         <Grid item xs={8} sm={4} md={4}>
                             <FormControl>
-                                <InputLabel id="demo-view-label">Sonification Demo</InputLabel>
-                                <Select
+                                <InputLabel
+                                    variant="standard"
+                                    htmlFor="demo-view-select"
+                                    id="demo-view-label">
+                                    Sonification Demo
+                                </InputLabel>
+                                <NativeSelect
                                     aria-label="Choose demo"
-                                    label="Sonification Demo"
-                                    labelId="demo-view-label"
+                                    id="demo-view-select"
                                     value={ demoViewValue }
                                     onChange={ this._handleDemoViewValueChange }
                                     >
-                                    {Object.values(DEMO_VIEW_MAP).map( e => (<MenuItem value={ e.value } key={ e.value }>{ e.label }</MenuItem>))}
-                                </Select>
+                                    {Object.values(DEMO_VIEW_MAP).map( e => (<option value={ e.value } key={ e.value }>{ e.label }</option>))}
+                                </NativeSelect>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={8} md={8}>
@@ -179,8 +183,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         }
     }
     
-    private _handleDemoViewValueChange = (event: SelectChangeEvent) => {
-        console.log("changed selection of demo view", event.target.value)
+    private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value;
         this.setState({ demoViewValue });
     }
