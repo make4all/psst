@@ -60,8 +60,8 @@ export class Sonifier {
         console.log("playTone: sonifying data", dummyData);
         
         let pointSonificationLength:number = 0.3;
-        var previousFrequencyOfset: number = 50;
-        var startTime: number = this.audioCtx.currentTime;
+        let previousFrequencyOfset: number = 50;
+        let startTime: number = this.audioCtx.currentTime;
 
         let frequencyExtent = [16, 1e3];
         let dataExtent = d3.extent(dummyData);
@@ -69,7 +69,7 @@ export class Sonifier {
         let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent);
 
         for (let i = 0; i < dummyData.length; i++) {
-            var scaledDataPoint = frequencyScale(dummyData[i]);
+            let scaledDataPoint = frequencyScale(dummyData[i]);
 
             this.sonifyPoint(scaledDataPoint)
             this.isStreamInProgress = true
@@ -153,7 +153,7 @@ export class Sonifier {
     }
 
     private scheduleOscilatorNode(dataPoint: number) {
-        var osc = this.audioCtx.createOscillator()
+        let osc = this.audioCtx.createOscillator()
         osc.frequency.value = this.previousFrequencyOfset
         osc.frequency.linearRampToValueAtTime(dataPoint, this.startTime + this.pointSonificationLength)
         osc.onended = () => this.handelOnEnded()
@@ -187,7 +187,7 @@ export class Sonifier {
 
         for (let i = 0; i < dummyData.length; i++)
         {
-            var frequencyOffset = frequencyScale(dummyData[i]);
+            let frequencyOffset = frequencyScale(dummyData[i]);
             if(dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
                 this.sonifyPoint(frequencyOffset);
             } else {

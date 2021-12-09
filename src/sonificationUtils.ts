@@ -23,7 +23,7 @@ export function parseInput(fileName: string | undefined, format: SupportedFormat
         console.log('format is CSV')
         if (fileName) {
             console.log('file name', fileName)
-            var rs = fs.createReadStream(fileName)
+            let rs = fs.createReadStream(fileName)
             rs.pipe(csv()).on('data', (data) => results.push(data))
             // .pipe(csv()).on('data',(data) => results.push(data));
             console.log('parsed CSV data:', results)
