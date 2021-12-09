@@ -1,48 +1,61 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent } from 'react'
 
-import { Button, Box, Grid, Input, Stack, TextareaAutosize, ToggleButtonGroup, ToggleButton, Typography, TextField, FormControl, InputLabel, FormHelperText, Select, SelectChangeEvent, MenuItem, NativeSelect } from '@mui/material';
-import { ContentPaste, UploadFile, Link, ListAlt } from '@mui/icons-material';
+import {
+    Button,
+    Box,
+    Grid,
+    Input,
+    Stack,
+    TextareaAutosize,
+    ToggleButtonGroup,
+    ToggleButton,
+    Typography,
+    TextField,
+    FormControl,
+    InputLabel,
+    FormHelperText,
+    NativeSelect,
+} from '@mui/material'
+import { ContentPaste, UploadFile, Link, ListAlt } from '@mui/icons-material'
 
-import { DataManager } from '../DataManager';
+import { DataManager } from '../DataManager'
 
 const EXAMPLE_LIST = [
-    {fileName: 'sawtooth_wave.csv', displayName: 'Sawtooth Wave'},
-    {fileName: 'sine_wave.csv', displayName: 'Sine Wave'},
-    {fileName: 'square_wave.csv', displayName: 'Square Wave'},
-];
+    { fileName: 'sawtooth_wave.csv', displayName: 'Sawtooth Wave' },
+    { fileName: 'sine_wave.csv', displayName: 'Sine Wave' },
+    { fileName: 'square_wave.csv', displayName: 'Square Wave' },
+]
 
 export interface ImportViewState {
-    importType: string;
-    exampleValue: string;
-};
+    importType: string
+    exampleValue: string
+}
 
-export interface ImportViewProps {
-    
-};
+export interface ImportViewProps {}
 
 export class ImportView extends React.Component<ImportViewProps, ImportViewState> {
-    private _selectExample: React.RefObject<HTMLDivElement>;
-    private _textArea : React.RefObject<HTMLTextAreaElement>;
-    private _inputFile: React.RefObject<HTMLInputElement>;
-    private _textField: React.RefObject<HTMLDivElement>;
-    
+    private _selectExample: React.RefObject<HTMLDivElement>
+    private _textArea: React.RefObject<HTMLTextAreaElement>
+    private _inputFile: React.RefObject<HTMLInputElement>
+    private _textField: React.RefObject<HTMLDivElement>
+
     constructor(props: ImportViewProps) {
-        super(props);
+        super(props)
         this.state = {
             importType: 'example',
             exampleValue: EXAMPLE_LIST[0].fileName,
-        };
+        }
 
-        this._selectExample = React.createRef();
-        this._textArea = React.createRef();
-        this._inputFile = React.createRef();
-        this._textField = React.createRef();
+        this._selectExample = React.createRef()
+        this._textArea = React.createRef()
+        this._inputFile = React.createRef()
+        this._textField = React.createRef()
     }
 
     public render() {
-        let { importType, exampleValue } = this.state;
+        let { importType, exampleValue } = this.state
 
-        let inputElement, headerText, bodyText;
+        let inputElement, headerText, bodyText
 
         let continueButton: any = (
             <Button
@@ -54,7 +67,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         );
 
         switch (importType) {
-            case "example":
+            case 'example':
                 inputElement = (
                     <FormControl>
                         <InputLabel variant="standard" htmlFor="example-data-select" id="example-data-label">Example Data</InputLabel>
@@ -78,17 +91,18 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
             case "paste":
                 inputElement = (
                     <TextareaAutosize
-                        ref={ this._textArea }
+                        ref={this._textArea}
                         aria-label="Textarea for data entry"
                         placeholder="Enter data here"
                         style={{ width: '100%', maxHeight: '400px', overflow: 'scroll' }}
                         minRows={5}
-                        />
-                );
-                headerText = 'Copy & paste your data';
-                bodyText = 'Select your table from a spreadsheet and paste it in the text field. We support comma/tab separated values (i.e., CSV, TSV).'
-                break;
-            case "file":
+                    />
+                )
+                headerText = 'Copy & paste your data'
+                bodyText =
+                    'Select your table from a spreadsheet and paste it in the text field. We support comma/tab separated values (i.e., CSV, TSV).'
+                break
+            case 'file':
                 inputElement = (
                     <label htmlFor="input-upload-file" aria-label="Choose file">
                         <Box component="div" sx={{ p: 2, border: '2px dashed #aaa' }}>
@@ -97,11 +111,11 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                                 <Input
                                     style={{ display: 'none' }}
                                     aria-hidden={true}
-                                    ref={ this._inputFile }
+                                    ref={this._inputFile}
                                     type="file"
                                     id="input-upload-file"
-                                    onChange={ this._handleFileChange }
-                                    />   
+                                    onChange={this._handleFileChange}
+                                />
                             </Button>
                         </Box>
                     </label>
@@ -117,11 +131,12 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                         id="my-input"
                         aria-label="Text field for data url"
                         label="Data URL"
-                        />
-                );
-                headerText = 'Link to your external data';
-                bodyText = 'Enter a valid url to an external data file. We support comma/tab separated values (i.e., CSV, TSV).';
-                break;
+                    />
+                )
+                headerText = 'Link to your external data'
+                bodyText =
+                    'Enter a valid url to an external data file. We support comma/tab separated values (i.e., CSV, TSV).'
+                break
         }
 
         return (
@@ -171,41 +186,40 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
 
                 </div>
             </div>
-        );
+        )
     }
 
     private _handleClickContinue = (event: React.MouseEvent<HTMLElement>) => {
-        switch(this.state.importType) {
-            case "example":
-            case "file":
-                    break;
-            case "paste":
+        switch (this.state.importType) {
+            case 'example':
+            case 'file':
+                break
+            case 'paste':
                 if (this._textArea && this._textArea.current) {
-                    let text = this._textArea.current.value.trim();
-                    DataManager.getInstance().loadDataFromText(text);
+                    let text = this._textArea.current.value.trim()
+                    DataManager.getInstance().loadDataFromText(text)
                 }
-                break;
-            case "link":
+                break
+            case 'link':
                 if (this._textField && this._textField.current) {
-                    let input = this._textField.current.querySelector('input');
+                    let input = this._textField.current.querySelector('input')
                     if (input && input.value) {
-                        let url = input.value.trim();
-                        DataManager.getInstance().loadDataFromUrl(url);
+                        let url = input.value.trim()
+                        DataManager.getInstance().loadDataFromUrl(url)
                     }
                 }
-                break;
+                break
         }
-        
     }
 
     // https://raw.githubusercontent.com/vega/vega-datasets/next/data/stocks.csv
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
-        let target: any = event.target;
+        let target: any = event.target
         if (target && target.files && target.files.length === 1) {
-            console.log(event);
-            let file: File = target.files[0];
-            DataManager.getInstance().loadDataFromFile(file);
+            console.log(event)
+            let file: File = target.files[0]
+            DataManager.getInstance().loadDataFromFile(file)
         }
     }
 
@@ -213,14 +227,13 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         let exampleValue = event.target.value;
         this.setState({ exampleValue });
         let url = `./data/${exampleValue}`
-        DataManager.getInstance().loadDataFromUrl(url);
+        DataManager.getInstance().loadDataFromUrl(url)
     }
 
     private _handleImportTypeChange = (event: React.MouseEvent<HTMLElement>, importType: string) => {
         // Only change import type if another one has been selected, otherwise keep the same
         if (importType) {
-            this.setState({ importType });
+            this.setState({ importType })
         }
     }
 }
-
