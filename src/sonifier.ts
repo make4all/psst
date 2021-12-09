@@ -2,22 +2,9 @@
 // import { SonificationLevel } from './constents';
 import { AudioQueue } from './sonificationUtils';
 import * as d3 from 'd3';
+import { PlaybackState, SonificationLevel, SonificationType } from './constents';
 //move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building.
-export enum SonificationLevel { // similating aria-live ="polite","rude", etc. for sonification
-    polite, //does not interrupt previously sonifying data.
-    rude, // cancels all current sonifications and plays the current point
-}
-enum SonificationType {
-    Tone, // plays tone
-    Noise, // plays noise
-    NoiseHighlight, // plays both tone and noise for a point
-}
 
-export enum PlaybackState { // different states of the audio context.
-    Playing,
-    Paused, //when the context is suspended
-    Stopped, //when playback ends. We can close the context once playback stops if necessary.
-}
 export class Sonifier {
     // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier

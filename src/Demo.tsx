@@ -1,9 +1,9 @@
-import { PlaybackState, SonificationLevel, Sonifier } from './sonifier'
+import {Sonifier } from './sonifier'
 
 import React, { useState } from 'react';
 
 
-import { SupportedFormats } from './constents';
+import { PlaybackState, SonificationLevel, SupportedFormats } from './constents';
 import { ImportView } from './views/ImportView';
 import { DataView } from './views/DataView';
 import { Alert, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
