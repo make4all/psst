@@ -6,7 +6,8 @@ import { PlaybackState, SonificationLevel } from '../constents'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 
-import { FormControl, InputLabel, NativeSelect, Grid } from '@mui/material'
+import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid, NativeSelect } from '@mui/material'
+
 import { DataManager } from '../DataManager'
 
 import { IDemoView } from '../views/demos/IDemoView'
@@ -23,10 +24,12 @@ const DEMO_VIEW_MAP = {
 
 let demoViewRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef();
 export interface DemoState {
-    dataSummary: any;
-    demoViewValue: string;
-    playbackLabel:string;
-};
+    dataSummary: any
+    columnList: string[]
+    columnSelected: string
+    demoViewValue: string
+    playbackLabel: string
+}
 
 export interface DemoProps {
     
@@ -39,13 +42,16 @@ export class Demo extends React.Component<DemoProps, DemoState> {
             dataSummary: {min: 300, max: 500, median: 400, mean: 400, count: 200},
             demoViewValue: 'simple',
             playbackLabel: 'play',
-        };
+            columnSelected: 'Value',
+            columnList: ['Value'],
+        }
+
 
         DataManager.getInstance().addListener(this._handleDataChange);
     }
 
     public render() {
-        const { demoViewValue, dataSummary, playbackLabel } = this.state;
+        const { demoViewValue, dataSummary, playbackLabel, columnSelected, columnList } = this.state
 
         const DemoComponent = DEMO_VIEW_MAP[demoViewValue].component;
 
@@ -59,9 +65,33 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 <div>
                     <DataView />
                 </div>
-    
-                <div style={{ marginTop: "20px" }}>
-                    {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
+
+                <div style={{ marginTop: '20px' }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={8} sm={4} md={4}>
+                            <FormControl>
+                                <InputLabel variant="standard" htmlFor="data-column-select" id="data-column-label">
+                                    Select Data Column
+                                </InputLabel>
+                                <NativeSelect
+                                    aria-label="Select data column to sonify"
+                                    id="data-column-select"
+                                    variant="standard"
+                                    value={columnSelected}
+                                    onChange={this._handleColumnSelectChange}
+                                >
+                                    {columnList.map((column) => (
+                                        <option value={column} key={column}>
+                                            {column}
+                                        </option>
+                                    ))}
+                                </NativeSelect>
+                            </FormControl>
+                        </Grid>
+                    </Grid>
+                </div>
+                <div style={{ marginTop: '20px' }}>
+                  {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
                     {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
                     <Grid container spacing={2}>
                         <Grid item xs={8} sm={4} md={4}>
@@ -97,19 +127,35 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handleDataChange = (data: any) => {
-        // setDataTable(data);
+        // Get all column names
+        let columnList = data.columnNames(),
+            exampleRow = data.object()
 
-        let dataSummary = data.rollup({
-            mean: d => op.mean(d.Value),
-            min: d => op.min(d.Value),
-            max: d => op.max(d.Value),
-            median: d => op.median(d.Value),
-            count: d => op.count(),
-        }).object();
-        console.log(dataSummary);
+        if (columnList.length > 0 && exampleRow) {
+            // Filter out columns that are not numerical types
+            columnList = columnList.filter((column) => typeof exampleRow[column] === 'number')
 
-        this.setState({ dataSummary });
-    };
+            if (columnList.length > 0) {
+                const columnSelected = columnList[0]
+                let dataSummary = this._computeDataSummary(data, columnSelected)
+
+                this.setState({ dataSummary, columnList, columnSelected })
+            }
+        }
+    }
+
+    private _computeDataSummary = (data: any, columnSelected: string) => {
+        const dataSummary = data
+            .rollup({
+                mean: op.mean(columnSelected),
+                min: op.min(columnSelected),
+                max: op.max(columnSelected),
+                median: op.median(columnSelected),
+                count: op.count(),
+            })
+            .object()
+        return dataSummary
+    }
 
     private _handlePlayButton = () => {
         // This is old code for getting the data values from a TextEdit HTML element
@@ -140,7 +186,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         if (table) {
             // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-            let data = table.columns()['Value'].data;
+            let data = table.columns()[this.state.columnSelected].data
 
             if (demoViewRef.current) {
                 let demoView: IDemoView = demoViewRef.current;
@@ -185,4 +231,16 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         this.setState({ demoViewValue });
     }
 
+    private _handleColumnSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+        console.log('change column selected', event.target.value)
+        const columnSelected = event.target.value
+
+        let table = DataManager.getInstance().table
+
+        if (table) {
+            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
+            const dataSummary = this._computeDataSummary(table, columnSelected)
+            this.setState({ columnSelected, dataSummary })
+        }
+    }
 }
