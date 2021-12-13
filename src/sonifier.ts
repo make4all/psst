@@ -38,6 +38,28 @@ private     previousPriority: SonificationLevel
     private scheduleAheadTime:number;
     private nextPointTime:number;
     private timerID:number | undefined;
+    private _highlightPoint: number
+    public get highlightPoint(): number {
+        return this._highlightPoint
+    }
+    public set highlightPoint(value: number) {
+        this._highlightPoint = value
+    }
+    private _beginRegion: number
+    public get beginRegion(): number {
+        return this._beginRegion
+    }
+    public set beginRegion(value: number) {
+        this._beginRegion = value
+    }
+    private _endRegion: number
+    public get endRegion(): number {
+        return this._endRegion
+    }
+    public set endRegion(value: number) {
+        this._endRegion = value
+    }
+
     
     private constructor() {
         // super()
@@ -60,6 +82,9 @@ private     previousPriority: SonificationLevel
         this.currentDataPointIndex = 0;
         this.timerID = undefined;
         this._data = [];
+        this._beginRegion = Number.MAX_SAFE_INTEGER;
+        this._endRegion = Number.MAX_SAFE_INTEGER;
+        this._highlightPoint = Number.MAX_SAFE_INTEGER;
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -170,8 +195,11 @@ this.data = dummyData;
     }
     private resetSonifier() {
         this.audioQueue.emptyAudioQueue()
-        this.startTime = this.audioCtx.currentTime
-        this.endTime = this.startTime
+        this._data = [{}];
+        this.nextPointTime = this.audioCtx.currentTime;
+        this.currentDataPointIndex = 0;
+        
+    
         this.previousFrequencyOfset = 50;
     }
 
