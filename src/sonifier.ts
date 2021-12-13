@@ -60,6 +60,8 @@ private     previousPriority: SonificationLevel
         this._endRegion = value
     }
 
+    private timerWorker:Worker | null;
+
     
     private constructor() {
         // super()
@@ -85,6 +87,9 @@ private     previousPriority: SonificationLevel
         this._beginRegion = Number.MAX_SAFE_INTEGER;
         this._endRegion = Number.MAX_SAFE_INTEGER;
         this._highlightPoint = Number.MAX_SAFE_INTEGER;
+        // need to test.
+        this.timerWorker = null;
+        // this.timerWorker = new Worker("timerWorker.ts");
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -103,8 +108,8 @@ private     previousPriority: SonificationLevel
             this.currentDataPointIndex+=1;
 
         }
-        // move this part to a web worker.
-        this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
+        // moved this part to a web worker. need to test.
+        // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
     }
 
     public playSimpleTone(dummyData: number[]): void {
