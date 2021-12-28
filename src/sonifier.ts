@@ -66,6 +66,10 @@ private     previousPriority: SonificationLevel
         // need to test.
         // this.timerWorker = null;
         this.timerWorker = new Worker("timerWorker.ts");
+        this.timerWorker.onmessage = (event) => {
+            if(event.data == "tick")
+            this.scheduler();
+        }
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -94,7 +98,7 @@ private     previousPriority: SonificationLevel
     }
 
     public playSimpleTone(dummyData: number[]): void {
-        console.log('playTone: sonifying data', dummyData)
+        // console.log('playTone: sonifying data', dummyData)
 // this.data = dummyData;
         let frequencyExtent = [16, 1e3]
         let dataExtent = d3.extent(dummyData)
@@ -107,7 +111,7 @@ private     previousPriority: SonificationLevel
 
 
         }
-        this.scheduler();
+        this.fireTimer();
         this.isStreamInProgress = true
     }
 

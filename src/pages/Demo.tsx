@@ -221,7 +221,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         for(let i=0;i<5;i++) {
                 let dataPoint:number = Math.random()
                 dataPoint = dataPoint*10000;
-                sonifierInstance.SonifyPushedPoint(dataPoint,SonificationLevel.rude)
+                // sonifierInstance.SonifyPushedPoint(dataPoint,SonificationLevel.rude)
             }
         }
     }

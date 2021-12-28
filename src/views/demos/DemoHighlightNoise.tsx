@@ -31,7 +31,7 @@ export class DemoHighlightNoise
     public onPlay = (data: any) => {
         let sonifierInstance = Sonifier.getSonifierInstance()
         let { highlightValue } = this.state
-        sonifierInstance.playHighlightPointsWithNoise(data, highlightValue)
+        // sonifierInstance.playHighlightPointsWithNoise(data, highlightValue)
     }
 
     public render() {

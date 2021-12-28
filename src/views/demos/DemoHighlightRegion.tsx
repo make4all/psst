@@ -30,7 +30,7 @@ export class DemoHighlightRegion
     public onPlay = (data: any) => {
         let sonifierInstance = Sonifier.getSonifierInstance()
         let { minValue, maxValue } = this.state
-        sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue)
+        // sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue)
     }
 
     public render() {
