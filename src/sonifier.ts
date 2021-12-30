@@ -98,6 +98,8 @@ private     previousPriority: SonificationLevel
     }
 
     public playSimpleTone(dummyData: number[]): void {
+        // Flush the sonifier nodes that might be in use
+        this.resetSonifier();
         // console.log('playTone: sonifying data', dummyData)
 // this.data = dummyData;
         let frequencyExtent = [16, 1e3]
@@ -218,27 +220,34 @@ private     previousPriority: SonificationLevel
         return bandPassFilterNode
     }
 
-    // public playHighlightedRegionWithTones(dummyData: number[], beginRegion: number, endRegion: number): void {
-    //     if (beginRegion > endRegion) {
-    //         ;[beginRegion, endRegion] = [endRegion, beginRegion]
-    //     }
+    public playHighlightedRegionWithTones(dummyData: number[], beginRegion: number, endRegion: number): void {
+        let point:Point;
+        // Flush the sonifier nodes that might be in use
+        this.resetSonifier();
+        if (beginRegion > endRegion) {
+            ;[beginRegion, endRegion] = [endRegion, beginRegion]
+        }
 
-    //     let frequencyExtent = [16, 1e3]
-    //     let dataExtent = d3.extent(dummyData)
+        let frequencyExtent = [16, 1e3]
+        let dataExtent = d3.extent(dummyData)
 
-    //     let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
 
-    //     for (let i = 0; i < dummyData.length; i++) {
-    //         let frequencyOffset = frequencyScale(dummyData[i])
-    //         if (dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
-    //             this.sonifyPoint(frequencyOffset)
-    //         } else {
-    //             this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.Noise)
-    //         }
-    //         this.isStreamInProgress = true
-    //     }
-    //     this.isStreamInProgress = false
-    // }
+        for (let i = 0; i < dummyData.length; i++) {
+            let scaledDataPoint = frequencyScale(dummyData[i])
+            if (dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
+                point = {value:dummyData[i], scaledValue:scaledDataPoint, Priority:SonificationLevel.polite, sonificationType:SonificationType.Tone};
+                point.isInRegionOfInterest = true;
+            } else {
+                point = {value:dummyData[i], scaledValue:scaledDataPoint, Priority:SonificationLevel.polite, sonificationType:SonificationType.Noise};
+            }
+            if(dummyData[i] == beginRegion || dummyData[i] == endRegion)
+            point.isFenceOfRegionOfInterest = true;
+            this._data.push(point);
+        }
+        this.isStreamInProgress = true;
+        this.fireTimer();
+    }
 
     private createNoiseBufferNode(): AudioBufferSourceNode {
         const noiseBufferSize: number = this.audioCtx.sampleRate * this.pointSonificationLength
