@@ -163,7 +163,7 @@ private     previousPriority: SonificationLevel
         console.log('in sonify point. datapoint:', dataPoint)
 
         console.log('isStreamInProgress', this.isStreamInProgress)
-        if (dataPoint.Priority == SonificationLevel.rude && this.previousPriority != SonificationLevel.rude) {
+        if (dataPoint.Priority == SonificationLevel.assertive && this.previousPriority != SonificationLevel.assertive) {
             this.resetSonifier()
         }
         if (!this.isStreamInProgress) {
@@ -261,9 +261,12 @@ private     previousPriority: SonificationLevel
         return noiseNode
     }
 
-    // public SonifyPushedPoint(dataPoint: number, level: SonificationLevel) {
-    //     this.sonifyPoint(2 * dataPoint, level)
-    // }
+    public SonifyPushedPoint(dataPoint: number, level: SonificationLevel) {
+        // this.sonifyPoint(2 * dataPoint, level)
+        this._data.push({value:dataPoint, scaledValue:2*dataPoint, Priority:level, sonificationType:SonificationType.Tone});
+        this.isStreamInProgress = true;
+        this.fireTimer();
+    }
 
     //needs extensive testing.
     private handelOnEnded() {
