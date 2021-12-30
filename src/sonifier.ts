@@ -14,7 +14,7 @@ export class Sonifier {
     protected previousFrequencyOfset: number
     protected pointSonificationLength: number
     protected audioQueue: AudioQueue
-    protected priority: SonificationLevel
+    // protected priority: SonificationLevel
     protected didNodesFinishPlaying: boolean
     private _playbackState: PlaybackState
     private previousPlaybackState: PlaybackState
@@ -53,7 +53,7 @@ private     previousPriority: SonificationLevel
         this.previousFrequencyOfset = 50
         this.pointSonificationLength = 0.3
         this.previousPriority = SonificationLevel.polite;
-        this.priority = SonificationLevel.polite;  
+  
         this._playbackState = PlaybackState.Stopped
         this.previousPlaybackState = PlaybackState.Stopped
         this.didNodesFinishPlaying = true
@@ -112,39 +112,39 @@ private     previousPriority: SonificationLevel
 
         }
         this.fireTimer();
-        this.isStreamInProgress = true
+        this.isStreamInProgress = true;
     }
 
-    // public playHighlightPointsWithNoise(dummyData: number[], highlightPoint: number): void {
-    //     // Flush the sonifier nodes that might be in use
-    //     this.resetSonifier();
+    public playHighlightPointsWithNoise(dummyData: number[], highlightPoint: number): void {
+        // Flush the sonifier nodes that might be in use
+        this.resetSonifier();
 
-    //     let frequencyExtent = [16, 1e3]
-    //     let dataExtent = d3.extent(dummyData)
+        let frequencyExtent = [16, 1e3]
+        let dataExtent = d3.extent(dummyData)
 
-    //     let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
+        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
 
-    //     for (let i = 0; i < dummyData.length; i++) {
-    //         let frequencyOffset: number = frequencyScale(dummyData[i]) // frequencyOfset = frequencyOfset%1000;
+        for (let i = 0; i < dummyData.length; i++) {
+            let scaledDataPoint: number = frequencyScale(dummyData[i]) // frequencyOfset = frequencyOfset%1000;
 
-    //         console.log('frequency ofset', frequencyOffset)
-    //         if (dummyData[i] == highlightPoint) {
-    //             this.sonifyPoint(frequencyOffset, SonificationLevel.polite, SonificationType.NoiseHighlight)
-    //         } else {
-    //             this.sonifyPoint(frequencyOffset)
-    //         }
-    //         this.isStreamInProgress = true
-    //     }
-    //     this.isStreamInProgress = false
-    // }
+            // console.log('frequency ofset', frequencyOffset)
+            if (dummyData[i] == highlightPoint) {
+                this._data.push({value:dummyData[i], scaledValue:scaledDataPoint, Priority:SonificationLevel.polite, sonificationType:SonificationType.NoiseHighlight});
+            } else {
+                this._data.push({value:dummyData[i], scaledValue:scaledDataPoint, Priority:SonificationLevel.polite, sonificationType:SonificationType.Tone});
+            }
+        }
+        this.fireTimer();
+        this.isStreamInProgress = true;
+    }
 
-    private scheduleNoiseNode() {
+    private scheduleNoiseNode(pointTime:number) {
         let noiseNode = this.createNoiseBufferNode()
         let bandPassFilterNode = this.createBandPassFilterNode()
         noiseNode.onended = () => this.handelOnEnded()
         noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination)
-        noiseNode.start(this.startTime)
-        noiseNode.stop(this.endTime)
+        noiseNode.start(pointTime)
+        noiseNode.stop(pointTime+this.pointSonificationLength)
         this.audioQueue.enqueue(noiseNode)
         // this.audioQueue.enqueue(bandPassFilterNode)
         if (this.playbackState == PlaybackState.Stopped) {
@@ -169,13 +169,13 @@ private     previousPriority: SonificationLevel
             this.isStreamInProgress = true
         }
         
-        this.previousPriority = this.priority // to keep track of priority of previous point
+        this.previousPriority = dataPoint.Priority; // to keep track of priority of previous point
         if (dataPoint.sonificationType == SonificationType.Tone) {
             this.scheduleOscilatorNode(dataPoint.scaledValue,pointTime)
         } else if (dataPoint.sonificationType == SonificationType.Noise) {
-            this.scheduleNoiseNode()
+            this.scheduleNoiseNode(pointTime)
         } else if (dataPoint.sonificationType == SonificationType.NoiseHighlight) {
-            this.scheduleNoiseNode()
+            this.scheduleNoiseNode(pointTime)
             this.scheduleOscilatorNode(dataPoint.scaledValue,pointTime)
         } else {
             throw new Error('not implemented.')
@@ -193,6 +193,7 @@ private     previousPriority: SonificationLevel
         
     
         this.previousFrequencyOfset = 50;
+        this.isStreamInProgress = false;
     }
 
     private scheduleOscilatorNode(dataPoint: number,pointTime:number) {
@@ -255,11 +256,13 @@ private     previousPriority: SonificationLevel
     //     this.sonifyPoint(2 * dataPoint, level)
     // }
 
+    //needs extensive testing.
     private handelOnEnded() {
-        if (this.audioCtx.currentTime >= this.endTime) {
+        if (this.audioCtx.currentTime >= this.nextPointTime) {
             // This is the last node.
             console.log('playback ended. state before updation:', this.playbackState)
             this._playbackState = PlaybackState.Stopped
+            this.isStreamInProgress = false;
         } else {
             this._playbackState = PlaybackState.Playing
         }
