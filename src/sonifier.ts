@@ -35,10 +35,10 @@ private     previousPriority: SonificationLevel
     private currentDataPointIndex:number;
     private scheduleAheadTime:number;
     private nextPointTime:number;
-    private timerID:number | undefined;
+    private timer:number | undefined;
     
 
-    private timerWorker:Worker;
+    
 
     
     private constructor() {
@@ -60,16 +60,10 @@ private     previousPriority: SonificationLevel
         this._pointQueue = [{}];
         this.scheduleAheadTime = 2*this.pointSonificationLength; // we could compute this by computing the stream rate for data streams.
         this.currentDataPointIndex = 0;
-        this.timerID = undefined;
+        this.timer = undefined;
         this._data = [];
         
-        // need to test.
-        // this.timerWorker = null;
-        this.timerWorker = new Worker("timerWorker.ts");
-        this.timerWorker.onmessage = (event) => {
-            if(event.data == "tick")
-            this.scheduler();
-        }
+
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -79,14 +73,32 @@ private     previousPriority: SonificationLevel
         return Sonifier.sonifierInstance
     }
 
-    private fireTimer() {
-        this.timerWorker.postMessage({"interval":this.scheduleAheadTime});
-        this.timerWorker.postMessage("start");
+    private fireTimer(command:string = "start") {
+
+        if(command == "start") {
+            console.log("timer starting")
+            this.timer=window.setInterval(() => this.scheduler() ,this.scheduleAheadTime)
+        }
+         else  if(command == "stop" ) {
+             console.log("stopping timer")
+             if(this.timer)
+             {
+                window.clearInterval(this.timer);
+                this.timer = undefined;
+             }
+
+        } else {
+            throw new Error('unsupported command.') 
+        }
     }
+    
 
     private scheduler() {
+        console.log("in scheduler")
         while(this.nextPointTime < this.audioCtx.currentTime+this.scheduleAheadTime && this.currentDataPointIndex < this.data.length)
         {
+            console.log("scheduling point at index", this.currentDataPointIndex);
+            console.log("time", this.nextPointTime)
             this.pointQueue.push({pointIndex:this.currentDataPointIndex, dataPoint:this.data[this.currentDataPointIndex],time:this.nextPointTime});
             this.sonifyPoint(this.data[this.currentDataPointIndex],this.nextPointTime);
             this.nextPointTime += this.pointSonificationLength;
@@ -285,7 +297,7 @@ private     previousPriority: SonificationLevel
     public pauseToggle() {
         if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
             console.log('playing')
-            this.timerWorker.postMessage("stop");
+            this.fireTimer("stop");
             this.audioCtx.suspend()
             this._playbackState = PlaybackState.Paused
         } else {
