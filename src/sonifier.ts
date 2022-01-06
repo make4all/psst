@@ -7,15 +7,15 @@ import { PlaybackState, SonificationLevel, SonificationType } from './constents'
 export class Sonifier {
     // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
     private static sonifierInstance: Sonifier
-    protected audioCtx: AudioContext
-    protected startTime: number
-    protected endTime: number
-    protected isStreamInProgress: boolean
-    protected previousFrequencyOfset: number
-    protected pointSonificationLength: number
-    protected audioQueue: AudioQueue
+    private audioCtx: AudioContext
+    private startTime: number
+    private endTime: number
+    private isStreamInProgress: boolean
+    private previousFrequencyOfset: number
+    private pointSonificationLength: number
+    private audioQueue: AudioQueue
     // protected priority: SonificationLevel
-    protected didNodesFinishPlaying: boolean
+    // protected didNodesFinishPlaying: boolean
     private _playbackState: PlaybackState
     private previousPlaybackState: PlaybackState
     private _data: Point[]
@@ -56,7 +56,7 @@ private     previousPriority: SonificationLevel
   
         this._playbackState = PlaybackState.Stopped
         this.previousPlaybackState = PlaybackState.Stopped
-        this.didNodesFinishPlaying = true
+        // this.didNodesFinishPlaying = true
         this._pointQueue = [{}];
         this.scheduleAheadTime = 2*this.pointSonificationLength; // we could compute this by computing the stream rate for data streams.
         this.currentDataPointIndex = 0;
@@ -80,9 +80,10 @@ private     previousPriority: SonificationLevel
             this.timer=window.setInterval(() => this.scheduler() ,this.scheduleAheadTime)
         }
          else  if(command == "stop" ) {
-             console.log("stopping timer")
+             
              if(this.timer)
              {
+                console.log("stopping timer")
                 window.clearInterval(this.timer);
                 this.timer = undefined;
              }
@@ -172,9 +173,9 @@ private     previousPriority: SonificationLevel
         pointTime:number
         
     ) {
-        console.log('in sonify point. datapoint:', dataPoint)
+        // console.log('in sonify point. datapoint:', dataPoint)
 
-        console.log('isStreamInProgress', this.isStreamInProgress)
+        // console.log('isStreamInProgress', this.isStreamInProgress)
         if (dataPoint.Priority == SonificationLevel.assertive && this.previousPriority != SonificationLevel.assertive) {
             this.resetSonifier()
         }
@@ -204,10 +205,12 @@ private     previousPriority: SonificationLevel
         this._data = [];
         this.nextPointTime = this.audioCtx.currentTime;
         this.currentDataPointIndex = 0;
+        this._pointQueue = [{}];
         
     
         this.previousFrequencyOfset = 50;
         this.isStreamInProgress = false;
+        // this.fireTimer("stop");
     }
 
     private scheduleOscilatorNode(dataPoint: number,pointTime:number) {
@@ -275,6 +278,7 @@ private     previousPriority: SonificationLevel
 
     public SonifyPushedPoint(dataPoint: number, level: SonificationLevel) {
         // this.sonifyPoint(2 * dataPoint, level)
+        this.resetSonifier();
         this._data.push({value:dataPoint, scaledValue:2*dataPoint, Priority:level, sonificationType:SonificationType.Tone});
         this.isStreamInProgress = true;
         this.fireTimer();
@@ -290,7 +294,7 @@ private     previousPriority: SonificationLevel
         } else {
             this._playbackState = PlaybackState.Playing
         }
-        console.log('playback state before firing onPlayBackStateChanged event', this.playbackState)
+        // console.log('playback state before firing onPlayBackStateChanged event', this.playbackState)
         this.firePlaybackStateChangedEvent()
     }
 
