@@ -1,4 +1,4 @@
-import { SonificationLevel, SonificationType } from "./constents"
+import { SonificationLevel, SonificationType } from './constents'
 
 export class AudioQueue {
     private storage: { [index: number]: AudioScheduledSourceNode }
@@ -30,15 +30,13 @@ export class AudioQueue {
     }
 }
 
-
-
-export interface Point{
-    value:number;
-    scaledValue: number;
-    Priority: SonificationLevel;
-    sonificationType:SonificationType;
-    isHighlightPoint?: boolean;
-    isFenceOfRegionOfInterest?: boolean;
-    isInRegionOfInterest?: boolean;
-    alert?: boolean;
+export interface Point {
+    value: number
+    scaledValue: number
+    Priority: SonificationLevel
+    sonificationType: SonificationType
+    isHighlightPoint?: boolean
+    isFenceOfRegionOfInterest?: boolean
+    isInRegionOfInterest?: boolean
+    alert?: boolean
 }
