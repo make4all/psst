@@ -6,9 +6,9 @@ export enum SupportedFormats { // support formats of input data.
     CSV,
 }
 
-export enum SonificationLevel { // similating aria-live ="polite","rude", etc. for sonification
+export enum SonificationLevel { // similating aria-live ="polite","assertive", etc. for sonification
     polite, //does not interrupt previously sonifying data.
-    rude, // cancels all current sonifications and plays the current point
+    assertive, // cancels all current sonifications and plays the current point
 }
 export enum SonificationType {
     Tone, // plays tone

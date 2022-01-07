@@ -58,37 +58,40 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         let inputElement, headerText, bodyText
 
         let continueButton: any = (
-            <Button
-                variant="contained"
-                sx={{ mt: 1, mr: 1 }}
-                onClick={this._handleClickContinue} >
-                    Continue
+            <Button variant="contained" sx={{ mt: 1, mr: 1 }} onClick={this._handleClickContinue}>
+                Continue
             </Button>
-        );
+        )
 
         switch (importType) {
             case 'example':
                 inputElement = (
                     <FormControl>
-                        <InputLabel variant="standard" htmlFor="example-data-select" id="example-data-label">Example Data</InputLabel>
+                        <InputLabel variant="standard" htmlFor="example-data-select" id="example-data-label">
+                            Example Data
+                        </InputLabel>
                         <NativeSelect
-                            ref={ this._selectExample }
+                            ref={this._selectExample}
                             aria-label="Choose example data"
                             id="example-data-select"
                             placeholder="Enter data here"
-                            value={ exampleValue }
+                            value={exampleValue}
                             variant="standard"
-                            onChange={ this._handleExampleChange }
-                            >
-                            {EXAMPLE_LIST.map( e => (<option value={ e.fileName } key={ e.fileName }>{ e.displayName }</option>))}
+                            onChange={this._handleExampleChange}
+                        >
+                            {EXAMPLE_LIST.map((e) => (
+                                <option value={e.fileName} key={e.fileName}>
+                                    {e.displayName}
+                                </option>
+                            ))}
                         </NativeSelect>
                     </FormControl>
-                );
-                headerText = 'Choose from example data';
-                bodyText = 'Choose an example data file from the provided list.';
-                continueButton = undefined;
-                break;
-            case "paste":
+                )
+                headerText = 'Choose from example data'
+                bodyText = 'Choose an example data file from the provided list.'
+                continueButton = undefined
+                break
+            case 'paste':
                 inputElement = (
                     <TextareaAutosize
                         ref={this._textArea}
@@ -119,12 +122,12 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                             </Button>
                         </Box>
                     </label>
-                );
-                headerText = 'Upload your data file';
-                bodyText = 'Choose your local data file (*.csv or *.tsv) to upload.';
-                continueButton = undefined;
-                break;
-            case "link":
+                )
+                headerText = 'Upload your data file'
+                bodyText = 'Choose your local data file (*.csv or *.tsv) to upload.'
+                continueButton = undefined
+                break
+            case 'link':
                 inputElement = (
                     <TextField
                         ref={this._textField}
@@ -145,22 +148,67 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                 <div>
                     <Grid container spacing={2}>
                         <Grid item xs={4} sm={3} md={2}>
-                            <ToggleButtonGroup orientation="vertical" value={importType} onChange={this._handleImportTypeChange} exclusive>
+                            <ToggleButtonGroup
+                                orientation="vertical"
+                                value={importType}
+                                onChange={this._handleImportTypeChange}
+                                exclusive
+                            >
                                 <ToggleButton value="example">
                                     <ListAlt />
-                                    <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Choose from example data</span>
+                                    <span
+                                        style={{
+                                            textTransform: 'none',
+                                            marginLeft: '0.5rem',
+                                            textAlign: 'left',
+                                            maxWidth: '100px',
+                                            lineHeight: '1.4',
+                                        }}
+                                    >
+                                        Choose from example data
+                                    </span>
                                 </ToggleButton>
                                 <ToggleButton value="paste">
                                     <ContentPaste />
-                                    <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Copy & paste data table</span>
+                                    <span
+                                        style={{
+                                            textTransform: 'none',
+                                            marginLeft: '0.5rem',
+                                            textAlign: 'left',
+                                            maxWidth: '100px',
+                                            lineHeight: '1.4',
+                                        }}
+                                    >
+                                        Copy & paste data table
+                                    </span>
                                 </ToggleButton>
                                 <ToggleButton value="file">
                                     <UploadFile />
-                                    <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Upload CSV or TSV file</span>
+                                    <span
+                                        style={{
+                                            textTransform: 'none',
+                                            marginLeft: '0.5rem',
+                                            textAlign: 'left',
+                                            maxWidth: '100px',
+                                            lineHeight: '1.4',
+                                        }}
+                                    >
+                                        Upload CSV or TSV file
+                                    </span>
                                 </ToggleButton>
                                 <ToggleButton value="link">
                                     <Link />
-                                    <span style={{ 'textTransform': 'none', 'marginLeft': '0.5rem', 'textAlign': 'left', 'maxWidth': '100px', 'lineHeight': '1.4' }} >Link to external url</span>
+                                    <span
+                                        style={{
+                                            textTransform: 'none',
+                                            marginLeft: '0.5rem',
+                                            textAlign: 'left',
+                                            maxWidth: '100px',
+                                            lineHeight: '1.4',
+                                        }}
+                                    >
+                                        Link to external url
+                                    </span>
                                 </ToggleButton>
                             </ToggleButtonGroup>
                         </Grid>
@@ -168,22 +216,16 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
                             <div>
                                 <Stack spacing={1}>
                                     <Typography variant="h6" color="text.secondary">
-                                        { headerText }
+                                        {headerText}
                                     </Typography>
-                                    { inputElement }
-                                    <Typography variant="body2">
-                                        { bodyText }
-                                    </Typography>
-                                    { continueButton }
+                                    {inputElement}
+                                    <Typography variant="body2">{bodyText}</Typography>
+                                    {continueButton}
                                 </Stack>
-                                
                             </div>
-                            
                         </Grid>
-                        <Grid item xs={0} sm={0} md={2}>
-                        </Grid>
+                        <Grid item xs={0} sm={0} md={2}></Grid>
                     </Grid>
-
                 </div>
             </div>
         )
@@ -224,8 +266,8 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
     }
 
     private _handleExampleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        let exampleValue = event.target.value;
-        this.setState({ exampleValue });
+        let exampleValue = event.target.value
+        this.setState({ exampleValue })
         let url = `./data/${exampleValue}`
         DataManager.getInstance().loadDataFromUrl(url)
     }
