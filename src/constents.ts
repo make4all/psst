@@ -21,3 +21,9 @@ export enum PlaybackState { // different states of the audio context.
     Paused, //when the context is suspended
     Stopped, //when playback ends. We can close the context once playback stops if necessary.
 }
+
+export enum AudioType{
+    Audio, // tones, noise, etc.
+    Speech, // speech.
+    Noise, // noise.
+}
