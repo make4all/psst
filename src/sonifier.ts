@@ -20,6 +20,7 @@ export class Sonifier {
     private previousPlaybackState: PlaybackState
     private _data: Point[]
     private previousPriority: SonificationLevel
+    private amp: GainNode
     public get data(): Point[] {
         return this._data
     }
@@ -58,6 +59,7 @@ export class Sonifier {
         this.currentDataPointIndex = 0
         this.timer = undefined
         this._data = []
+        this.amp = new GainNode(this.audioCtx)
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -227,17 +229,17 @@ export class Sonifier {
     */
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
-        let amp = this.audioCtx.createGain()
-        amp.gain.value = 0.5
+        this.amp = this.audioCtx.createGain()
         osc.frequency.value = this.previousFrequencyOfset
         osc.frequency.linearRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
         osc.onended = () => this.handelOnEnded()
-        osc.connect(amp).connect(this.audioCtx.destination)
+        osc.connect(this.amp).connect(this.audioCtx.destination)
         osc.start(pointTime)
-        amp.gain.setTargetAtTime(1, pointTime + 0.01, 0.015)
-        amp.gain.setTargetAtTime(0.5, pointTime + this.pointSonificationLength + 0.01, 0.015)
-        //amp.gain.setValueAtTime(amp.gain.value, pointTime);
-        //amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
+        this.amp.gain.setValueAtTime(0.5, pointTime)
+        console.log("time begun, value at start: " + this.audioCtx.currentTime + ", " + this.amp.gain.value)
+        this.amp.gain.exponentialRampToValueAtTime(1, pointTime + 0.01)
+        this.amp.gain.setValueAtTime(1, pointTime + this.pointSonificationLength - 0.0001)
+        this.amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength)
         //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
         osc.stop(pointTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
@@ -319,6 +321,7 @@ export class Sonifier {
 
     //needs extensive testing.
     private handelOnEnded() {
+        console.log("time ended, value at ended: " + this.audioCtx.currentTime + ", " + this.amp.gain.value)
         if (this.audioCtx.currentTime >= this.nextPointTime) {
             // This is the last node.
             console.log('playback ended. state before updation:', this.playbackState)
