@@ -1,4 +1,4 @@
-import { AudioType, SonificationLevel, SonificationType } from './constents'
+import { AudioType, NoiseType, SonificationLevel, SonificationParam, SonificationType } from './constents'
 
 export class AudioQueue {
     private storage: { [index: number]: AudioScheduledSourceNode }
@@ -60,4 +60,61 @@ export interface SonificationTemplate {
     apply(point:Point): Point; // applies the templates and returns the point to be sonified.
 }
 
+class Tone implements ISonificationType{
+    private _type: AudioType = AudioType.Audio
+    public get type(): AudioType {
+        return this._type
+    }
+    
 
+    private _value: number
+    public get value(): number {
+        return this._value
+    }
+    private set value(value: number) {
+        this._value = value
+    }
+
+    private _param: SonificationParam
+    public get param(): SonificationParam {
+        return this._param
+    }
+    
+    private _duration: number
+    public get duration(): number {
+        return this._duration
+    }
+    public set duration(value: number) {
+        this._duration = value
+    }
+    public constructor(param:SonificationParam,value:number)
+    {
+        this._param = param;
+        this._value = value;
+        this._duration = 0.3;
+    }
+}
+
+class Noise implements ISonificationType{
+    private _type: AudioType = AudioType.Noise;
+    public get type(): AudioType {
+        return this._type;
+    }
+    private _noiseType: NoiseType
+    public get noiseType(): NoiseType {
+        return this._noiseType
+    }
+    private _duration: number
+    public get duration(): number {
+        return this._duration
+    }
+    public set duration(value: number) {
+        this._duration = value
+    }
+    
+    public constructor(duration) {
+        this._duration = duration;
+        this._noiseType = NoiseType.white;
+
+    }
+}

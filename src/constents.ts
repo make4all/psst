@@ -27,3 +27,11 @@ export enum AudioType{
     Speech, // speech.
     Noise, // noise.
 }
+export enum SonificationParam{
+    frequency, // to change the frequency of an oscilator node.
+    volume, // to change the volume of an oscilator or noise node.
+    pan, // to pan the audio.
+}
+export enum NoiseType{
+    white, // white noise
+}
