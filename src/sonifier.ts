@@ -47,7 +47,7 @@ export class Sonifier {
         this.audioQueue = new AudioQueue()
         this.isStreamInProgress = false
         this.previousFrequencyOfset = 50
-        this.pointSonificationLength = 0.3
+        this.pointSonificationLength = 2
         this.previousPriority = SonificationLevel.polite
 
         this._playbackState = PlaybackState.Stopped
@@ -228,13 +228,16 @@ export class Sonifier {
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
         let amp = this.audioCtx.createGain()
+        amp.gain.value = 0.5
         osc.frequency.value = this.previousFrequencyOfset
         osc.frequency.linearRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
         osc.onended = () => this.handelOnEnded()
         osc.connect(amp).connect(this.audioCtx.destination)
         osc.start(pointTime)
-        amp.gain.setValueAtTime(amp.gain.value, pointTime);
-        amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
+        amp.gain.setTargetAtTime(1, pointTime + 0.01, 0.015)
+        amp.gain.setTargetAtTime(0.5, pointTime + this.pointSonificationLength + 0.01, 0.015)
+        //amp.gain.setValueAtTime(amp.gain.value, pointTime);
+        //amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
         //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
         osc.stop(pointTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
