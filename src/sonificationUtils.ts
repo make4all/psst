@@ -1,4 +1,4 @@
-import { SonificationLevel, SonificationType } from './constents'
+import { AudioType, SonificationLevel, SonificationType } from './constents'
 
 export class AudioQueue {
     private storage: { [index: number]: AudioScheduledSourceNode }
@@ -40,3 +40,24 @@ export interface Point {
     isInRegionOfInterest?: boolean
     alert?: boolean
 }
+
+export interface ISonificationType{
+type: AudioType;
+spokenText?: string; // the text to be spoken if the type is speech
+value?:number; // the value that should be passed into the oscillator node or volume node.
+Uri?:string // the location to an audio file to play if the user chooses to play the file when this point is processed.
+
+}
+
+export interface SonificationTemplate {
+    Name:string; // a user-readable name of the template.
+    highlight:SonificationType; // preferred sonification parameters to highlight a point with.
+    nonHighlight?:SonificationType; // preferred way to not highlight a point.
+    highlightCondition: (value:number) => boolean // if true, apply highlight sonification type.
+    nonHighlightCondition?: (value:number) => boolean // if optional function is defined and returns true, apply non-highlight sonification type.
+    Transformation? (value:number) : number; // optional function to transform the live data we see.
+    Filter? (value:number): boolean // if this method exists and returns false, data processing will stop.
+    apply(point:Point): Point; // applies the templates and returns the point to be sonified.
+}
+
+
