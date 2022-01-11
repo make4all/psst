@@ -212,13 +212,30 @@ export class Sonifier {
         // this.fireTimer("stop");
     }
 
+    /* NORA: DELETE LATER
+    - checked to see that the amp is correctly set up; if you modify the amp.gain.value, the volume correctly changes to correspond to the value
+    - using the technique from prev iterations doesn't work i.e.:
+        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
+        - greatly changing the time constant doesn't impact the clicks?
+    - tried replacing linearRampToValueAtTime with exponentialRampToValueAtTime
+        - no change
+    - tried alt strategy of the following:
+        amp.gain.setValueAtTime(amp.gain.value, pointTime);
+        amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
+        - volume is inverted? but checked the both before and after this, amp.gain.value == 1
+    - referenced methods from http://alemangui.github.io/ramp-to-value
+    */
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
+        let amp = this.audioCtx.createGain()
         osc.frequency.value = this.previousFrequencyOfset
         osc.frequency.linearRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
         osc.onended = () => this.handelOnEnded()
-        osc.connect(this.audioCtx.destination)
+        osc.connect(amp).connect(this.audioCtx.destination)
         osc.start(pointTime)
+        amp.gain.setValueAtTime(amp.gain.value, pointTime);
+        amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
+        //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
         osc.stop(pointTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
         if (this.playbackState == PlaybackState.Stopped) {
