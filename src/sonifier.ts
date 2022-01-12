@@ -1,7 +1,7 @@
 // import { SonificationLevel } from './constents';
 import { AudioQueue, Point } from './sonificationUtils'
 import * as d3 from 'd3'
-import { PlaybackState, SonificationLevel, SonificationType } from './constents'
+import { PlaybackState, SonificationLevel, OldSonificationType } from './constents'
 //move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building.
 
 export class Sonifier {
@@ -119,7 +119,7 @@ export class Sonifier {
                 value: dummyData[i],
                 scaledValue: scaledDataPoint,
                 Priority: SonificationLevel.polite,
-                sonificationType: SonificationType.Tone,
+                legacySonificationType: OldSonificationType.Tone,
             })
         }
         this.fireTimer()
@@ -144,14 +144,14 @@ export class Sonifier {
                     value: dummyData[i],
                     scaledValue: scaledDataPoint,
                     Priority: SonificationLevel.polite,
-                    sonificationType: SonificationType.NoiseHighlight,
+                    legacySonificationType: OldSonificationType.NoiseHighlight,
                 })
             } else {
                 this._data.push({
                     value: dummyData[i],
                     scaledValue: scaledDataPoint,
                     Priority: SonificationLevel.polite,
-                    sonificationType: SonificationType.Tone,
+                    legacySonificationType: OldSonificationType.Tone,
                 })
             }
         }
@@ -187,11 +187,11 @@ export class Sonifier {
         }
 
         this.previousPriority = dataPoint.Priority // to keep track of priority of previous point
-        if (dataPoint.sonificationType == SonificationType.Tone) {
+        if (dataPoint.legacySonificationType == OldSonificationType.Tone) {
             this.scheduleOscilatorNode(dataPoint.scaledValue, pointTime)
-        } else if (dataPoint.sonificationType == SonificationType.Noise) {
+        } else if (dataPoint.legacySonificationType == OldSonificationType.Noise) {
             this.scheduleNoiseNode(pointTime)
-        } else if (dataPoint.sonificationType == SonificationType.NoiseHighlight) {
+        } else if (dataPoint.legacySonificationType == OldSonificationType.NoiseHighlight) {
             this.scheduleNoiseNode(pointTime)
             this.scheduleOscilatorNode(dataPoint.scaledValue, pointTime)
         } else {
@@ -254,18 +254,18 @@ export class Sonifier {
                     value: dummyData[i],
                     scaledValue: scaledDataPoint,
                     Priority: SonificationLevel.polite,
-                    sonificationType: SonificationType.Tone,
+                    legacySonificationType: OldSonificationType.Tone,
                 }
-                point.isInRegionOfInterest = true
+                // point.isInRegionOfInterest = true
             } else {
                 point = {
                     value: dummyData[i],
                     scaledValue: scaledDataPoint,
                     Priority: SonificationLevel.polite,
-                    sonificationType: SonificationType.Noise,
+                    legacySonificationType: OldSonificationType.Noise,
                 }
             }
-            if (dummyData[i] == beginRegion || dummyData[i] == endRegion) point.isFenceOfRegionOfInterest = true
+            // if (dummyData[i] == beginRegion || dummyData[i] == endRegion) point.isFenceOfRegionOfInterest = true
             this._data.push(point)
         }
         this.isStreamInProgress = true
@@ -291,7 +291,7 @@ export class Sonifier {
             value: dataPoint,
             scaledValue: 2 * dataPoint,
             Priority: level,
-            sonificationType: SonificationType.Tone,
+            legacySonificationType: OldSonificationType.Tone,
         })
         this.isStreamInProgress = true
         this.fireTimer()

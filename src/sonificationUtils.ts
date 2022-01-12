@@ -1,4 +1,4 @@
-import { AudioType, NoiseType, SonificationLevel, SonificationParam, SonificationType } from './constents'
+import { AudioType, NoiseType, SonificationLevel, SonificationParam, OldSonificationType } from './constents'
 
 export class AudioQueue {
     private storage: { [index: number]: AudioScheduledSourceNode }
@@ -34,18 +34,17 @@ export interface Point {
     value: number
     scaledValue: number
     Priority: SonificationLevel
-    sonificationType: SonificationType
-    isHighlightPoint?: boolean
-    isFenceOfRegionOfInterest?: boolean
-    isInRegionOfInterest?: boolean
-    alert?: boolean
+    legacySonificationType: OldSonificationType
+    SonificationType?:SonificationType[];
+    // isHighlightPoint?: boolean
+    // isFenceOfRegionOfInterest?: boolean
+    // isInRegionOfInterest?: boolean
+    // alert?: boolean
 }
 
-export interface ISonificationType{
+export interface SonificationType{
 type: AudioType;
-spokenText?: string; // the text to be spoken if the type is speech
-value?:number; // the value that should be passed into the oscillator node or volume node.
-Uri?:string // the location to an audio file to play if the user chooses to play the file when this point is processed.
+volume:number;
 
 }
 
@@ -60,7 +59,7 @@ export interface SonificationTemplate {
     apply(point:Point): Point; // applies the templates and returns the point to be sonified.
 }
 
-class Tone implements ISonificationType{
+class Tone implements SonificationType{
     private _type: AudioType = AudioType.Audio
     public get type(): AudioType {
         return this._type
@@ -87,15 +86,24 @@ class Tone implements ISonificationType{
     public set duration(value: number) {
         this._duration = value
     }
-    public constructor(param:SonificationParam,value:number)
+    private _volume: number
+    public get volume(): number {
+        return this._volume;
+    }
+    public set volume(value: number) {
+        this._volume = value;
+    }
+    public constructor(param:SonificationParam,value:number,volume:number=1.0) // default volume is 1.
     {
         this._param = param;
         this._value = value;
         this._duration = 0.3;
+        this._volume = volume;
     }
+
 }
 
-class Noise implements ISonificationType{
+class Noise implements SonificationType{
     private _type: AudioType = AudioType.Noise;
     public get type(): AudioType {
         return this._type;
@@ -111,10 +119,19 @@ class Noise implements ISonificationType{
     public set duration(value: number) {
         this._duration = value
     }
+    private _volume: number
+    public get volume(): number {
+        return this._volume
+    }
+    public set volume(value: number) {
+        this._volume = value
+    }
     
-    public constructor(duration) {
+    public constructor(duration,volume:number=1.0) {
         this._duration = duration;
         this._noiseType = NoiseType.white;
+        this._volume = volume;
 
     }
+    
 }

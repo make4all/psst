@@ -10,7 +10,7 @@ export enum SonificationLevel { // similating aria-live ="polite","assertive", e
     polite, //does not interrupt previously sonifying data.
     assertive, // cancels all current sonifications and plays the current point
 }
-export enum SonificationType {
+export enum OldSonificationType {
     Tone, // plays tone
     Noise, // plays noise
     NoiseHighlight, // plays both tone and noise for a point
