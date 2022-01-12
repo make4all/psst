@@ -46,6 +46,42 @@ export interface SonificationType {
     type: AudioType
     volume: number
 }
+export class Filter {
+    filter(value: number): boolean {
+        return true
+    }
+}
+
+export class MaxFilter extends Filter {
+    maxkey: string
+    epsilon: number
+    constructor(key="max") {
+        this.maxkey = key
+        this.epsilon = 5
+    } 
+    filter(value:number): boolean {
+        let max = mySource.stats[maxkey].getValue()
+        if (value + this.epsilon) >= max return true
+        // implementation
+        return false
+    }
+}
+
+export class AdjustedPitch extends SonificationTemplate{
+    maxkey: string
+    minkey: string
+    constructor(max = "max", min = "min") {
+        this.maxkey = max
+        this.minkey = min
+    }
+
+    this.apply(point: Point) {
+         max = mySource.stats[maxkey]
+         min = mySource.stats[minkey]
+         ratio = point.value/(max-min)
+         this.pitch = ratio*herzrange 
+    }
+}
 
 export interface SonificationTemplate {
     Name: string // a user-readable name of the template.
