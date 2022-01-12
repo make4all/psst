@@ -35,36 +35,34 @@ export interface Point {
     scaledValue: number
     Priority: SonificationLevel
     legacySonificationType: OldSonificationType
-    SonificationType?:SonificationType[];
+    SonificationType?: SonificationType[]
     // isHighlightPoint?: boolean
     // isFenceOfRegionOfInterest?: boolean
     // isInRegionOfInterest?: boolean
     // alert?: boolean
 }
 
-export interface SonificationType{
-type: AudioType;
-volume:number;
-
+export interface SonificationType {
+    type: AudioType
+    volume: number
 }
 
 export interface SonificationTemplate {
-    Name:string; // a user-readable name of the template.
-    highlight:SonificationType; // preferred sonification parameters to highlight a point with.
-    nonHighlight?:SonificationType; // preferred way to not highlight a point.
-    highlightCondition: (value:number) => boolean // if true, apply highlight sonification type.
-    nonHighlightCondition?: (value:number) => boolean // if optional function is defined and returns true, apply non-highlight sonification type.
-    Transformation? (value:number) : number; // optional function to transform the live data we see.
-    Filter? (value:number): boolean // if this method exists and returns false, data processing will stop.
-    apply(point:Point): Point; // applies the templates and returns the point to be sonified.
+    Name: string // a user-readable name of the template.
+    highlight: SonificationType // preferred sonification parameters to highlight a point with.
+    nonHighlight?: SonificationType // preferred way to not highlight a point.
+    highlightCondition: (value: number) => boolean // if true, apply highlight sonification type.
+    nonHighlightCondition?: (value: number) => boolean // if optional function is defined and returns true, apply non-highlight sonification type.
+    Transformation?(value: number): number // optional function to transform the live data we see.
+    Filter?(value: number): boolean // if this method exists and returns false, data processing will stop.
+    apply(point: Point): Point // applies the templates and returns the point to be sonified.
 }
 
-class Tone implements SonificationType{
+class Tone implements SonificationType {
     private _type: AudioType = AudioType.Audio
     public get type(): AudioType {
         return this._type
     }
-    
 
     private _value: number
     public get value(): number {
@@ -78,7 +76,7 @@ class Tone implements SonificationType{
     public get param(): SonificationParam {
         return this._param
     }
-    
+
     private _duration: number
     public get duration(): number {
         return this._duration
@@ -88,25 +86,27 @@ class Tone implements SonificationType{
     }
     private _volume: number
     public get volume(): number {
-        return this._volume;
+        return this._volume
     }
     public set volume(value: number) {
-        this._volume = value;
+        this._volume = value
     }
-    public constructor(param:SonificationParam,value:number,volume:number=1.0) // default volume is 1.
-    {
-        this._param = param;
-        this._value = value;
-        this._duration = 0.3;
-        this._volume = volume;
+    public constructor(
+        param: SonificationParam,
+        value: number,
+        volume: number = 1.0, // default volume is 1.
+    ) {
+        this._param = param
+        this._value = value
+        this._duration = 0.3
+        this._volume = volume
     }
-
 }
 
-class Noise implements SonificationType{
-    private _type: AudioType = AudioType.Noise;
+class Noise implements SonificationType {
+    private _type: AudioType = AudioType.Noise
     public get type(): AudioType {
-        return this._type;
+        return this._type
     }
     private _noiseType: NoiseType
     public get noiseType(): NoiseType {
@@ -126,12 +126,10 @@ class Noise implements SonificationType{
     public set volume(value: number) {
         this._volume = value
     }
-    
-    public constructor(duration,volume:number=1.0) {
-        this._duration = duration;
-        this._noiseType = NoiseType.white;
-        this._volume = volume;
 
+    public constructor(duration, volume: number = 1.0) {
+        this._duration = duration
+        this._noiseType = NoiseType.white
+        this._volume = volume
     }
-    
 }

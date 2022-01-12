@@ -22,16 +22,16 @@ export enum PlaybackState { // different states of the audio context.
     Stopped, //when playback ends. We can close the context once playback stops if necessary.
 }
 
-export enum AudioType{
+export enum AudioType {
     Audio, // tones, noise, etc.
     Speech, // speech.
     Noise, // noise.
 }
-export enum SonificationParam{
+export enum SonificationParam {
     frequency, // to change the frequency of an oscilator node.
     volume, // to change the volume of an oscilator or noise node.
     pan, // to pan the audio.
 }
-export enum NoiseType{
+export enum NoiseType {
     white, // white noise
 }
