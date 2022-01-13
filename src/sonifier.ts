@@ -225,9 +225,12 @@ export class Sonifier {
         osc.frequency.linearRampToValueAtTime(dataPoint, this.audioCtx.currentTime + this.pointSonificationLength)
         osc.onended = () => this.handleOnEnded(amp)
         osc.connect(amp).connect(this.audioCtx.destination)
+        // delay before the pointSonificationLength: 0.1
+        amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength - 0.1, 0.015)
         osc.start()
+        // console.log("starting at "this.audioCtx)
         console.log("time started, value at started: " + this.audioCtx.currentTime + ", " + amp.gain.value)
-        amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength, 0.0000015)
+        // amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength, 0.0000015)
         osc.stop(this.audioCtx.currentTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
         if (this.playbackState == PlaybackState.Stopped) {
