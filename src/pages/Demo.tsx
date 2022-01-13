@@ -169,7 +169,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         const sonifierInstance = Sonifier.getSonifierInstance()
 
         if (sonifierInstance) {
-            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
+            // console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
             if (
                 sonifierInstance.playbackState == PlaybackState.Paused ||
                 sonifierInstance.playbackState == PlaybackState.Playing
@@ -196,7 +196,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handlePlaybackStateChanged = (e: PlaybackState) => {
-        console.log('handlePlaybackStateChanged', e)
+        // console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
             case PlaybackState.Playing:
@@ -211,7 +211,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         }
         this.setState({ playbackLabel })
 
-        console.log('returning. play button label', playbackLabel)
+        // console.log('returning. play button label', playbackLabel)
     }
 
     private _handlePushRudeData = () => {
@@ -231,7 +231,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handleColumnSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        console.log('change column selected', event.target.value)
+        // console.log('change column selected', event.target.value)
         const columnSelected = event.target.value
 
         let table = DataManager.getInstance().table

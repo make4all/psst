@@ -20,7 +20,6 @@ export class Sonifier {
     private previousPlaybackState: PlaybackState
     private _data: Point[]
     private previousPriority: SonificationLevel
-    private amp: GainNode
     public get data(): Point[] {
         return this._data
     }
@@ -59,7 +58,6 @@ export class Sonifier {
         this.currentDataPointIndex = 0
         this.timer = undefined
         this._data = []
-        this.amp = new GainNode(this.audioCtx)
     }
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
@@ -71,11 +69,11 @@ export class Sonifier {
 
     private fireTimer(command: string = 'start') {
         if (command == 'start') {
-            console.log('timer starting')
+            // console.log('timer starting')
             this.timer = window.setInterval(() => this.scheduler(), this.scheduleAheadTime)
         } else if (command == 'stop') {
             if (this.timer) {
-                console.log('stopping timer')
+                // console.log('stopping timer')
                 window.clearInterval(this.timer)
                 this.timer = undefined
             }
@@ -85,13 +83,13 @@ export class Sonifier {
     }
 
     private scheduler() {
-        console.log('in scheduler')
+        // console.log('in scheduler')
         while (
             this.nextPointTime < this.audioCtx.currentTime + this.scheduleAheadTime &&
             this.currentDataPointIndex < this.data.length
         ) {
-            console.log('scheduling point at index', this.currentDataPointIndex)
-            console.log('time', this.nextPointTime)
+            // console.log('scheduling point at index', this.currentDataPointIndex)
+            // console.log('time', this.nextPointTime)
             this.pointQueue.push({
                 pointIndex: this.currentDataPointIndex,
                 dataPoint: this.data[this.currentDataPointIndex],
@@ -105,12 +103,15 @@ export class Sonifier {
         // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
     }
 
-    public playSimpleTone(dummyData: number[]): void {
+    // TESTING
+    public playSimpleTone(/*dummyData: number[]*/): void {
         // Flush the sonifier nodes that might be in use
         this.resetSonifier()
         // console.log('playTone: sonifying data', dummyData)
         // this.data = dummyData;
-        let frequencyExtent = [16, 1e3]
+        // TESTING
+        let dummyData = [-0.5]
+        let frequencyExtent = [200, 1000]
         let dataExtent = d3.extent(dummyData)
 
         let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
@@ -164,7 +165,7 @@ export class Sonifier {
     private scheduleNoiseNode(pointTime: number) {
         let noiseNode = this.createNoiseBufferNode()
         let bandPassFilterNode = this.createBandPassFilterNode()
-        noiseNode.onended = () => this.handelOnEnded()
+        noiseNode.onended = () => this.handleOnEnded(new GainNode(this.audioCtx))
         noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination)
         noiseNode.start(pointTime)
         noiseNode.stop(pointTime + this.pointSonificationLength)
@@ -215,33 +216,19 @@ export class Sonifier {
     }
 
     /* NORA: DELETE LATER
-    - checked to see that the amp is correctly set up; if you modify the amp.gain.value, the volume correctly changes to correspond to the value
-    - using the technique from prev iterations doesn't work i.e.:
-        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
-        - greatly changing the time constant doesn't impact the clicks?
-    - tried replacing linearRampToValueAtTime with exponentialRampToValueAtTime
-        - no change
-    - tried alt strategy of the following:
-        amp.gain.setValueAtTime(amp.gain.value, pointTime);
-        amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength);
-        - volume is inverted? but checked the both before and after this, amp.gain.value == 1
     - referenced methods from http://alemangui.github.io/ramp-to-value
     */
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
-        this.amp = this.audioCtx.createGain()
+        let amp = this.audioCtx.createGain()
         osc.frequency.value = this.previousFrequencyOfset
-        osc.frequency.linearRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
-        osc.onended = () => this.handelOnEnded()
-        osc.connect(this.amp).connect(this.audioCtx.destination)
-        osc.start(pointTime)
-        this.amp.gain.setValueAtTime(0.5, pointTime)
-        console.log("time begun, value at start: " + this.audioCtx.currentTime + ", " + this.amp.gain.value)
-        this.amp.gain.exponentialRampToValueAtTime(1, pointTime + 0.01)
-        this.amp.gain.setValueAtTime(1, pointTime + this.pointSonificationLength - 0.0001)
-        this.amp.gain.exponentialRampToValueAtTime(0.0001, pointTime + this.pointSonificationLength)
-        //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength, 0.015)
-        osc.stop(pointTime + this.pointSonificationLength)
+        osc.frequency.linearRampToValueAtTime(dataPoint, this.audioCtx.currentTime + this.pointSonificationLength)
+        osc.onended = () => this.handleOnEnded(amp)
+        osc.connect(amp).connect(this.audioCtx.destination)
+        osc.start()
+        console.log("time started, value at started: " + this.audioCtx.currentTime + ", " + amp.gain.value)
+        amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength, 0.0000015)
+        osc.stop(this.audioCtx.currentTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
         if (this.playbackState == PlaybackState.Stopped) {
             this._playbackState = PlaybackState.Playing
@@ -320,11 +307,11 @@ export class Sonifier {
     }
 
     //needs extensive testing.
-    private handelOnEnded() {
-        console.log("time ended, value at ended: " + this.audioCtx.currentTime + ", " + this.amp.gain.value)
+    private handleOnEnded(amp: GainNode) {
+        console.log("time ended, value at ended: " + this.audioCtx.currentTime + ", " + amp.gain.value)
         if (this.audioCtx.currentTime >= this.nextPointTime) {
             // This is the last node.
-            console.log('playback ended. state before updation:', this.playbackState)
+            // console.log('playback ended. state before updation:', this.playbackState)
             this._playbackState = PlaybackState.Stopped
             this.isStreamInProgress = false
         } else {
@@ -336,12 +323,12 @@ export class Sonifier {
 
     public pauseToggle() {
         if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
-            console.log('playing')
+            // console.log('playing')
             this.fireTimer('stop')
             this.audioCtx.suspend()
             this._playbackState = PlaybackState.Paused
         } else {
-            console.log('paused')
+            // console.log('paused')
             this.audioCtx.resume()
             this._playbackState = PlaybackState.Playing
             this.fireTimer()
