@@ -103,11 +103,14 @@ export class Sonifier {
         // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
     }
 
-    public playSimpleTone(dummyData: number[]): void {
+    public playSimpleTone(/*dummyData: number[]*/): void {
         // Flush the sonifier nodes that might be in use
         this.resetSonifier()
         // console.log('playTone: sonifying data', dummyData)
         // this.data = dummyData;
+        // TESTING
+        // let dummyData = [0]
+        let dummyData = [0.5, 0]
         let frequencyExtent = [200, 1000]
         let dataExtent = d3.extent(dummyData)
 
@@ -213,20 +216,24 @@ export class Sonifier {
         // this.fireTimer("stop");
     }
 
-    /* NORA: DELETE LATER
-    - referenced methods from http://alemangui.github.io/ramp-to-value
-    */
+    // referenced methods from http://alemangui.github.io/ramp-to-value
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
         let amp = this.audioCtx.createGain()
-        // amp.gain.value = 0;
         osc.frequency.value = this.previousFrequencyOfset
         osc.frequency.exponentialRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
         osc.onended = () => this.handleOnEnded()
         osc.connect(amp).connect(this.audioCtx.destination)
-        // delay before the pointSonificationLength: 0.1, time constant: 0.015, sonificationLength = 2
-        // amp.gain.setTargetAtTime(1, pointTime + 0.01, 0.015)
-        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.002, 0.015)
+
+        // an attempt at transitioning in the beginning of the node
+        // amp.gain.value = 0;
+        // amp.gain.setTargetAtTime(1, pointTime + 0.1, 0.015)
+
+        // if i do this, there's almost no click, but there's a gap between nodes
+        //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.1, 0.015)
+
+        // if i do this, the transition is smooth, but there's still a quiet click
+        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.01, 0.015)
         osc.start(pointTime)
         osc.stop(pointTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
