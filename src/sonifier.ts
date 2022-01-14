@@ -103,14 +103,11 @@ export class Sonifier {
         // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
     }
 
-    // TESTING
-    public playSimpleTone(/*dummyData: number[]*/): void {
+    public playSimpleTone(dummyData: number[]): void {
         // Flush the sonifier nodes that might be in use
         this.resetSonifier()
         // console.log('playTone: sonifying data', dummyData)
         // this.data = dummyData;
-        // TESTING
-        let dummyData = [-0.5]
         let frequencyExtent = [200, 1000]
         let dataExtent = d3.extent(dummyData)
 
@@ -165,7 +162,8 @@ export class Sonifier {
     private scheduleNoiseNode(pointTime: number) {
         let noiseNode = this.createNoiseBufferNode()
         let bandPassFilterNode = this.createBandPassFilterNode()
-        noiseNode.onended = () => this.handleOnEnded(new GainNode(this.audioCtx))
+        // TESTING
+        noiseNode.onended = () => this.handleOnEnded()
         noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination)
         noiseNode.start(pointTime)
         noiseNode.stop(pointTime + this.pointSonificationLength)
@@ -221,17 +219,16 @@ export class Sonifier {
     private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
         let osc = this.audioCtx.createOscillator()
         let amp = this.audioCtx.createGain()
+        // amp.gain.value = 0;
         osc.frequency.value = this.previousFrequencyOfset
-        osc.frequency.linearRampToValueAtTime(dataPoint, this.audioCtx.currentTime + this.pointSonificationLength)
-        osc.onended = () => this.handleOnEnded(amp)
+        osc.frequency.exponentialRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
+        osc.onended = () => this.handleOnEnded()
         osc.connect(amp).connect(this.audioCtx.destination)
-        // delay before the pointSonificationLength: 0.1
-        amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength - 0.1, 0.015)
-        osc.start()
-        // console.log("starting at "this.audioCtx)
-        console.log("time started, value at started: " + this.audioCtx.currentTime + ", " + amp.gain.value)
-        // amp.gain.setTargetAtTime(0, this.audioCtx.currentTime + this.pointSonificationLength, 0.0000015)
-        osc.stop(this.audioCtx.currentTime + this.pointSonificationLength)
+        // delay before the pointSonificationLength: 0.1, time constant: 0.015, sonificationLength = 2
+        // amp.gain.setTargetAtTime(1, pointTime + 0.01, 0.015)
+        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.002, 0.015)
+        osc.start(pointTime)
+        osc.stop(pointTime + this.pointSonificationLength)
         this.audioQueue.enqueue(osc)
         if (this.playbackState == PlaybackState.Stopped) {
             this._playbackState = PlaybackState.Playing
@@ -310,28 +307,23 @@ export class Sonifier {
     }
 
     //needs extensive testing.
-    private handleOnEnded(amp: GainNode) {
-        console.log("time ended, value at ended: " + this.audioCtx.currentTime + ", " + amp.gain.value)
+    private handleOnEnded() {
         if (this.audioCtx.currentTime >= this.nextPointTime) {
             // This is the last node.
-            // console.log('playback ended. state before updation:', this.playbackState)
             this._playbackState = PlaybackState.Stopped
             this.isStreamInProgress = false
         } else {
             this._playbackState = PlaybackState.Playing
         }
-        // console.log('playback state before firing onPlayBackStateChanged event', this.playbackState)
         this.firePlaybackStateChangedEvent()
     }
 
     public pauseToggle() {
         if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
-            // console.log('playing')
             this.fireTimer('stop')
             this.audioCtx.suspend()
             this._playbackState = PlaybackState.Paused
         } else {
-            // console.log('paused')
             this.audioCtx.resume()
             this._playbackState = PlaybackState.Playing
             this.fireTimer()
