@@ -56,43 +56,53 @@ export class MaxFilter extends Filter {
     maxkey: string
     epsilon: number
     constructor(key="max") {
+        super()
         this.maxkey = key
         this.epsilon = 5
+    
     } 
-    filter(value:number): boolean {
-        let max = mySource.stats[maxkey].getValue()
-        if (value + this.epsilon) >= max return true
-        // implementation
-        return false
+    // filter(value:number): boolean {
+    //     // let max = mySource.stats[maxkey].getValue()
+    //     if (value + this.epsilon) >= max return true
+    //     // implementation
+    //     return false
+    // }
+}
+
+export class SonificationTemplate {
+    Name: string = "" // a user-readable name of the template.
+    // highlight: SonificationType // preferred sonification parameters to highlight a point with.
+    nonHighlight?: SonificationType // preferred way to not highlight a point.
+    private highlightCondition (value: number) : boolean // if true, apply highlight sonification type.
+    {
+        return true;
     }
+    
+public     apply(point: Point): Point // applies the templates and returns the point to be sonified.
+{
+    return point; // default.
+}
 }
 
 export class AdjustedPitch extends SonificationTemplate{
-    maxkey: string
-    minkey: string
-    constructor(max = "max", min = "min") {
-        this.maxkey = max
-        this.minkey = min
+    max: number
+    min: number
+    constructor(max = Number.MIN_SAFE_INTEGER   , min = Number.MAX_SAFE_INTEGER) {
+        super()
+        this.max = max
+        this.min = min
     }
 
-    this.apply(point: Point) {
-         max = mySource.stats[maxkey]
-         min = mySource.stats[minkey]
-         ratio = point.value/(max-min)
-         this.pitch = ratio*herzrange 
+    public apply(point: Point) {
+        //  max = mySource.stats[maxkey]
+        //  min = mySource.stats[minkey]
+let ratio:number          = point.value/(this.max-this.min);
+        //  this.pitch = ratio*herzrange 
+         return point;
     }
 }
 
-export interface SonificationTemplate {
-    Name: string // a user-readable name of the template.
-    highlight: SonificationType // preferred sonification parameters to highlight a point with.
-    nonHighlight?: SonificationType // preferred way to not highlight a point.
-    highlightCondition: (value: number) => boolean // if true, apply highlight sonification type.
-    nonHighlightCondition?: (value: number) => boolean // if optional function is defined and returns true, apply non-highlight sonification type.
-    Transformation?(value: number): number // optional function to transform the live data we see.
-    Filter?(value: number): boolean // if this method exists and returns false, data processing will stop.
-    apply(point: Point): Point // applies the templates and returns the point to be sonified.
-}
+
 
 class Tone implements SonificationType {
     private _type: AudioType = AudioType.Audio
