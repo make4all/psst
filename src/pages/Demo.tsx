@@ -1,8 +1,8 @@
-import { Sonifier } from '../sonifier'
+import { Sonifier } from '../sonification/sonifier'
 
 import React, { ChangeEvent } from 'react'
 
-import { PlaybackState, SonificationLevel } from '../constents'
+import { PlaybackState, SonificationLevel } from '../sonification/SonificationConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 

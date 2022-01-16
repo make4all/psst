@@ -1,0 +1,53 @@
+import { Sonifier } from './Sonifier';
+import { SonificationType } from "./SonificationType";
+import { Point } from './Point';
+
+/**
+ * Class for sonifying a data point as a pitch.
+ * @extends SonificationType
+ *
+ * @field length: The length of time this note should be played for (in ms)
+ * @field pitch: The frequency that should be used for the note (in hertz)
+ * @constructor Stores the provided value, volume and length
+ * @makeOutput Decides what pitch to assign, and provides a default volume and length
+ *
+ * [note may want to think about whether supporting cohices for different animations besides linearRampToValueAtTime]
+ * [note implementation not complete. Needs to handle scheduleSound still]
+ */
+export class NoiseSonificationType extends SonificationType {
+    /**
+     * @constructor Stores relevant information.
+     * @param point The data point to be sonified
+     * @param oscillator An oscillator for generating sound
+     * @param volume The volume to play the note at. Can be overriden globally
+     * @param duration The length of time to play the note for
+     */
+    constructor(point: Point, noise: AudioBufferSourceNode, volume = 1, duration = 10) {
+        super(point, noise, duration, volume);
+    };
+
+    /**
+     * @override abstract method in superclass
+     * @param p The point being sonified
+     * @param volume What volume the note should be played at
+     * @param duration What length the note should be
+     * @returns a SonificationNote that is set up to be played
+     */
+    public makeOutput(point: Point, sonifier: Sonifier, volume?:number, duration?:number): SonificationType {
+        let noiseBufferSize: number = sonifier.audioCtx.sampleRate * duration
+        let buffer = sonifier.audioCtx.createBuffer(1, noiseBufferSize, sonifier.audioCtx.sampleRate)
+        let noiseNode = sonifier.audioCtx.createBufferSource()
+        noiseNode.onended = () => sonifier.handelOnEnded()
+        noiseNode.buffer = buffer
+        let bufferData = buffer.getChannelData(0)
+        for (let i = 0; i < noiseBufferSize; i++) {
+            bufferData[i] = Math.random() * 2 - 1
+        }
+        let bandPassFilterNode = sonifier.audioCtx.createBiquadFilter()
+        bandPassFilterNode.type = 'bandpass'
+        bandPassFilterNode.frequency.value = 440
+        noiseNode.connect(bandPassFilterNode).connect(sonifier.audioCtx.destination)
+        return new NoiseSonificationType(point, noiseNode, volume, duration);
+    }
+
+}

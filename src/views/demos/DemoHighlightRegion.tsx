@@ -2,7 +2,7 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { Sonifier } from '../../sonifier'
+import { Sonifier } from '../../sonification/sonifier'
 
 export interface DemoHighlightRegionState {
     minValue: number

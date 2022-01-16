@@ -1,0 +1,35 @@
+import { Point } from "./Point";
+
+/**
+ * Base class for displaying a point. Abstract -- must be subclassed to be fully defined
+ * @field point The raw data used to generate this sonification type
+ */
+export abstract class DisplayType {
+    /**
+     * The  data point to display
+     */
+    private _point!: Point;
+    public get point(): Point {
+        return this._point;
+    }
+    public set point(value: Point) {
+        this._point = value;
+    }
+
+    /**
+     * @constructor Stores relevant information. Value is derived from point.scaledValue.
+     * @param point The raw data
+     */
+    constructor(point: Point) {
+        this.point = point;
+    };
+
+    /**
+     * Must be overriden. Generates a new instance of a SonifiactionType from a point.
+     *
+     * @param point The raw data point to be sonified
+     * @returns Returns an instance of specific subclass of DisplayType.
+     */
+    public abstract makeOutput(point: Point): DisplayType;
+
+}
