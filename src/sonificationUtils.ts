@@ -46,11 +46,36 @@ export interface SonificationType {
     type: AudioType
     volume: number
 }
+class Source{
+    static sourceID:number;
+    stats:Map<string,number>
+    static sourceMap = new Map();
+    private constructor() {
+        
+        this.stats = new Map();
+
+    }
+    public static createSource(){
+        let source:Source = new Source();
+        Source.sourceMap.set(Source.sourceID,source);
+        let tempSourceID = Source.sourceID;
+        Source.sourceID +=1;
+        return tempSourceID;
+    }
+    public static getSource(sourceID:number): Source | undefined
+    {
+        return Source.sourceMap.get(sourceID)
+    }
+    
+
+}
 export class Filter {
     filter(value: number): boolean {
         return true
     }
 }
+
+
 
 export class MaxFilter extends Filter {
     maxkey: string
@@ -73,15 +98,18 @@ export class SonificationTemplate {
     Name: string = "" // a user-readable name of the template.
     // highlight: SonificationType // preferred sonification parameters to highlight a point with.
     nonHighlight?: SonificationType // preferred way to not highlight a point.
-    private highlightCondition (value: number) : boolean // if true, apply highlight sonification type.
+    private highlightCondition (point:Point) : boolean // if true, apply highlight sonification type.
     {
         return true;
     }
     
 public     apply(point: Point): Point // applies the templates and returns the point to be sonified.
 {
+    if(this.highlightCondition(point))
     return point; // default.
+    return point;
 }
+
 }
 
 export class AdjustedPitch extends SonificationTemplate{
