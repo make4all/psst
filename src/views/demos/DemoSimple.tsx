@@ -17,7 +17,7 @@ export class DemoSimple extends React.Component<DemoSimpleProps, DemoSimpleState
 
     public onPlay = (data: any) => {
         let sonifierInstance = Sonifier.getSonifierInstance()
-        sonifierInstance.playSimpleTone(/*data*/)
+        sonifierInstance.playSimpleTone(data)
     }
 
     public onPause = (data: any) => {}

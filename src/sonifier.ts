@@ -20,6 +20,8 @@ export class Sonifier {
     private previousPlaybackState: PlaybackState
     private _data: Point[]
     private previousPriority: SonificationLevel
+    private delay : number
+    private numNode : number
     public get data(): Point[] {
         return this._data
     }
@@ -47,8 +49,10 @@ export class Sonifier {
         this.audioQueue = new AudioQueue()
         this.isStreamInProgress = false
         this.previousFrequencyOfset = 50
-        this.pointSonificationLength = 2
+        this.pointSonificationLength = 1
         this.previousPriority = SonificationLevel.polite
+        this.delay = 0.1
+        this.numNode = 0;
 
         this._playbackState = PlaybackState.Stopped
         this.previousPlaybackState = PlaybackState.Stopped
@@ -103,14 +107,14 @@ export class Sonifier {
         // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
     }
 
-    public playSimpleTone(/*dummyData: number[]*/): void {
+    public playSimpleTone(dummyData: number[]): void {
         // Flush the sonifier nodes that might be in use
         this.resetSonifier()
         // console.log('playTone: sonifying data', dummyData)
         // this.data = dummyData;
         // TESTING
         // let dummyData = [0]
-        let dummyData = [0.5, 0]
+        //let dummyData = [0.5, 0]
         let frequencyExtent = [200, 1000]
         let dataExtent = d3.extent(dummyData)
 
@@ -225,17 +229,26 @@ export class Sonifier {
         osc.onended = () => this.handleOnEnded()
         osc.connect(amp).connect(this.audioCtx.destination)
 
+        // this is my attempt at scheduling with the delays
+        amp.gain.value = 0;
+        let nodeStart = pointTime + this.delay * this.numNode;
+        osc.start(nodeStart)
+        amp.gain.setTargetAtTime(1, nodeStart, 0.015)
+        amp.gain.setTargetAtTime(0, nodeStart + this.delay + this.pointSonificationLength, 0.015)
+        osc.stop(nodeStart + this.delay * 2 + this.pointSonificationLength)
+        this.numNode++;
+
         // an attempt at transitioning in the beginning of the node
-        // amp.gain.value = 0;
-        // amp.gain.setTargetAtTime(1, pointTime + 0.1, 0.015)
+        //amp.gain.setTargetAtTime(1, pointTime + 0.1, 0.015)
 
         // if i do this, there's almost no click, but there's a gap between nodes
         //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.1, 0.015)
 
         // if i do this, the transition is smooth, but there's still a quiet click
-        amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.01, 0.015)
-        osc.start(pointTime)
-        osc.stop(pointTime + this.pointSonificationLength)
+        //amp.gain.setTargetAtTime(0, pointTime + this.pointSonificationLength - 0.01, 0.015)
+        //osc.start(pointTime)
+        //osc.stop(pointTime + this.pointSonificationLength)
+
         this.audioQueue.enqueue(osc)
         if (this.playbackState == PlaybackState.Stopped) {
             this._playbackState = PlaybackState.Playing
