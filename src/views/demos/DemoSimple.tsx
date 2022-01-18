@@ -1,4 +1,4 @@
-import React from 'react'
+    import React from 'react'
 import { DataSource } from '../../sonification/DataSource';
 import { Datum } from '../../sonification/Datum';
 import { Sonifier } from '../../sonification/Sonifier'
@@ -37,7 +37,10 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
      * Holder for the current data source object
      */
     protected source: DataSource | undefined;
-
+    public getSource(): DataSource {
+        if (this.source) return this.source;
+        else return this.initializeSource();
+    }
     /**
      * Constructor
      * @param props Normal react props
@@ -71,13 +74,10 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
      */
     public onPlay = (data: any) => {
         this.isStreamInProgress = true;
-        if (!this.source) {
-            this.source = this.sonifierInstance.addSource("DemoSimple");
-            console.error("Wierdly, play started without a source")
-        }
+        if (!this.source) this.initializeSource();
 
-        this.source.addCalculator("max", (datum: Datum, stat: number) => Math.max(...data), 0);
-        this.source.addCalculator("min", (datum: Datum, stat: number) => Math.min(...data), 0);
+        this.getSource().setStat("max", Math.max(...data));
+        this.getSource().setStat("min", Math.min(...data));
             
         this.sonifierInstance.onPlay();
         this.playDataSlowly(data, 200);
@@ -100,7 +100,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
             setTimeout(() => {
                 console.log(`streaming ${dummyData[i]}`)
                 if (this.isStreamInProgress) {
-                    this.sonifierInstance.pushPoint(dummyData[i], 1)
+                    this.sonifierInstance.pushPoint(dummyData[i], this.getSource().id);
                 }
             },  speed * i)
         }
@@ -120,16 +120,25 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
      * At this point, we set up a new DataSource and store it
      */
     public componentDidMount() {
-        console.log("mounting SimpleDemo")
-        this.source = this.sonifierInstance.addSource("SimpleDemo");
-        this.source.addTemplate(new NoteTemplate());
+        this.initializeSource();
     }
 
     /**
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        console.log("unmounting DemoSimple")
         this.sonifierInstance.deleteSource(this.source);
+    }
+
+    ////////// HELPER METHODS ///////////////
+    /**
+     * This initializes the source, but to work fully, it is important to also 
+     * assign max and min values when the data set is specified.
+     * @returns a source
+     */
+    public initializeSource() {
+        this.source = this.sonifierInstance.addSource("SimpleDemo");
+        this.source.addTemplate(new NoteTemplate());
+        return this.source;
     }
 }

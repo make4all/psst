@@ -78,19 +78,6 @@ export class DemoHighlightRegion
         if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue];
     }
 
-    /**
-     * componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
-     * At this point, we set up a new DataSource with the sonifier and store it. We also set up a new
-     * filter template to highlight things inbetween min/max
-     */
-    public componentDidMount() {
-        console.log("mounting DemoHighlightRegion")
-        this.source = this.sonifierInstance.addSource("HighlightRegionDemo");
-        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
-        this.source.addTemplate(new NoteTemplate());
-        this.source.addTemplate(this.filter);
-    }
-
     private _handleValueChange = (value: number, which: string) => {
         switch (which) {
             case 'min':
@@ -100,5 +87,14 @@ export class DemoHighlightRegion
                 this.setState({ maxValue: value })
                 break
         }
+    }
+
+    ////////// HELPER METHODS ///////////////
+    public initializeSource() {
+        this.source = this.sonifierInstance.addSource("HighlightRegionDemo");
+        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
+        this.source.addTemplate(new NoteTemplate());
+        this.source.addTemplate(this.filter);
+        return this.source;
     }
 }
