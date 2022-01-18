@@ -10,6 +10,7 @@
     export class NoiseSonify extends Sonify {
 
     private noiseBufferSize = 20;
+    private duration = 10;
 
     public getAudioNode(sonifier?: Sonifier) {
         if (super.getAudioNode()) return super.getAudioNode();
@@ -28,8 +29,9 @@
         return super.getAudioNode();
     }
 
-    public update(datum: Datum, duration = 10, volume?: number) {
+    public update(datum: Datum, duration?: number) {
         super.update(datum);
+        if (duration) this.duration = duration;
         let noiseNode = this.getAudioNode() as AudioBufferSourceNode;
         let buffer = noiseNode.buffer;
         if (buffer) {
@@ -41,6 +43,6 @@
     }
         
     public toString(): string {
-        return `NoiseSonify: duration: ${this.duration}`
+        return `NoiseSonify`
     }
 }

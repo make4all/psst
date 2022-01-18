@@ -10,18 +10,6 @@ import { DatumDisplay } from "./DatumDisplay"
  */
 
 export class Sonify extends DatumDisplay {
-
-    /**
-     * The length of time a sound will play for. Defaults to 10ms
-     */
-    private _duration: number = -1;
-    public get duration(): number {
-        return this._duration;
-    }
-    public set duration(value: number) {
-        this._duration = value;
-    }
-    
     /**
      * The volume a sound will be played at
      */
@@ -65,10 +53,9 @@ export class Sonify extends DatumDisplay {
      * @param optionally include an audio node that can be played
      * @returns Returns an instance of specific subclass of SonificationType.
      */
-    constructor(duration?: number, volume?: number, audioNode?: AudioScheduledSourceNode) {
+    constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super();
         if (volume) this.volume = volume;
-        if (duration) this.duration = duration;
         if (audioNode) this._audioNode = audioNode;
     }
 

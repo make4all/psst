@@ -18,11 +18,10 @@ export class NoteTemplate extends Template {
      * @param targetRange The audible range the note should be in
      * @param sourceRange The range of the incoming data 
      * @param exceedRange 
-     * @param duration 
      * @param volume 
      */
-    constructor(display?: DatumDisplay, targetRange?: [number, number], duration?: number, volume?: number) {
-        super(new NoteSonify(duration, volume, undefined, true));
+    constructor(display?: DatumDisplay, targetRange?: [number, number], volume?: number) {
+        super(new NoteSonify(volume, undefined));
         this.targetRange = (targetRange) ? targetRange : [90, 450];
     }
 
