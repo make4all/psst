@@ -2,35 +2,38 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { Sonifier } from '../../sonification/sonifier'
+import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate';
+import { NoiseSonify } from '../../sonification/displays/NoiseSonify';
+import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple';
+import { use } from 'chai';
+import { DataSource } from '../../sonification/DataSource';
 
-export interface DemoHighlightRegionState {
+export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
     maxValue: number
 }
 
-export interface DemoHighlightRegionProps {
+export interface DemoHighlightRegionProps extends DemoSimpleProps {
     dataSummary: any
 }
 
+// I don't know react well enough -- can this extend demosimple instead? Would be much simpler...
+// would still need to get the highlightRegionProps...
+// there is a lot of duplication between this and DemoSimple right now...
 export class DemoHighlightRegion
-    extends React.Component<DemoHighlightRegionProps, DemoHighlightRegionState>
+    extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
     implements IDemoView
 {
+    //noiseTemplate: FilterRangeTemplate;
+
     constructor(props: DemoHighlightRegionProps) {
         super(props)
         this.state = {
             minValue: this.props.dataSummary.min,
             maxValue: this.props.dataSummary.max,
         }
-    }
-
-    public onPause = (data: any) => {}
-
-    public onPlay = (data: any) => {
-        let sonifierInstance = Sonifier.getSonifierInstance()
-        let { minValue, maxValue } = this.state
-        sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue)
+        this.sourceId = 10
+        //this.noiseTemplate = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
     }
 
     public render() {
@@ -69,18 +72,27 @@ export class DemoHighlightRegion
             let minValue = this.props.dataSummary.min,
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
+            //this.noiseTemplate.range = [minValue, maxValue];
         }
     }
 
     // componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
     // Initialization that requires DOM nodes should go here. If you need to load data from a remote endpoint,
     // this is a good place to instantiate the network request.
-    public componentDidMount() {}
+    public componentDidMount() {
+        console.log("mounting DemoHighlightRegion")
+        let source = new DataSource(this.sourceId, "DemoHighlightRegionSource");
+        //source.addTemplate(this.noiseTemplate);
+        //this.sonifierInstance.addSource(this.sourceId, source);
+    }
 
     // componentWillUnmount() is invoked immediately before a component is unmounted and destroyed.
     // Perform any necessary cleanup in this method, such as invalidating timers, canceling network requests,
     // or cleaning up any subscriptions
-    public componentWillUnmount() {}
+    public componentWillUnmount() {
+        console.log("unmounting SimpleHighlightRegion")
+        this.sonifierInstance.deleteSource(this.sourceId);
+    }
 
     private _handleValueChange = (value: number, which: string) => {
         switch (which) {

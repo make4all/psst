@@ -1,65 +1,98 @@
 // import { SonificationLevel } from './constents';
-import { AudioQueue, Point } from './SonificationUtils'
-import * as d3 from 'd3'
-import { PlaybackState, SonificationLevel, OldSonificationType } from './SonificationConstants'
-//move enums to constants.ts . Currently seeing runtime JS error saying that the enum is not exported from constants.ts so placing them here to move forward with building.
+import { Datum } from "./Datum"
+import { PlaybackState, SonificationLevel } from './SonificationConstants'
+import { DataSource } from "./DataSource"
+import { Template } from "./templates/Template"
+import { DatumDisplay } from "./displays/DatumDisplay"
+import { Sonify } from "./displays/Sonify"
 
+const DEBUG = false;
+
+/**
+ * Sonifier class
+ * Has a single instance 
+ * @todo replace parts of this to use RXjs?
+ */
 export class Sonifier {
-    // This is a singleton. need to create an interface and export an instance of the sonifier. Any advice on making this a singleton the right way?
+    /**
+     * The sonifier. Enfornce that there is only ever one. 
+     * @todo ask group if there is a better way to enforce this.
+     */
     private static sonifierInstance: Sonifier
-    private audioCtx: AudioContext
-    private startTime: number
-    private endTime: number
-    private isStreamInProgress: boolean
-    private previousFrequencyOfset: number
-    private pointSonificationLength: number
-    private audioQueue: AudioQueue
 
-    // protected priority: SonificationLevel
-    // protected didNodesFinishPlaying: boolean
-    private _playbackState: PlaybackState
-    private previousPlaybackState: PlaybackState
-    private _data: Point[]
-    private previousPriority: SonificationLevel
-    public get data(): Point[] {
-        return this._data
+    /**
+     * Every sonifier has an audio context used to play sounds
+     */
+    private _audioCtx!: AudioContext
+    public get audioCtx(): AudioContext {
+        return this._audioCtx
     }
+    private gainNode: GainNode;
 
+    /**
+     * Whether or not audio is currently playing
+     */
+    private _playbackState: PlaybackState
     public get playbackState(): PlaybackState {
         return this._playbackState
     }
-    public onPlaybackStateChanged?: (state: PlaybackState) => void
-    private _pointQueue: [{}]
-    public get pointQueue(): [{}] {
-        return this._pointQueue
+    public set playbackState(value: PlaybackState) {
+        if (DEBUG) console.log("changing playback state")
+        this._playbackState = value
     }
-    private currentDataPointIndex: number
-    private scheduleAheadTime: number
-    private nextPointTime: number
-    private timer: number | undefined
 
+    /**
+     * A Data sources handled by this sonifier
+     */
+    private sources: Map<number, DataSource>
+    public getSource(sourceId:number) : DataSource {
+        let source = this.sources.get(sourceId)
+        if (!source) throw new Error(`no source associated with ${sourceId}`)
+        return source;
+    }
+    public addSource(sourceId: number, source: DataSource) {
+        this.sources.set(sourceId, source);
+    }
+    public deleteSource(sourceId) {
+        this.sources.delete(sourceId);
+    }
+
+    /**
+     * @todo What is this for?
+     */
+    private _timer: number | undefined
+    public get timer(): number | undefined {
+        return this._timer
+    }
+    public set timer(value: number | undefined) {
+        this._timer = value
+    }
+
+    /**
+     * A list of display nodes that are updated on the basis of template changes
+     */
+    private _displays: Map<Template, DatumDisplay>;
+    public getDisplay(key: Template) { return this._displays.get(key); }
+
+    /**
+     * Set up the sonifier. Grab the audio context.
+     */
     private constructor() {
         // super()
-        this.audioCtx = new AudioContext() // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
-        this.startTime = this.audioCtx.currentTime
-        this.nextPointTime = this.startTime
-        this.endTime = this.startTime
-
-        this.audioQueue = new AudioQueue()
-        this.isStreamInProgress = false
-        this.previousFrequencyOfset = 50
-        this.pointSonificationLength = 0.3
-        this.previousPriority = SonificationLevel.polite
-
+        this._audioCtx = new AudioContext(); // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
+        this._audioCtx.resume();
+        //this.startTime = this.audioCtx.currentTime
+        // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
-        this.previousPlaybackState = PlaybackState.Stopped
-        // this.didNodesFinishPlaying = true
-        this._pointQueue = [{}]
-        this.scheduleAheadTime = 2 * this.pointSonificationLength // we could compute this by computing the stream rate for data streams.
-        this.currentDataPointIndex = 0
-        this.timer = undefined
-        this._data = []
+        this.sources = new Map();
+        this._displays = new Map();
+        this.gainNode = this._audioCtx.createGain();
     }
+
+    /**
+     * Create a new sonifier. Enforces that there is only ever one
+     * @returns The sonifier.
+     */
     public static getSonifierInstance(): Sonifier {
         if (!Sonifier.sonifierInstance) {
             Sonifier.sonifierInstance = new Sonifier()
@@ -68,286 +101,86 @@ export class Sonifier {
         return Sonifier.sonifierInstance
     }
 
-    private fireTimer(command: string = 'start') {
-        if (command == 'start') {
-            console.log('timer starting')
-            this.timer = window.setInterval(() => this.scheduler(), this.scheduleAheadTime)
-        } else if (command == 'stop') {
-            if (this.timer) {
-                console.log('stopping timer')
-                window.clearInterval(this.timer)
-                this.timer = undefined
-            }
-        } else {
-            throw new Error('unsupported command.')
-        }
-    }
+    //needs extensive testing.
+    public onStop() {
+        // @todo do I need to do anything differently if was stopped instead of paused?
+        // The answer is yes if we ever want to handl control to a new/different audio context
+        // maybe have an option for "halt" instead that ends everything?
 
-    private scheduler() {
-        console.log('in scheduler')
-        while (
-            this.nextPointTime < this.audioCtx.currentTime + this.scheduleAheadTime &&
-            this.currentDataPointIndex < this.data.length
-        ) {
-            console.log('scheduling point at index', this.currentDataPointIndex)
-            console.log('time', this.nextPointTime)
-            this.pointQueue.push({
-                pointIndex: this.currentDataPointIndex,
-                dataPoint: this.data[this.currentDataPointIndex],
-                time: this.nextPointTime,
-            })
-            this.sonifyPoint(this.data[this.currentDataPointIndex], this.nextPointTime)
-            this.nextPointTime += this.pointSonificationLength
-            this.currentDataPointIndex += 1
-        }
-        // moved this part to a web worker. need to test.
-        // this.timerID = window.setTimeout(this.scheduler,this.scheduleAheadTime);
-    }
-
-    public playSimpleTone(dummyData: number[]): void {
-        // Flush the sonifier nodes that might be in use
-        this.resetSonifier()
-        // console.log('playTone: sonifying data', dummyData)
-        // this.data = dummyData;
-        let frequencyExtent = [16, 1e3]
-        let dataExtent = d3.extent(dummyData)
-
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
-
-        for (let i = 0; i < dummyData.length; i++) {
-            let scaledDataPoint = frequencyScale(dummyData[i])
-            this._data.push({
-                value: dummyData[i],
-                scaledValue: scaledDataPoint,
-                Priority: SonificationLevel.polite,
-                legacySonificationType: OldSonificationType.Tone,
-            })
-        }
-        this.fireTimer()
-        this.isStreamInProgress = true
-    }
-
-    public playHighlightPointsWithNoise(dummyData: number[], highlightPoint: number): void {
-        // Flush the sonifier nodes that might be in use
-        this.resetSonifier()
-
-        let frequencyExtent = [16, 1e3]
-        let dataExtent = d3.extent(dummyData)
-
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
-
-        for (let i = 0; i < dummyData.length; i++) {
-            let scaledDataPoint: number = frequencyScale(dummyData[i]) // frequencyOfset = frequencyOfset%1000;
-
-            // console.log('frequency ofset', frequencyOffset)
-            if (dummyData[i] == highlightPoint) {
-                this._data.push({
-                    value: dummyData[i],
-                    scaledValue: scaledDataPoint,
-                    Priority: SonificationLevel.polite,
-                    legacySonificationType: OldSonificationType.NoiseHighlight,
-                })
-            } else {
-                this._data.push({
-                    value: dummyData[i],
-                    scaledValue: scaledDataPoint,
-                    Priority: SonificationLevel.polite,
-                    legacySonificationType: OldSonificationType.Tone,
-                })
-            }
-        }
-        this.fireTimer()
-        this.isStreamInProgress = true
-    }
-
-    private scheduleNoiseNode(pointTime: number) {
-        let osc = this.audioCtx.createOscillator()
-        let noiseNode = this.createNoiseBufferNode(this.pointSonificationLength)
-        noiseNode.start(pointTime)
-        noiseNode.stop(pointTime + this.pointSonificationLength)
-        this.audioQueue.enqueue(noiseNode)
-        // this.audioQueue.enqueue(bandPassFilterNode)
-        if (this.playbackState == PlaybackState.Stopped) {
-            this._playbackState = PlaybackState.Playing
-            this.firePlaybackStateChangedEvent()
-        }
-    }
-
-    private sonifyPoint(dataPoint: Point, pointTime: number) {
-        // console.log('in sonify point. datapoint:', dataPoint)
-
-        // console.log('isStreamInProgress', this.isStreamInProgress)
-        if (dataPoint.Priority == SonificationLevel.assertive && this.previousPriority != SonificationLevel.assertive) {
-            this.resetSonifier()
-        }
-        if (!this.isStreamInProgress) {
-            this.resetSonifier()
-            this.isStreamInProgress = true
-        }
-
-        this.previousPriority = dataPoint.Priority // to keep track of priority of previous point
-        if (dataPoint.legacySonificationType == OldSonificationType.Tone) {
-            this.scheduleOscilatorNode(dataPoint.scaledValue, pointTime)
-        } else if (dataPoint.legacySonificationType == OldSonificationType.Noise) {
-            this.scheduleNoiseNode(pointTime)
-        } else if (dataPoint.legacySonificationType == OldSonificationType.NoiseHighlight) {
-            this.scheduleNoiseNode(pointTime)
-            this.scheduleOscilatorNode(dataPoint.scaledValue, pointTime)
-        } else {
-            throw new Error('not implemented.')
-        }
-
-        this.previousFrequencyOfset = dataPoint.scaledValue
-    }
-    private resetSonifier() {
-        this.audioQueue.emptyAudioQueue()
-        this._data = []
-        this.nextPointTime = this.audioCtx.currentTime
-        this.currentDataPointIndex = 0
-        this._pointQueue = [{}]
-
-        this.previousFrequencyOfset = 50
-        this.isStreamInProgress = false
-        // this.fireTimer("stop");
-    }
-
-    private scheduleOscilatorNode(dataPoint: number, pointTime: number) {
-        osc.frequency.value = this.previousFrequencyOfset
-        osc.frequency.linearRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
-        osc.onended = () => this.handelOnEnded()
-        osc.connect(this.audioCtx.destination)
-        osc.start(pointTime)
-        osc.stop(pointTime + this.pointSonificationLength)
-        this.audioQueue.enqueue(osc)
-        if (this.playbackState == PlaybackState.Stopped) {
-            this._playbackState = PlaybackState.Playing
-            this.firePlaybackStateChangedEvent()
-        }
-    }
-
-    /**
-     * Creates an audio node for playing random white noise
-     * @param duration The length of time the noise should play for
-     * @returns A node that can play white noise
-     */
-    public createNoiseBufferNode(duration:number): AudioScheduledSourceNode {
-        const noiseBufferSize: number = this.audioCtx.sampleRate * duration
-        const buffer = this.audioCtx.createBuffer(1, noiseBufferSize, this.audioCtx.sampleRate)
-        let bufferData = buffer.getChannelData(0)
-        for (let i = 0; i < noiseBufferSize; i++) {
-            bufferData[i] = Math.random() * 2 - 1
-        }
-        let noiseNode = this.audioCtx.createBufferSource()
-        noiseNode.buffer = buffer
-        let bandPassFilterNode = this.audioCtx.createBiquadFilter()
-        bandPassFilterNode.type = 'bandpass'
-        bandPassFilterNode.frequency.value = 440
-        noiseNode.onended = () => this.handelOnEnded()
-        noiseNode.connect(bandPassFilterNode).connect(this.audioCtx.destination)
-        return noiseNode
-    }
-
-    /**
-     * Creates an audio noide for playing a specific pitch
-     * @returns A node that can play a note at a specific pitch
-     */
-    public createOscillator(): AudioScheduledSourceNode {
-        let oscillator = this.audioCtx.createOscillator()
-        oscillator.onended = () => this.handelOnEnded()
-        oscillator.connect(this.audioCtx.destination)
-        return oscillator
-    }
-
-    private createBandPassFilterNode() {
-        let bandPassFilterNode = this.audioCtx.createBiquadFilter()
-        bandPassFilterNode.type = 'bandpass'
-        bandPassFilterNode.frequency.value = 440
-        return bandPassFilterNode
-    }
-
-    public playHighlightedRegionWithTones(dummyData: number[], beginRegion: number, endRegion: number): void {
-        let point: Point
-        // Flush the sonifier nodes that might be in use
-        this.resetSonifier()
-        if (beginRegion > endRegion) {
-            ;[beginRegion, endRegion] = [endRegion, beginRegion]
-        }
-
-        let frequencyExtent = [16, 1e3]
-        let dataExtent = d3.extent(dummyData)
-
-        let frequencyScale = d3.scaleLinear().domain(dataExtent).range(frequencyExtent)
-
-        for (let i = 0; i < dummyData.length; i++) {
-            let scaledDataPoint = frequencyScale(dummyData[i])
-            if (dummyData[i] >= beginRegion && dummyData[i] <= endRegion) {
-                point = {
-                    value: dummyData[i],
-                    scaledValue: scaledDataPoint,
-                    Priority: SonificationLevel.polite,
-                    legacySonificationType: OldSonificationType.Tone,
-                }
-                // point.isInRegionOfInterest = true
-            } else {
-                point = {
-                    value: dummyData[i],
-                    scaledValue: scaledDataPoint,
-                    Priority: SonificationLevel.polite,
-                    legacySonificationType: OldSonificationType.Noise,
-                }
-            }
-            // if (dummyData[i] == beginRegion || dummyData[i] == endRegion) point.isFenceOfRegionOfInterest = true
-            this._data.push(point)
-        }
-        this.isStreamInProgress = true
-        this.fireTimer()
-    }
-
-    public SonifyPushedPoint(dataPoint: number, level: SonificationLevel) {
-        // this.sonifyPoint(2 * dataPoint, level)
-        this.resetSonifier()
-        this._data.push({
-            value: dataPoint,
-            scaledValue: 2 * dataPoint,
-            Priority: level,
-            legacySonificationType: OldSonificationType.Tone,
-        })
-        this.isStreamInProgress = true
-        this.fireTimer()
+        this.audioCtx.suspend();
+        if (DEBUG) console.log("stopping. playback state is paused");
+        this._playbackState = PlaybackState.Paused;
+        // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
     }
 
     //needs extensive testing.
-    private handelOnEnded() {
-        if (this.audioCtx.currentTime >= this.nextPointTime) {
-            // This is the last node.
-            console.log('playback ended. state before updation:', this.playbackState)
-            this._playbackState = PlaybackState.Stopped
-            this.isStreamInProgress = false
+    public onPlay() {
+        // @todo do I need to do anything differently if was stopped instead of paused?
+        // The answer is yes if we ever want to handl control to a new/different audio context
+        if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
+            if (DEBUG) console.log('playing')
         } else {
+            if (DEBUG) console.log('setting up for playing')
+            this.audioCtx.resume()
+            this.gainNode.connect(this._audioCtx.destination);
+            this.startSources();
             this._playbackState = PlaybackState.Playing
         }
-        // console.log('playback state before firing onPlayBackStateChanged event', this.playbackState)
-        this.firePlaybackStateChangedEvent()
     }
 
-    public pauseToggle() {
-        if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
-            console.log('playing')
-            this.fireTimer('stop')
-            this.audioCtx.suspend()
-            this._playbackState = PlaybackState.Paused
-        } else {
-            console.log('paused')
-            this.audioCtx.resume()
-            this._playbackState = PlaybackState.Playing
-            this.fireTimer()
-        }
-        this.firePlaybackStateChangedEvent()
+    /**
+     * Triggers all existing audio nodes to play.
+     */
+    public startSources() {
+        if (DEBUG) console.log(`starting sources ${this.sources.size}`)
+        this.sources.forEach((source: DataSource, key: number) => {
+            source.displays().map((display) => {
+                if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`);
+                let sonify = display as Sonify;
+                let audioNode = sonify.getAudioNode(this);
+                if (audioNode != undefined) {
+                    audioNode.connect(this.gainNode);
+                }
+            });
+        });
+        this.gainNode.connect(this._audioCtx.destination);
     }
-    private firePlaybackStateChangedEvent() {
-        if (this.playbackState != this.previousPlaybackState) {
-            this.previousPlaybackState = this.playbackState
-            if (this.onPlaybackStateChanged) return this.onPlaybackStateChanged(this.playbackState)
+
+    //needs extensive testing.
+    public onPause() {
+        if (DEBUG) console.log('Pausing. Playback state is paused')
+        this.audioCtx.suspend();
+        this.gainNode.disconnect();
+        this._playbackState = PlaybackState.Paused;
+    }
+
+    public initializeSource(sourceID: number, description?: string) : DataSource {
+        if (!description) description = "Unknown Source";
+        return new DataSource(sourceID, description);
+    }
+
+    public pushPoint(point: number, sourceId: number): Datum { // datum: Datum, source: DataSource) {
+        if (DEBUG) console.log(`pushPoint ${point} for ${sourceId} during ${this.playbackState} `)
+        let source = this.sources.get(sourceId);
+        if (!source) throw new Error(`no source associated with ${sourceId}`)
+        if (DEBUG) console.log(`Source ${source}`)
+        let datum = new Datum(sourceId, point);
+        switch (this.playbackState) {
+            case PlaybackState.Stopped: // ignore the point
+                if (DEBUG) console.log(`playback: Stopped`)
+                break;
+            case PlaybackState.Playing: {
+                if (DEBUG) console.log(`calling ${source} to handle ${{datum}}`)
+                source.handleNewDatum(datum);
+                /// make sounds update properly
+                //datum.displays.map((display) => { if (DEBUG) console.log(display.toString()); });
+                break;
+            }
+            case PlaybackState.Paused: {
+                if (DEBUG) console.log(`playback: paused`)
+                /// @todo what should we do? Keep a buffer of points and delay them? something else?
+            }
         }
+        return datum;
     }
 }
