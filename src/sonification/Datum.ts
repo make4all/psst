@@ -22,12 +22,13 @@ export class Datum {
     displays: Array<DatumDisplay>;
     time: number;
 
-    constructor(sourceId: number, value: number ) {
+    constructor(sourceId: number, value: number, time?:number ) {
         this.value = value;
         this.adjustedValue = value;
         this.sourceId = sourceId;
         this.displays = [];
-        this.time = d3.now();
+        if (time) this.time = time;
+        else this.time = d3.now();
     }
 
     public toString(): string {
