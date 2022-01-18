@@ -36,22 +36,23 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
     public onPlay = (data: any) => {
         this.isStreamInProgress = true;
         this.sonifierInstance.onPlay();
-        this.playDataSlowly(data, 1000);
+        this.playDataSlowly(data, 200);
     }
 
     public playDataSlowly(dummyData: number[], speed: number): void {
         console.log("adding calculators")
         this.sonifierInstance.getSource(this.sourceId).addCalculator("max", (datum: Datum, stat: number) => Math.max(...dummyData),0);
         this.sonifierInstance.getSource(this.sourceId).addCalculator("min", (datum: Datum, stat: number) => Math.min(...dummyData),0);
-        if (DEBUG) console.log(`playTone: sonifying data of length ${dummyData.length} starting at ${this.current} at speed ${speed}` )
+        if (DEBUG) console.log(`playTone: sonifying data of length ${dummyData.length} starting at ${this.current} at speed ${speed}`)
         this.data = dummyData;
         for (let i = this.current; i < dummyData.length; i++) {
             this.current = i;
             setTimeout(() => {
+                console.log(`streaming ${dummyData[i]}`)
                 if (this.isStreamInProgress) {
                     this.sonifierInstance.pushPoint(dummyData[i], 1)
                 }
-            }, Math.random() * 1 * speed * i)
+            },  speed * i)
         }
         //this.sonifierInstance.onStop();
     }

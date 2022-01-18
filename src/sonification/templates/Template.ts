@@ -30,7 +30,10 @@ export abstract class Template {
      * @returns true if processing should continue
      */
     public handleDatum(datum: Datum, source: DataSource): boolean {
-        this.displays.map((display) => display.update(datum));
+        this.displays.map((display) => {
+            console.log(`updating display ${display.toString()} with ${datum.toString()}`)
+            display.update(datum)
+        });
         return true;
     }
 
