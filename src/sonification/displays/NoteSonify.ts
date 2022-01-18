@@ -17,6 +17,12 @@ export class NoteSonify extends Sonify {
      */
     private frequency: number | undefined;
 
+    /**
+     * Returns an audio node that contains an oscillator
+     * 
+     * @param sonifier 
+     * @returns audio node that contains an oscillator
+     */
     public getAudioNode(sonifier?: Sonifier) {
         console.log("get audio node called")
         if (super.getAudioNode()) return super.getAudioNode();

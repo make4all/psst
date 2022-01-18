@@ -76,10 +76,13 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
         this.isStreamInProgress = true;
         if (!this.source) this.initializeSource();
 
+        // SONIFICATION
         this.getSource().setStat("max", Math.max(...data));
         this.getSource().setStat("min", Math.min(...data));
             
+        // SONIFICATION INITIALIZATION
         this.sonifierInstance.onPlay();
+
         this.playDataSlowly(data, 200);
     }
 
@@ -137,8 +140,10 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState> extends React.Componen
      * @returns a source
      */
     public initializeSource() {
+        // SONIFICATION
         this.source = this.sonifierInstance.addSource("SimpleDemo");
         this.source.addTemplate(new NoteTemplate());
+        
         return this.source;
     }
 }
