@@ -25,6 +25,13 @@ export class NoteTemplate extends Template {
         this.targetRange = (targetRange) ? targetRange : [90, 450];
     }
 
+    /**
+     * Currently a direct mapping between data point and frequency
+     * @todo probably want to scale differently -- multiple times -1, use a log scale, and then add the parity back in
+     * @param datum The new data point
+     * @param source The source
+     * @returns true if successful
+     */
     handleDatum(datum: Datum, source: DataSource): boolean {
         let sourcemax = source.getStat("max");
         let sourcemin = source.getStat("min");

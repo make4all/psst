@@ -1,3 +1,4 @@
+import { display } from "@mui/system";
 import { DataSource } from "../DataSource";
 import { Datum } from "../Datum";
 import { DatumDisplay } from "../displays/DatumDisplay";
@@ -39,8 +40,10 @@ export class FilterRangeTemplate extends Template {
      */
     handleDatum(datum: Datum, source: DataSource): boolean {
         if (this.range[0] <= datum.value && datum.value <= this.range[1]) {
+            console.log("in range. ")
             return super.handleDatum(datum, source);
         }
+        console.log("not in range. ")
         return false;
     }
 
