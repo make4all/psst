@@ -7,6 +7,7 @@ import { DatumDisplay } from "./displays/DatumDisplay"
 import { Sonify } from "./displays/Sonify"
 import { maxHeaderSize } from "http"
 import { NetworkWifiRounded } from "@mui/icons-material"
+import * as d3 from 'd3'
 
 const DEBUG = false;
 
@@ -209,11 +210,12 @@ export class Sonifier {
         this._playbackState = PlaybackState.Paused;
     }
 
-    public initializeSource(sourceID: number, description?: string) : DataSource {
-        if (!description) description = "Unknown Source";
-        return new DataSource(sourceID, description);
-    }
-
+    /**
+     * Plays each data point as it arrives. 
+     * @param point The point to sonify
+     * @param sourceId The source that point is associated with
+     * @returns The resulting data point
+     */
     public pushPoint(point: number, sourceId: number): Datum { // datum: Datum, source: DataSource) {
         if (DEBUG) console.log(`pushPoint ${point} for ${sourceId} during ${this.playbackState} `)
         let source = this.sources.get(sourceId);
@@ -237,5 +239,21 @@ export class Sonifier {
             }
         }
         return datum;
+    }
+
+    /**
+     * Play a point at a time in the future
+     * @param point The datum to play
+     * @param sourceId The source for the datum
+     * @param time What time to play it at
+     */
+    public pushPointAtTime(point: number, sourceId: number, time: number) {
+        let diff = time - d3.now();
+        if (diff <= 0) this.pushPoint(point, sourceId)
+        else {
+            setTimeout(() => {
+                this.pushPoint(point, sourceId)
+            }, time - d3.now());
+        }
     }
 }
