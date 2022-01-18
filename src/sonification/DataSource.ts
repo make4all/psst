@@ -12,7 +12,7 @@ import { Template } from "./templates/Template";
  * @field templates An array of Templates which can filter or display a given data point
  */
 
-const DEBUG = true;
+const DEBUG = false;
 
 export class DataSource {
     //////////////////////////////// FIELDS ///////////////////////////////////
@@ -32,7 +32,28 @@ export class DataSource {
      * Stats each have an associated calculator which can update them every time a new datum arrives
      */
     private _stats: Map<string, number>;
-    public getStat(key: string) { return this._stats[key]; }
+    public getStat(key: string) {
+        if (DEBUG) console.log(`getting stat ${key} ${this._stats.get(key)}`)
+        let stat = this._stats.get(key);
+        if (stat) return stat;
+        throw new Error(`statistic ${key} not defined`);
+    }
+
+    /**
+     * Directly set a statistic. This should only be used for statistics that are static (calculated once),
+     * otherwise, addCalculator if a statistic should be updated 
+     * @param key 
+     * @param stat the statistic
+     */
+    public setStat(key: string, stat: number) {
+        this._stats.set(key, stat);
+        if (DEBUG) console.log(`setStat called with ${key} ${stat}`)
+    }
+    /**
+     * printStats generates a string description of the statistics
+     * @param key If key is provided, it only returns that single statistic
+     * @returns The description
+     */
     public printStats(key?: string): string {
         let stats = "";
         if (key) stats = `${key}: ${this.getStat(key)})`
@@ -45,11 +66,17 @@ export class DataSource {
     }
 
     private _calculators: Map<string, (datum: Datum, stat: number) => number>;
-    public addCalculator(name: string, calc: (datum: Datum, stat: number) => number, initial:number) {
-        this._calculators[name] = calc;
-        this._stats[name] = initial;
-        if (DEBUG) console.log(`adding calculator named ${name}: ${calc}`);
-        //if (DEBUG) console.log(this.printStats());
+    /**
+     * Add or replace a calculator for a statistic. 
+     * @param key The key for the statistic
+     * @param calc A function that takes as input the current data point and previous version of this statistic and outputs an update
+     * @param initial A number to initialize the statistic with.
+     */
+    public setCalculator(key: string, calc: (datum: Datum, stat: number) => number, initial:number) {
+        this._calculators[key] = calc;
+        this._stats[key] = initial;
+        if (DEBUG) console.log(`adding calculator named ${key}: ${calc}`);
+        if (DEBUG) console.log(this.printStats());
     }
     public removeCalculator(name) {
         this._calculators.delete(name);
@@ -111,11 +138,12 @@ export class DataSource {
      * @param datum The datum to analyze
      */
     protected updateStats(datum: Datum) {
-        for (let key in this._stats) {
-            let stat = this._stats[key]
-            let calc = this._calculators[key] as (datum: Datum, stat: number) => number
+        this._calculators.forEach((calculator, key) => {
+            let stat = this._stats[key];
+            let calc = this._calculators[key] as (datum: Datum, stat: number) => number;
             this._stats[key] = calc(datum, stat);
-        }
+        });
+
         console.log(`${this.printStats()} `);
     }  
 

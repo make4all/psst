@@ -59,7 +59,6 @@ export class Sonify extends DatumDisplay {
         if (audioNode) this._audioNode = audioNode;
     }
 
-
     public toString(): string {
         return `Sonify`
     }

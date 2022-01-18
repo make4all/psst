@@ -38,6 +38,7 @@ export class NoteTemplate extends Template {
         console.log(`mapping ranges: ${this.targetRange}, ${[sourcemin, sourcemax]}`)
 
         datum.adjustedValue = d3.scaleLinear().domain([sourcemin, sourcemax]).range(this.targetRange)(datum.value);
+        console.log(`set datum.adjustedValue to ${datum.adjustedValue} based on ${sourcemax} and ${sourcemin}`)
         return super.handleDatum(datum, source);
     }
 
