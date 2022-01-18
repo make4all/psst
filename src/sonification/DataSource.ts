@@ -19,10 +19,7 @@ export class DataSource {
     /**
      * A unique id far this data source
      */
-    private _id: number;
-    public id(): number {
-        return this._id;
-    }
+    public id: number;
 
     /**
      * A description of this data source for documentation
@@ -89,7 +86,7 @@ export class DataSource {
      * @param description A description for the data source
      */
     constructor(id: number, description: String) {
-        this._id = id;
+        this.id = id;
         this._description = description;
         this._templates = new Array<Template>();
         this._stats = new Map<string, number>();

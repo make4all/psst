@@ -5,6 +5,8 @@ import { DataSource } from "./DataSource"
 import { Template } from "./templates/Template"
 import { DatumDisplay } from "./displays/DatumDisplay"
 import { Sonify } from "./displays/Sonify"
+import { maxHeaderSize } from "http"
+import { NetworkWifiRounded } from "@mui/icons-material"
 
 const DEBUG = false;
 
@@ -45,16 +47,69 @@ export class Sonifier {
      * A Data sources handled by this sonifier
      */
     private sources: Map<number, DataSource>
+    
+    /**
+     * @returns A dataSource Id that is unique
+     */
+    public getUniqueId(): number {
+        let newId = 0;
+        this.sources.forEach((value, key) => {newId = (key > newId) ? key : newId});
+        return newId + 1;
+    }
+
+    /**
+     * @param sourceId An id
+     * @returns true if the id is unique (not already in sources)
+     */
+    public isUnique(sourceId: number) : boolean {
+        if (sourceId in this.sources.keys) {
+            return false;
+        } return true;
+    }
+
+    /**
+     * Get a source given an Id. Throws an error of sourceId doesn't exist.
+     * @param sourceId 
+     * @returns Returns the DataSource associated with sourceId. 
+     */
     public getSource(sourceId:number) : DataSource {
         let source = this.sources.get(sourceId)
         if (!source) throw new Error(`no source associated with ${sourceId}`)
         return source;
     }
-    public addSource(sourceId: number, source: DataSource) {
-        this.sources.set(sourceId, source);
+
+    /**
+     * AddSource takes optional arguments, and based on what is provided either constructs
+     * a new data source or uses a given one. In either case, it adds it to the set of sources.
+     * 
+     * @param description A description for the source 
+     * @param sourceId A unique id for the source
+     * @param source The DataSource object
+     */
+    public addSource(description?: string, sourceId?: number, source?: DataSource) : DataSource {
+        if (! description) description = "Unknown Source"
+        if (source) {
+            if (!sourceId) sourceId = source.id;
+            if (sourceId != source.id) throw Error("sourceId and source.id don't match")
+        } else {
+            if (sourceId) {
+                if (!this.isUnique(sourceId)) throw Error("sourceId is not unique");
+                source = new DataSource(sourceId, description);
+            } else {
+                source = new DataSource(this.getUniqueId(), description);
+            }
+        }
+        this.sources.set(source.id, source);
+        return source;
     }
-    public deleteSource(sourceId) {
-        this.sources.delete(sourceId);
+    /**
+     * Removes a data source. Once removed, that Id may be re-used.
+     * @param sourceId Data source to remove. 
+     */
+    public deleteSource(source?: DataSource, sourceId?: number) {
+        if (source) this.sources.delete(source.id);
+        if (sourceId) this.sources.delete(sourceId);
+        if (!source && !sourceId) throw Error("Must specify source or ID")
     }
 
     /**

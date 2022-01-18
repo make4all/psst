@@ -5,14 +5,12 @@ import { IDemoView } from './IDemoView'
 import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate';
 import { NoiseSonify } from '../../sonification/displays/NoiseSonify';
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple';
-import { use } from 'chai';
-import { DataSource } from '../../sonification/DataSource';
+import { NoteTemplate } from '../../sonification/templates/NoteTemplate';
 
 export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
     maxValue: number
 }
-
 export interface DemoHighlightRegionProps extends DemoSimpleProps {
     dataSummary: any
 }
@@ -24,7 +22,8 @@ export class DemoHighlightRegion
     extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
     implements IDemoView
 {
-    //noiseTemplate: FilterRangeTemplate;
+
+    filter: FilterRangeTemplate | undefined;
 
     constructor(props: DemoHighlightRegionProps) {
         super(props)
@@ -32,8 +31,6 @@ export class DemoHighlightRegion
             minValue: this.props.dataSummary.min,
             maxValue: this.props.dataSummary.max,
         }
-        this.sourceId = 10
-        //this.noiseTemplate = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
     }
 
     public render() {
@@ -63,6 +60,11 @@ export class DemoHighlightRegion
         )
     }
 
+    /**
+     * Something was updated in this class.
+        * Make sure that we are updating our filter to reflect the new min/max values
+     * @param prevProps new min/max value
+     */
     public componentDidUpdate(prevProps: DemoHighlightRegionProps) {
         // When the data summary changes, update the min & max value
         if (
@@ -72,26 +74,21 @@ export class DemoHighlightRegion
             let minValue = this.props.dataSummary.min,
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
-            //this.noiseTemplate.range = [minValue, maxValue];
         }
+        if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue];
     }
 
-    // componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
-    // Initialization that requires DOM nodes should go here. If you need to load data from a remote endpoint,
-    // this is a good place to instantiate the network request.
+    /**
+     * componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
+     * At this point, we set up a new DataSource with the sonifier and store it. We also set up a new
+     * filter template to highlight things inbetween min/max
+     */
     public componentDidMount() {
         console.log("mounting DemoHighlightRegion")
-        let source = new DataSource(this.sourceId, "DemoHighlightRegionSource");
-        //source.addTemplate(this.noiseTemplate);
-        //this.sonifierInstance.addSource(this.sourceId, source);
-    }
-
-    // componentWillUnmount() is invoked immediately before a component is unmounted and destroyed.
-    // Perform any necessary cleanup in this method, such as invalidating timers, canceling network requests,
-    // or cleaning up any subscriptions
-    public componentWillUnmount() {
-        console.log("unmounting SimpleHighlightRegion")
-        this.sonifierInstance.deleteSource(this.sourceId);
+        this.source = this.sonifierInstance.addSource("HighlightRegionDemo");
+        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
+        this.source.addTemplate(new NoteTemplate());
+        this.source.addTemplate(this.filter);
     }
 
     private _handleValueChange = (value: number, which: string) => {
