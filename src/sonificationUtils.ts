@@ -35,7 +35,7 @@ export interface Point {
     scaledValue: number
     Priority: SonificationLevel
     legacySonificationType: OldSonificationType
-    SonificationType?: SonificationType[]
+    SonificationType?: SonificationType[] // remove ? once refactor is complete.
     // isHighlightPoint?: boolean
     // isFenceOfRegionOfInterest?: boolean
     // isInRegionOfInterest?: boolean
@@ -47,8 +47,9 @@ export interface SonificationType {
     volume: number
 }
 class Source{
-    static sourceID:number;
-    stats:Map<string,number>
+    
+    private static sourceID:number;
+    private stats:Map<string,number>
     static sourceMap = new Map();
     private constructor() {
         
@@ -66,10 +67,28 @@ class Source{
     {
         return Source.sourceMap.get(sourceID)
     }
+    public getStatistic(statistic:string)
+    {
+        return this.stats.get(statistic);
+    }
+    public setStatistic(statistic:string, value:number)
+    {
+        this.stats.set(statistic,value);
+    }
+    public static exists(sourceID: number) {
+        return Source.sourceMap.has(sourceID)
+        
+    }
     
 
 }
 export class Filter {
+    protected mySource?:Source ;
+    public constructor(sourceID:number)
+    {
+        if(Source.exists(sourceID))
+        this.mySource = Source.getSource(sourceID)
+    }
     filter(value: number): boolean {
         return true
     }
@@ -80,24 +99,35 @@ export class Filter {
 export class MaxFilter extends Filter {
     maxkey: string
     epsilon: number
-    constructor(key="max") {
-        super()
+    constructor(sourceID:number, key="max") {
+        super(sourceID)
         this.maxkey = key
         this.epsilon = 5
     
     } 
-    // filter(value:number): boolean {
-    //     // let max = mySource.stats[maxkey].getValue()
-    //     if (value + this.epsilon) >= max return true
-    //     // implementation
-    //     return false
-    // }
+    filter(value:number): boolean {
+        let max = this.mySource!.getStatistic(this.maxkey);
+        if(max){
+                if (value + this.epsilon >= max)
+                return true
+        }
+    
+    
+    
+        return false
+    }
 }
 
 export class SonificationTemplate {
     Name: string = "" // a user-readable name of the template.
-    // highlight: SonificationType // preferred sonification parameters to highlight a point with.
+    highlight: SonificationType // preferred sonification parameters to highlight a point with.
+    mySource?:Source
     nonHighlight?: SonificationType // preferred way to not highlight a point.
+public constructor(sourceID:number){
+if(Source.exists(sourceID))
+Source.getSource(sourceID)
+this.highlight = new Tone(1024,0); 
+}
     private highlightCondition (point:Point) : boolean // if true, apply highlight sonification type.
     {
         return true;
@@ -106,6 +136,7 @@ export class SonificationTemplate {
 public     apply(point: Point): Point // applies the templates and returns the point to be sonified.
 {
     if(this.highlightCondition(point))
+    point.SonificationType?.push(this.highlight)
     return point; // default.
     return point;
 }
@@ -113,10 +144,10 @@ public     apply(point: Point): Point // applies the templates and returns the p
 }
 
 export class AdjustedPitch extends SonificationTemplate{
-    max: number
-    min: number
-    constructor(max = Number.MIN_SAFE_INTEGER   , min = Number.MAX_SAFE_INTEGER) {
-        super()
+    private max: number
+    private min: number
+    constructor(sourceID:number, max = Number.MIN_SAFE_INTEGER   , min = Number.MAX_SAFE_INTEGER) {
+        super(sourceID)
         this.max = max
         this.min = min
     }
