@@ -77,7 +77,7 @@ export class ScaleTemplate extends Template {
             if (this.exceedRange == ExceedRangeResponse.Error) {
                 throw new Error(`Datum ${datum} value ${datum.value}  exceeded expected minimum ${this.sourceRange[0]}`)
             } else if (this.exceedRange == ExceedRangeResponse.Expand) {
-                this.sourceRange[1] = datum.value
+                this.sourceRange[0] = datum.value
             }
         }
 

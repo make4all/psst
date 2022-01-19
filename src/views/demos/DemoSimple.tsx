@@ -109,6 +109,8 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
             setTimeout(() => {
                 console.log(`streaming ${dummyData[i]}`)
                 if (this.isStreamInProgress) {
+
+                    // SONIFICATION
                     this.sonifierInstance.pushPoint(dummyData[i], this.getSource().id)
                 }
             }, speed * i)

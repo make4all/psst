@@ -74,6 +74,7 @@ export class DemoHighlightRegion
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
         }
+        // SONIFICATION
         if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
     }
 

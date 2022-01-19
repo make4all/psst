@@ -191,6 +191,9 @@ export class Sonifier {
 
     /**
      * Triggers all existing audio nodes to play.
+     * 
+     * @todo if a new source is added after onPlay it won't get connected 
+     * @todo what about visually displaying things
      */
     public startSources() {
         if (DEBUG) console.log(`starting sources ${this.sources.size}`)
