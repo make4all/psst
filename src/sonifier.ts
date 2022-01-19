@@ -228,16 +228,29 @@ export class Sonifier {
         osc.frequency.exponentialRampToValueAtTime(dataPoint, pointTime + this.pointSonificationLength)
         osc.onended = () => this.handleOnEnded()
         osc.connect(amp).connect(this.audioCtx.destination)
-
-        // this is my attempt at scheduling with the delays
-        amp.gain.value = 0;
         let nodeStart = pointTime + this.delay * this.numNode;
-        osc.start(nodeStart)
+        let calc1 = nodeStart + this.delay;
+        let calc2 = nodeStart + this.delay + this.pointSonificationLength;
+        let calc3 = nodeStart + this.delay * 2 + this.pointSonificationLength;
+        console.log("pointTime: " + pointTime);
+        console.log("start transition in for point " + pointTime + ": " + nodeStart);
+        amp.gain.setValueAtTime(0.00001, nodeStart);
+        //amp.gain.setTargetAtTime(1, nodeStart + this.delay, 0.015)
+        console.log("end transition in for point " + pointTime + ": " + calc1);
+        amp.gain.exponentialRampToValueAtTime(1, nodeStart + this.delay);
+        console.log("start transition out for point " + pointTime + ": " + calc2)
+        amp.gain.setValueAtTime(1, nodeStart + this.delay + this.pointSonificationLength);
+        console.log("end transition out for point " + pointTime + ": " + calc3)
+        amp.gain.exponentialRampToValueAtTime(0.00001, nodeStart + this.delay * 2 + this.pointSonificationLength);
+        // this is my attempt at scheduling with the delays
+        /*
+        amp.gain.value = 0;
         amp.gain.setTargetAtTime(1, nodeStart, 0.015)
         amp.gain.setTargetAtTime(0, nodeStart + this.delay + this.pointSonificationLength, 0.015)
+        */
+        osc.start(nodeStart)
         osc.stop(nodeStart + this.delay * 2 + this.pointSonificationLength)
         this.numNode++;
-
         // an attempt at transitioning in the beginning of the node
         //amp.gain.setTargetAtTime(1, pointTime + 0.1, 0.015)
 
