@@ -5,17 +5,24 @@ import { Datum } from '../Datum';
     /**
      * Class for sonifying a data point as a pitch.
      * @extends Sonify
+     * @todo only plays noise once. investigate further. probably have to create new noise nodes for each point.
      *
      */
-    export class NoiseSonify extends Sonify {
+    export class NoiseSonify extends Sonify { 
+        
 
-    private noiseBufferSize = 20;
-    private duration = 10;
+    
+        /**
+         * @todo what do we do when this is live data? unlike audio nodes, noise nodes need a duration to calculate the buffer length.
+         */
+
+        private noiseBufferSize = 20;
+    private duration = 0.1; 
 
     public getAudioNode(sonifier?: Sonifier) {
         console.log("NoiseSonify:getAudioNode")
         if (super.getAudioNode()) return super.getAudioNode();
-        if (sonifier) { //vpotluri: bug. sonifier does not exist.
+        if (sonifier) { 
             console.log("executing code in getAudioNode")
             let sampleRate = sonifier.audioCtx.sampleRate;
             this.noiseBufferSize = sampleRate * this.duration
@@ -26,12 +33,12 @@ import { Datum } from '../Datum';
             bandPassFilterNode.type = 'bandpass'
             bandPassFilterNode.frequency.value = 440
             noiseNode.connect(bandPassFilterNode)
-            this.setAudioNode(noiseNode); // vpotluri: shouldn't this be the noise node?
+            this.setAudioNode(noiseNode); 
         }
         return super.getAudioNode();
     }
 
-    public update(datum: Datum, duration?: number) { //vpotluri: node needs to start.
+    public update(datum: Datum, duration?: number) { 
         console.log("NoiseSonify: updateDatum")
         super.update(datum);
         if (duration) this.duration = duration;

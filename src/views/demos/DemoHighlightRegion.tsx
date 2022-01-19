@@ -92,7 +92,10 @@ export class DemoHighlightRegion
     ////////// HELPER METHODS ///////////////
     public initializeSource() {
         this.source = this.sonifierInstance.addSource("HighlightRegionDemo");
-        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]);
+        /**
+         * @todo vpotluri to understand: where is the update datum method for this being called?
+         */
+        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue]); 
         this.source.addTemplate(new NoteTemplate());
         this.source.addTemplate(this.filter);
         return this.source;
