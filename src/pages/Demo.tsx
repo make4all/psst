@@ -20,7 +20,7 @@ const DEMO_VIEW_MAP = {
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
 }
 
-let demoViewRef: React.RefObject<DemoSimple<DemoProps,DemoState> | DemoHighlightRegion> = React.createRef()
+let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
 export interface DemoState {
     dataSummary: any
     columnList: string[]
@@ -167,8 +167,8 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         if (sonifierInstance) {
             console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
-            if (sonifierInstance.playbackState == PlaybackState.Playing) return;
-            sonifierInstance.onPlay();
+            if (sonifierInstance.playbackState == PlaybackState.Playing) return
+            sonifierInstance.onPlay()
         }
 
         let table = DataManager.getInstance().table

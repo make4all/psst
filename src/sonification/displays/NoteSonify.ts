@@ -1,6 +1,6 @@
-import { Datum } from "../Datum";
-import { Sonify } from "./Sonify";
-import { Sonifier } from '../Sonifier';
+import { Datum } from '../Datum'
+import { Sonify } from './Sonify'
+import { Sonifier } from '../Sonifier'
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -15,23 +15,23 @@ export class NoteSonify extends Sonify {
     /**
      * The start and end frequency for the note to play
      */
-    private frequency: number | undefined;
+    private frequency: number | undefined
 
     /**
      * Returns an audio node that contains an oscillator
-     * 
-     * @param sonifier 
+     *
+     * @param sonifier
      * @returns audio node that contains an oscillator
      */
     public getAudioNode(sonifier?: Sonifier) {
-        console.log("get audio node called")
-        if (super.getAudioNode()) return super.getAudioNode();
+        console.log('get audio node called')
+        if (super.getAudioNode()) return super.getAudioNode()
         if (sonifier) {
-            console.log("created audio node")
-            let oscillator = sonifier.audioCtx.createOscillator();
-            super.setAudioNode(oscillator);
+            console.log('created audio node')
+            let oscillator = sonifier.audioCtx.createOscillator()
+            super.setAudioNode(oscillator)
         }
-        return super.getAudioNode();
+        return super.getAudioNode()
     }
 
     /**
@@ -42,20 +42,19 @@ export class NoteSonify extends Sonify {
      * @param smooth Whether to connect the notes in the sequence being played. If undefined, defaults to true.
      */
     public update(datum: Datum, duration = 200, volume?: number, smooth?: boolean) {
-        super.update(datum);
+        super.update(datum)
         console.log(`updating value  ${this.frequency}`)
-        let oscillator = this.getAudioNode() as OscillatorNode;
+        let oscillator = this.getAudioNode() as OscillatorNode
         if (this.frequency == undefined) {
             // first data point
-            oscillator.frequency.value = datum.adjustedValue;
-            this.frequency = datum.adjustedValue;
+            oscillator.frequency.value = datum.adjustedValue
+            this.frequency = datum.adjustedValue
             oscillator.start()
         } else {
-            oscillator.frequency.value = datum.adjustedValue;
-            this.frequency = datum.adjustedValue;
+            oscillator.frequency.value = datum.adjustedValue
+            this.frequency = datum.adjustedValue
         }
     }
-
 
     /**
      * Generates a new note sonifier
@@ -66,12 +65,11 @@ export class NoteSonify extends Sonify {
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        super(volume, audioNode);
+        super(volume, audioNode)
     }
-
 
     public toString(): string {
         //let oscillator = this.getAudioNode() as OscillatorNode;
-        return `NoteSonify`;
+        return `NoteSonify`
     }
 }

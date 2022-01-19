@@ -1,10 +1,10 @@
-import { Datum } from "../Datum";
-import { Sonifier } from "../Sonifier";
-import { DatumDisplay } from "./DatumDisplay"
+import { Datum } from '../Datum'
+import { Sonifier } from '../Sonifier'
+import { DatumDisplay } from './DatumDisplay'
 
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
- * @field volume Presuming here than anything you play would have a volume. 
+ * @field volume Presuming here than anything you play would have a volume.
  * @todo how is this combined with priority for datum; and global volume?]
  * @field datum The raw data used to generate this sonification type
  */
@@ -13,26 +13,26 @@ export class Sonify extends DatumDisplay {
     /**
      * The volume a sound will be played at
      */
-    private _volume: number = 5;
+    private _volume: number = 5
     public get volume(): number {
-        return this._volume;
+        return this._volume
     }
     public set volume(value: number) {
-        this._volume = value;
+        this._volume = value
     }
 
     /**
      * An audio node that must be configured to play this sound
      */
-    private _audioNode: AudioNode | undefined;
+    private _audioNode: AudioNode | undefined
     public getAudioNode(sonifier?: Sonifier): AudioNode | undefined {
-        console.log("Sonify:getAudioNode");
-        console.log("returning audio node")
-        return (this._audioNode) 
+        console.log('Sonify:getAudioNode')
+        console.log('returning audio node')
+        return this._audioNode
     }
     public setAudioNode(audioNode: AudioNode) {
-        console.log("sonify:setAudioNode");
-        this._audioNode = audioNode;
+        console.log('sonify:setAudioNode')
+        this._audioNode = audioNode
     }
 
     /**
@@ -44,7 +44,7 @@ export class Sonify extends DatumDisplay {
      */
     update(datum: Datum) {
         super.update(datum)
-    };
+    }
 
     /**
      * Must be overriden. Generates a new instance of a SonificationType from a datum.
@@ -56,13 +56,12 @@ export class Sonify extends DatumDisplay {
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        super();
-        if (volume) this.volume = volume;
-        if (audioNode) this._audioNode = audioNode;
+        super()
+        if (volume) this.volume = volume
+        if (audioNode) this._audioNode = audioNode
     }
 
     public toString(): string {
         return `Sonify`
     }
 }
-

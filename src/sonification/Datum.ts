@@ -1,7 +1,6 @@
-import { DataSource } from './DataSource';
-import { DatumDisplay } from './displays/DatumDisplay';
+import { DataSource } from './DataSource'
+import { DatumDisplay } from './displays/DatumDisplay'
 import * as d3 from 'd3'
-
 
 /**
  * The base interface for a data point. This is an interface because data points
@@ -16,22 +15,22 @@ import * as d3 from 'd3'
  */
 
 export class Datum {
-    value: number;
-    adjustedValue: number;
-    sourceId: number;
-    displays: Array<DatumDisplay>;
-    time: number;
+    value: number
+    adjustedValue: number
+    sourceId: number
+    displays: Array<DatumDisplay>
+    time: number
 
-    constructor(sourceId: number, value: number, time?:number ) {
-        this.value = value;
-        this.adjustedValue = value;
-        this.sourceId = sourceId;
-        this.displays = [];
-        if (time) this.time = time;
-        else this.time = d3.now();
+    constructor(sourceId: number, value: number, time?: number) {
+        this.value = value
+        this.adjustedValue = value
+        this.sourceId = sourceId
+        this.displays = []
+        if (time) this.time = time
+        else this.time = d3.now()
     }
 
     public toString(): string {
-        return `(raw: ${this.value}; adjusted: ${this.adjustedValue}, ${this.time})`;
-    }    
+        return `(raw: ${this.value}; adjusted: ${this.adjustedValue}, ${this.time})`
+    }
 }
