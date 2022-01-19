@@ -26,10 +26,12 @@ export class Sonify extends DatumDisplay {
      */
     private _audioNode: AudioNode | undefined;
     public getAudioNode(sonifier?: Sonifier): AudioNode | undefined {
+        console.log("Sonify:getAudioNode");
         console.log("returning audio node")
         return (this._audioNode) 
     }
     public setAudioNode(audioNode: AudioNode) {
+        console.log("sonify:setAudioNode");
         this._audioNode = audioNode;
     }
 
