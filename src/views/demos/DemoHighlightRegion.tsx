@@ -2,35 +2,34 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { Sonifier } from '../../sonifier'
+import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
+import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
+import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
+import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 
-export interface DemoHighlightRegionState {
+export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
     maxValue: number
 }
-
-export interface DemoHighlightRegionProps {
+export interface DemoHighlightRegionProps extends DemoSimpleProps {
     dataSummary: any
 }
 
+// I don't know react well enough -- can this extend demosimple instead? Would be much simpler...
+// would still need to get the highlightRegionProps...
+// there is a lot of duplication between this and DemoSimple right now...
 export class DemoHighlightRegion
-    extends React.Component<DemoHighlightRegionProps, DemoHighlightRegionState>
+    extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
     implements IDemoView
 {
+    filter: FilterRangeTemplate | undefined
+
     constructor(props: DemoHighlightRegionProps) {
         super(props)
         this.state = {
             minValue: this.props.dataSummary.min,
             maxValue: this.props.dataSummary.max,
         }
-    }
-
-    public onPause = (data: any) => {}
-
-    public onPlay = (data: any) => {
-        let sonifierInstance = Sonifier.getSonifierInstance()
-        let { minValue, maxValue } = this.state
-        sonifierInstance.playHighlightedRegionWithTones(data, minValue, maxValue)
     }
 
     public render() {
@@ -60,6 +59,11 @@ export class DemoHighlightRegion
         )
     }
 
+    /**
+     * Something was updated in this class.
+     * Make sure that we are updating our filter to reflect the new min/max values
+     * @param prevProps new min/max value
+     */
     public componentDidUpdate(prevProps: DemoHighlightRegionProps) {
         // When the data summary changes, update the min & max value
         if (
@@ -70,17 +74,9 @@ export class DemoHighlightRegion
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
         }
+        // SONIFICATION
+        if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
     }
-
-    // componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
-    // Initialization that requires DOM nodes should go here. If you need to load data from a remote endpoint,
-    // this is a good place to instantiate the network request.
-    public componentDidMount() {}
-
-    // componentWillUnmount() is invoked immediately before a component is unmounted and destroyed.
-    // Perform any necessary cleanup in this method, such as invalidating timers, canceling network requests,
-    // or cleaning up any subscriptions
-    public componentWillUnmount() {}
 
     private _handleValueChange = (value: number, which: string) => {
         switch (which) {
@@ -91,5 +87,17 @@ export class DemoHighlightRegion
                 this.setState({ maxValue: value })
                 break
         }
+    }
+
+    ////////// HELPER METHODS ///////////////
+    public initializeSource() {
+        this.source = this.sonifierInstance.addSource('HighlightRegionDemo')
+        /**
+         * @todo vpotluri to understand: where is the update datum method for this being called?
+         */
+        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue])
+        this.source.addTemplate(new NoteTemplate())
+        this.source.addTemplate(this.filter)
+        return this.source
     }
 }

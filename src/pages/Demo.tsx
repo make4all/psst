@@ -1,8 +1,8 @@
-import { Sonifier } from '../sonifier'
+import { Sonifier } from '../sonification/Sonifier'
 
 import React, { ChangeEvent } from 'react'
 
-import { PlaybackState, SonificationLevel } from '../constents'
+import { PlaybackState, SonificationLevel } from '../sonification/SonificationConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 
@@ -13,16 +13,14 @@ import { DataManager } from '../DataManager'
 import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
-import { DemoHighlightNoise } from '../views/demos/DemoHighlightNoise'
 import { op } from 'arquero'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
-    highlightNoise: { value: 'highlightNoise', label: 'Highlight points with noise', component: DemoHighlightNoise },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
 }
 
-let demoViewRef: React.RefObject<DemoSimple | DemoHighlightNoise | DemoHighlightRegion> = React.createRef()
+let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
 export interface DemoState {
     dataSummary: any
     columnList: string[]
@@ -120,7 +118,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                         Press the interrupt with random data button when a tone is playing to override what is playing
                         with random data.
                     </p>
-                    <button onClick={this._handlePushRudeData}>interrupt with random data</button>
                 </div>
             </div>
         )
@@ -170,16 +167,8 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         if (sonifierInstance) {
             console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
-            if (
-                sonifierInstance.playbackState == PlaybackState.Paused ||
-                sonifierInstance.playbackState == PlaybackState.Playing
-            ) {
-                sonifierInstance.pauseToggle()
-                return
-            }
-            if (sonifierInstance.playbackState == PlaybackState.Stopped) {
-                sonifierInstance.onPlaybackStateChanged = this._handlePlaybackStateChanged
-            }
+            if (sonifierInstance.playbackState == PlaybackState.Playing) return
+            sonifierInstance.onPlay()
         }
 
         let table = DataManager.getInstance().table
@@ -214,16 +203,16 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         console.log('returning. play button label', playbackLabel)
     }
 
-    private _handlePushRudeData = () => {
-        let sonifierInstance = Sonifier.getSonifierInstance()
-        if (sonifierInstance) {
-            for (let i = 0; i < 5; i++) {
-                let dataPoint: number = Math.random()
-                dataPoint = dataPoint * 10000
-                sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.assertive)
-            }
-        }
-    }
+    // private _handlePushRudeData = () => {
+    //     let sonifierInstance = Sonifier.getSonifierInstance()
+    //     if (sonifierInstance) {
+    //         for (let i = 0; i < 5; i++) {
+    //             let dataPoint: number = Math.random()
+    //             dataPoint = dataPoint * 10000
+    //             sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.assertive)
+    //         }
+    //     }
+    // }
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value
