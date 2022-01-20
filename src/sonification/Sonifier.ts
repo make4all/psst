@@ -26,11 +26,11 @@ export class Sonifier {
     /**
      * Every sonifier has an audio context used to play sounds
      */
-    private _audioCtx!: AudioContext
-    public get audioCtx(): AudioContext {
-        return this._audioCtx
+    private static _audioCtx = new AudioContext();
+    public static get audioCtx(): AudioContext {
+        return Sonifier._audioCtx
     }
-    private gainNode: GainNode
+    public static gainNode: GainNode
 
     /**
      * Whether or not audio is currently playing
@@ -140,14 +140,13 @@ export class Sonifier {
      */
     private constructor() {
         // super()
-        this._audioCtx = new AudioContext() // works without needing additional libraries. need to check this when we move away from react as it is currently pulling from react-dom.d.ts.
-        this._audioCtx.resume()
+        Sonifier._audioCtx.resume()
         //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
         this._displays = new Map()
-        this.gainNode = this._audioCtx.createGain()
+        Sonifier.gainNode = Sonifier._audioCtx.createGain()
     }
 
     /**
@@ -168,7 +167,7 @@ export class Sonifier {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        this.audioCtx.suspend()
+        Sonifier.audioCtx.suspend()
         if (DEBUG) console.log('stopping. playback state is paused')
         this._playbackState = PlaybackState.Paused
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
@@ -178,43 +177,39 @@ export class Sonifier {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.playbackState == PlaybackState.Playing && this.audioCtx.state == 'running') {
+        if (this.playbackState == PlaybackState.Playing && Sonifier.audioCtx.state == 'running') {
             if (DEBUG) console.log('playing')
         } else {
             if (DEBUG) console.log('setting up for playing')
-            this.audioCtx.resume()
-            this.gainNode.connect(this._audioCtx.destination)
-            this.startSources()
+            Sonifier.audioCtx.resume()
+            Sonifier.gainNode.connect(Sonifier.audioCtx.destination)
+            // this.startSources()
             this._playbackState = PlaybackState.Playing
         }
     }
 
-    /**
-     * Triggers all existing audio nodes to play.
-     * 
-     * @todo if a new source is added after onPlay it won't get connected 
-     * @todo what about visually displaying things
-     */
-    public startSources() {
-        if (DEBUG) console.log(`starting sources ${this.sources.size}`)
-        this.sources.forEach((source: DataSource, key: number) => {
-            source.displays().map((display) => {
-                if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
-                let sonify = display as Sonify
-                let audioNode = sonify.getAudioNode(this)
-                if (audioNode != undefined) {
-                    audioNode.connect(this.gainNode)
-                }
-            })
-        })
-        this.gainNode.connect(this._audioCtx.destination)
-    }
+    // /**
+    //  * Triggers all existing audio nodes to play.
+    //  * 
+    //  * @todo if a new source is added after onPlay it won't get connected 
+    //  * @todo what about visually displaying things
+    //  */
+    // public startSources() {
+    //     if (DEBUG) console.log(`starting sources ${this.sources.size}`)
+    //     this.sources.forEach((source: DataSource, key: number) => {
+    //         source.displays().map((display) => {
+    //             if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
+    //             display.show();
+    //         })
+    //     })
+    //     Sonifier.gainNode.connect(Sonifier._audioCtx.destination)
+    // }
 
     //needs extensive testing.
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
-        this.audioCtx.suspend()
-        this.gainNode.disconnect()
+        Sonifier.audioCtx.suspend()
+        Sonifier.gainNode.disconnect()
         this._playbackState = PlaybackState.Paused
     }
 
@@ -262,7 +257,7 @@ export class Sonifier {
         else {
             setTimeout(() => {
                 this.pushPoint(point, sourceId)
-            }, time - d3.now())
+            }, time - Sonifier.audioCtx.currentTime*1000);
         }
     }
 }
