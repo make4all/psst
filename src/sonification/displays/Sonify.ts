@@ -34,6 +34,14 @@ export class Sonify extends DatumDisplay {
         console.log('sonify:setAudioNode')
         this._audioNode = audioNode
     }
+    /**
+     * reset audio node.
+     * resets the audio node to undefined.
+     * useful for sonifications that need a new node every time. e.g. noise and potentially speech.
+     */
+    public resetAudioNode() {
+        this._audioNode = undefined;
+    }
 
     /**
      * Stores relevant information when a new datum arrives. Value is derived from datum.scaledValue.
