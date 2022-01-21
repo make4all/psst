@@ -26,9 +26,9 @@ Runs the mocha test suite
 
 Start a compile watch of the library build and tests for iterative development.
 
-## yarn pretify
+## yarn prettify
 
-Run Prietter and format source files.
+Run Prettier and format source files.
 
 ## bundling
 

@@ -52,7 +52,8 @@ export class Sonify extends DatumDisplay {
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
-        this.outputNode = audioNode
+        
+        if(!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
         if (this.outputNode) this.outputNode.connect(Sonifier.gainNode);
     }

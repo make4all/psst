@@ -37,10 +37,12 @@ export class NoteSonify extends Sonify {
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        super(volume, audioNode ? audioNode : Sonifier.audioCtx.createOscillator())
+        
+        super( volume, Sonifier.audioCtx.createOscillator())
+
         let oscillator = this.outputNode as OscillatorNode;
         if (oscillator == undefined) {
-            oscillator = Sonifier.audioCtx.createOscillator()
+            // oscillator = Sonifier.audioCtx.createOscillator()
             this.outputNode = oscillator;
         }
         oscillator.start();
