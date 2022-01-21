@@ -6,6 +6,7 @@ import { Template } from './Template'
 
 /**
  * A template that filters out things which are not betwen min and max (inclusive)
+ * @todo change this to take a function that decides how to filter?
  */
 export class FilterRangeTemplate extends Template {
     /**
