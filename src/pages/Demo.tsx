@@ -12,7 +12,7 @@ import { DataManager } from '../DataManager'
 
 import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
-import { DemoHighlightRegion, DemoHighlightRegionProps, DemoHighlightRegionState } from '../views/demos/DemoHighlightRegion'
+import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { op } from 'arquero'
 
 const DEMO_VIEW_MAP = {
@@ -20,7 +20,7 @@ const DEMO_VIEW_MAP = {
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
 }
 
-let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion<DemoHighlightRegionProps, DemoHighlightRegionState>> = React.createRef()
+let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
 export interface DemoState {
     dataSummary: any
     columnList: string[]
