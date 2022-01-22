@@ -2,7 +2,6 @@ import { NoteSonify } from '../displays/NoteSonify'
 import * as d3 from 'd3'
 import { Datum } from '../Datum'
 import { ExceedDomainResponse, ScaleTemplate } from './ScaleTemplate'
-import { DataSource } from '../DataSource'
 
 /**
  * A template that displays a Datum as a note in the audible range.
@@ -10,7 +9,7 @@ import { DataSource } from '../DataSource'
  */
 export class NoteTemplate extends ScaleTemplate {
     /**
-     * Sets up a default target range that is audible
+     * Sets up a default target range that is audible. Uses the Mel Scale (https://www.wikiwand.com/en/Mel_scale)
      * @param targetRange The audible range the note should be in
      * @param sourceRange The range of the incoming data
      * @param volume How loudly to play the note.
@@ -19,11 +18,10 @@ export class NoteTemplate extends ScaleTemplate {
         super(new NoteSonify(volume, undefined), ExceedDomainResponse.Expand, targetRange)
         this.range = targetRange ? targetRange : [100, 400]
         this.conversionFunction = (datum: Datum, domain: [number, number], range: [number, number]) => {
-            let intermediateDomain = [100, 1]
+            let intermediateDomain = [80, 450]
             let positiveVal = d3.scaleLinear().domain(domain).range(intermediateDomain)(datum.value)
-            let logVal = 2 - Math.log10(positiveVal)
-            let logDomain = [0, 2]
-            return d3.scaleLinear().domain(logDomain).range(range)(logVal)
+            let frequency = 700 * (Math.exp(positiveVal / 1127) - 1)
+            return frequency
         }
     }
 
