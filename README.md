@@ -1,6 +1,6 @@
 # sonification
 
-Repository for sonification
+Repository for sonification. ATtempting to release 1.1.
 
 ## build instructions
 

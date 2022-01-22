@@ -147,14 +147,13 @@ export class DataSource {
 
     /**
      * Assign display objects and/or filter or transform the new arrival
-     * @todo this doesn't exit if handleDatum false 
+     * @todo this doesn't exit if handleDatum false
      * @param datum The datum to display
      */
     protected updateDisplays(datum: Datum) {
         this._templates.map((template) => {
-            let result= template.handleDatum(datum, this)
-            if (!result)
-                return;
+            let result = template.handleDatum(datum, this)
+            if (!result) return
             console.log(`calculatied note ${template} for ${datum}`)
         })
     }

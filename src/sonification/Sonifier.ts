@@ -188,6 +188,7 @@ export class Sonifier {
         }
     }
 
+
     // /**
     //  * Triggers all existing audio nodes to play.
     //  * 
@@ -204,6 +205,7 @@ export class Sonifier {
     //     })
     //     Sonifier.gainNode.connect(Sonifier._audioCtx.destination)
     // }
+
 
     //needs extensive testing.
     public onPause() {
