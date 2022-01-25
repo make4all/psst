@@ -14,10 +14,12 @@ import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { op } from 'arquero'
+import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemoHighlightRegion'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
+    experimentalHighlightRegion: { value: 'experimentalHighlightRegion', label: 'experimental implementation of highlight points for region', component: ExperimentalDemoHighlightRegion },
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()

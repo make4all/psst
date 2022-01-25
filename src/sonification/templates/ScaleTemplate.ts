@@ -5,7 +5,7 @@ import * as d3 from 'd3'
 import { HourglassDisabledSharp } from '@mui/icons-material'
 import { DatumDisplay } from '../displays/DatumDisplay'
 
-export enum ExceedRangeResponse {
+export enum ExceedDomainResponse {
     Expand,
     Ignore,
     Error,
@@ -22,37 +22,57 @@ export class ScaleTemplate extends Template {
     /**
      * The range that numbers should be scaled to (in order of min, max)
      */
-    targetRange: [number, number]
+    range: [number, number]
     /**
      * The range that numbers are expected to come from (in order of min, max)
      */
-    sourceRange: [number, number]
+    domain: [number, number]
 
     /**
      * What to do if the range is exceeded (a number is too small or too large for the sourceRange)
      */
-    exceedRange: ExceedRangeResponse
+    exceedDomain: ExceedDomainResponse
+
+    /**
+     * Converts from source range to target range.
+     */
+    private _conversionFunction: (datum: Datum, domain: [number, number], range: [number, number]) => number
+    protected get conversionFunction(): (datum: Datum, domain: [number, number], range: [number, number]) => number {
+        return this._conversionFunction
+    }
+    protected set conversionFunction(
+        value: (datum: Datum, domain: [number, number], range: [number, number]) => number,
+    ) {
+        this._conversionFunction = value
+    }
 
     /**
      * Sats up ranges for calculation. Ensures that min and max are not equal.
      *
+     * @todo need to debug/ensure that exceedDomain is correctly processed in constructor & write test for this...
+     *
      * @param display An optional display for the template
-     * @param targetRange The minimum and maximum of the target range (the adjusted data range). Min and Max must not be the same. Defaults to [0,1]
-     * @param sourceRange The minimum and maximum of the source range (the data coming in). Min and Max must not be the same. Defaults to [0,1]
      * @param exceedRange What should happen if a datum is outside of the sourceRange. Defaults to Ignore.
+     * @param targetRange The minimum and maximum of the target range (the adjusted data range). Defaults to [0,1]
+     * @param sourceRange The minimum and maximum of the source range (the data coming in).  Defaults to [0,1]
+     * @param conversionFunction defaults to a linear mapping.
      */
     constructor(
         display?: DatumDisplay,
-        targetRange: [number, number] = [0, 1],
+        exceedDomain?: ExceedDomainResponse,
+        targetRange?: [number, number],
         sourceRange: [number, number] = [0, 1],
-        exceedRange = ExceedRangeResponse.Ignore,
+        conversionFunction?: (datum: Datum) => number,
     ) {
         super(display)
-        this.targetRange = targetRange
-        this.sourceRange = sourceRange
-        if (sourceRange[0] == sourceRange[1]) sourceRange[1] += 1
-        if (targetRange[0] == targetRange[1]) targetRange[1] += 1
-        this.exceedRange = exceedRange
+        this.range = targetRange ? targetRange : [0, 1]
+        this.domain = sourceRange ? sourceRange : [0, 1]
+        this.exceedDomain = exceedDomain ? exceedDomain : ExceedDomainResponse.Expand
+        this._conversionFunction = conversionFunction
+            ? conversionFunction
+            : (datum: Datum, domain, range) => {
+                  return d3.scaleLinear().domain(domain).range(range)(datum.value)
+              }
     }
 
     /**
@@ -66,27 +86,29 @@ export class ScaleTemplate extends Template {
         let sourcemax = source.getStat('max')
         let sourcemin = source.getStat('min')
 
-        if (sourcemax > this.sourceRange[1]) {
-            if (this.exceedRange == ExceedRangeResponse.Error) {
-                throw new Error(`Datum ${datum} value ${datum.value}  exceeded expected maximum ${this.sourceRange[1]}`)
-            } else if (this.exceedRange == ExceedRangeResponse.Expand) {
-                this.sourceRange[1] = datum.value
-            }
-        }
-        if (sourcemin > this.sourceRange[0]) {
-            if (this.exceedRange == ExceedRangeResponse.Error) {
-                throw new Error(`Datum ${datum} value ${datum.value}  exceeded expected minimum ${this.sourceRange[0]}`)
-            } else if (this.exceedRange == ExceedRangeResponse.Expand) {
-                this.sourceRange[0] = datum.value
-            }
+        if (
+            this.exceedDomain == ExceedDomainResponse.Error &&
+            (sourcemax > this.domain[1] || sourcemin < this.domain[0])
+        )
+            throw new Error(
+                `Datum ${datum} value ${datum.value} outside of range  [${this.domain[0]},${this.domain[1]}]`,
+            )
+        else if (this.exceedDomain == ExceedDomainResponse.Expand) {
+            console.log('checking for expansion')
+            if (sourcemin < this.domain[0]) this.domain[0] = sourcemin
+            if (sourcemax > this.domain[1]) this.domain[1] = sourcemax
         }
 
-        datum.adjustedValue = d3.scaleLinear().domain(this.sourceRange).range(this.targetRange)(datum.value)
+        console.log(
+            `response = ${this.exceedDomain} vs ${ExceedDomainResponse.Expand}; sourcemaxmin = ${sourcemax}, ${sourcemin}; Range: ${this.range} Domain: ${this.domain} Datum: ${datum.value}`,
+        )
+        datum.adjustedValue = this.conversionFunction(datum, this.domain, this.range)
+        console.log(`new value ${datum.adjustedValue}`)
         super.handleDatum(datum, source)
         return true
     }
 
     public toString(): string {
-        return `ScaleTemplate: Converting to ${this.targetRange[0]},${this.targetRange[1]}`
+        return `ScaleTemplate: Converting to ${this.range[0]},${this.range[1]}`
     }
 }

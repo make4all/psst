@@ -13,7 +13,7 @@ export class Sonify extends DatumDisplay {
     /**
      * The volume a sound will be played at
      */
-    private _volume: number = 5
+    protected _volume: number = 5
     public get volume(): number {
         return this._volume
     }
@@ -24,15 +24,12 @@ export class Sonify extends DatumDisplay {
     /**
      * An audio node that must be configured to play this sound
      */
-    private _audioNode: AudioNode | undefined
-    public getAudioNode(sonifier?: Sonifier): AudioNode | undefined {
-        console.log('Sonify:getAudioNode')
-        console.log('returning audio node')
-        return this._audioNode
+    protected _outputNode: AudioNode | undefined
+    protected get outputNode(): AudioNode | undefined {
+        return this._outputNode
     }
-    public setAudioNode(audioNode: AudioNode) {
-        console.log('sonify:setAudioNode')
-        this._audioNode = audioNode
+    protected set outputNode(value: AudioNode | undefined) {
+        this._outputNode = value
     }
 
     /**
@@ -49,16 +46,16 @@ export class Sonify extends DatumDisplay {
     /**
      * Must be overriden. Generates a new instance of a SonificationType from a datum.
      *
-     * @param datum The raw datum to be sonified
      * @param volume The volume the sound should play at
-     * @param duration The length of time the sound should play for
      * @param optionally include an audio node that can be played
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
+        
+        if(!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
-        if (audioNode) this._audioNode = audioNode
+        if (this.outputNode) this.outputNode.connect(Sonifier.gainNode);
     }
 
     public toString(): string {
