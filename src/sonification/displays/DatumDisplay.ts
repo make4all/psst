@@ -22,7 +22,6 @@ export class DatumDisplay {
      */
     update(datum: Datum) {
         this.datum = datum
-        console.log(datum)
     }
 
     /**

@@ -1,7 +1,9 @@
 import React from 'react'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
+import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
 import { Sonifier } from '../../sonification/Sonifier'
+import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 import { IDemoView } from './IDemoView'
 
@@ -150,6 +152,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         // SONIFICATION
         this.source = this.sonifierInstance.addSource('SimpleDemo')
         this.source.addTemplate(new NoteTemplate())
+        // this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
 
         return this.source
     }
