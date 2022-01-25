@@ -33,9 +33,9 @@ export class NoiseSonify extends SonifyFixedDuration {
      * @param time Time to fill it for in seconds
      */
     private fillBuffer(length: number): AudioBuffer {
-        let sampleRate = Sonifier.audioCtx.sampleRate
+        let sampleRate = NoiseSonify.audioCtx.sampleRate
         let noiseBufferSize = sampleRate * length;
-        let buffer = Sonifier.audioCtx.createBuffer(1, noiseBufferSize, Sonifier.audioCtx.sampleRate)
+        let buffer = NoiseSonify.audioCtx.createBuffer(1, noiseBufferSize, NoiseSonify.audioCtx.sampleRate)
         let bufferData = buffer.getChannelData(0)
         console.log('filling in buffer data');
         for (let i = 0; i < noiseBufferSize; i++) {
@@ -45,11 +45,11 @@ export class NoiseSonify extends SonifyFixedDuration {
     }
     
     public create(datum: Datum): AudioScheduledSourceNode {
-        let outputNode = Sonifier.audioCtx.createBufferSource()
-        this.filter = Sonifier.audioCtx.createBiquadFilter()
+        let outputNode = NoiseSonify.audioCtx.createBufferSource()
+        this.filter = NoiseSonify.audioCtx.createBiquadFilter()
         this.filter.type = 'bandpass'
         this.filter.frequency.value = 440
-        this.filter.connect(Sonifier.gainNode);
+        this.filter.connect(NoiseSonify.gainNode);
 
         outputNode.buffer = this.fillBuffer(this.duration);
         outputNode.connect(this.filter);

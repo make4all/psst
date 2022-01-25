@@ -23,14 +23,7 @@ export class Sonifier {
      */
     private static sonifierInstance: Sonifier
 
-    /**
-     * Every sonifier has an audio context used to play sounds
-     */
-    private static _audioCtx = new AudioContext();
-    public static get audioCtx(): AudioContext {
-        return Sonifier._audioCtx
-    }
-    public static gainNode: GainNode
+    
 
     /**
      * Whether or not audio is currently playing
@@ -140,13 +133,13 @@ export class Sonifier {
      */
     private constructor() {
         // super()
-        Sonifier._audioCtx.resume()
+        
         //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
         this._displays = new Map()
-        Sonifier.gainNode = Sonifier._audioCtx.createGain()
+        
     }
 
     /**
@@ -167,7 +160,7 @@ export class Sonifier {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        Sonifier.audioCtx.suspend()
+        //vpotluri: // Sonifier.audioCtx.suspend()
         if (DEBUG) console.log('stopping. playback state is paused')
         this._playbackState = PlaybackState.Paused
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
@@ -177,15 +170,15 @@ export class Sonifier {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.playbackState == PlaybackState.Playing && Sonifier.audioCtx.state == 'running') {
+        // vpotluri:if (this.playbackState == PlaybackState.Playing && Sonifier.audioCtx.state == 'running') {
             if (DEBUG) console.log('playing')
-        } else {
-            if (DEBUG) console.log('setting up for playing')
-            Sonifier.audioCtx.resume()
-            Sonifier.gainNode.connect(Sonifier.audioCtx.destination)
-            // this.startSources()
-            this._playbackState = PlaybackState.Playing
-        }
+        //vpotluri: } else {
+        //     if (DEBUG) console.log('setting up for playing')
+        //     Sonifier.audioCtx.resume()
+        //     Sonifier.gainNode.connect(Sonifier.audioCtx.destination)
+        //     // this.startSources()
+        //     this._playbackState = PlaybackState.Playing
+        // }
     }
 
 
@@ -210,8 +203,8 @@ export class Sonifier {
     //needs extensive testing.
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
-        Sonifier.audioCtx.suspend()
-        Sonifier.gainNode.disconnect()
+        //vpotluri: Sonifier.audioCtx.suspend()
+        // vpotluri: Sonifier.gainNode.disconnect()
         this._playbackState = PlaybackState.Paused
     }
 
@@ -253,13 +246,13 @@ export class Sonifier {
      * @param sourceId The source for the datum
      * @param time What time to play it at
      */
-    public pushPointAtTime(point: number, sourceId: number, time: number) {
-        let diff = time - d3.now()
-        if (diff <= 0) this.pushPoint(point, sourceId)
-        else {
-            setTimeout(() => {
-                this.pushPoint(point, sourceId)
-            }, time - Sonifier.audioCtx.currentTime*1000);
-        }
-    }
+//     public pushPointAtTime(point: number, sourceId: number, time: number) {
+//         let diff = time - d3.now()
+//         if (diff <= 0) this.pushPoint(point, sourceId)
+//         else {
+//             setTimeout(() => {
+//                 this.pushPoint(point, sourceId)
+//             }, time - Sonifier.audioCtx.currentTime*1000);
+//         }
+//     }
 }

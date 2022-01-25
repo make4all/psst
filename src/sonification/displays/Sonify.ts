@@ -11,6 +11,20 @@ import { DatumDisplay } from './DatumDisplay'
 
 export class Sonify extends DatumDisplay {
     /**
+     * Every display that extends this needs an audio context used to play sounds
+     */
+     private static _audioCtx = new AudioContext();
+     public static get audioCtx(): AudioContext {
+         return Sonify._audioCtx
+     }
+      private static _gainNode: GainNode;
+    public static get gainNode(): GainNode {
+        return Sonify._gainNode;
+    }
+    public static set gainNode(value: GainNode) {
+        Sonify._gainNode = value;
+    }
+    /**
      * The volume a sound will be played at
      */
     protected _volume: number = 5
@@ -52,10 +66,11 @@ export class Sonify extends DatumDisplay {
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
-        
+        Sonify._audioCtx.resume()
+        Sonify.gainNode = Sonify._audioCtx.createGain()
         if(!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
-        if (this.outputNode) this.outputNode.connect(Sonifier.gainNode);
+        if (this.outputNode) this.outputNode.connect(Sonify.gainNode);
     }
 
     public toString(): string {
