@@ -9,6 +9,9 @@ import { Button } from '@mui/material'
 import { Sonifier } from '../sonification/Sonifier'
 import { JacdacProvider } from 'react-jacdac'
 import { bus } from '../bus'
+import { DataSource } from '../sonification/DataSource'
+import { SettingsOverscanTwoTone } from '@mui/icons-material'
+import { NoteTemplate } from '../sonification/templates/NoteTemplate'
 
 const TONE_THROTTLE = 100
 
@@ -18,6 +21,7 @@ function ConnectButton() {
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
     const [sonifier, setSonifier] = useState<Sonifier>()
     const [streaming, setStreaming] = useState(false)
+    const [source,setSource] = useState<DataSource>()
 
     useEffect(()=>{
         if (!inIFrame())
@@ -33,9 +37,9 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !sonifier) return
+                if (!streaming || !sonifier || !source) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
-                sonifier.pushPoint(x, 0)
+                sonifier.pushPoint(x, source.id)
             }, TONE_THROTTLE),
         )
 
@@ -54,8 +58,23 @@ function ConnectButton() {
         }
     }
 
+    function initializeSource() {
+        if (!sonifier) setSonifier(Sonifier.getSonifierInstance())
+        if(sonifier) setSource(sonifier.addSource('jacdac demo'))
+        if(source) {
+            source.addTemplate(new NoteTemplate())
+            // dummy stats. Do we know the min and max for accelerometer?
+            source.setStat('max',100)
+            source.setStat('min',-100);
+        }
+        
+        
+
+    }
     const handleStartStreaming = () => {
         if (!sonifier) setSonifier(Sonifier.getSonifierInstance())
+        if(!source)initializeSource()
+        if(sonifier)sonifier.onPlay()
         setStreaming(!streaming)
     }
 
@@ -78,3 +97,5 @@ export default function Page() {
         </JacdacProvider>
     )
 }
+
+
