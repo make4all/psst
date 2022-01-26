@@ -39,6 +39,7 @@ function ConnectButton() {
             throttle(async () => {
                 if (!streaming || !sonifier || !source) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
+                console.log("vpotluri: calling PushPoint.")
                 sonifier.pushPoint(x, source.id)
             }, TONE_THROTTLE),
         )
