@@ -26,7 +26,7 @@ export class Sonifier {
     /**
      * Every sonifier has an audio context used to play sounds
      */
-    private static _audioCtx = new AudioContext();
+    private static _audioCtx: AudioContext ;
     public static get audioCtx(): AudioContext {
         return Sonifier._audioCtx
     }
@@ -140,7 +140,8 @@ export class Sonifier {
      */
     private constructor() {
         // super()
-        Sonifier._audioCtx.resume()
+        Sonifier._audioCtx = new AudioContext()
+        // Sonifier._audioCtx.resume()
         //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
