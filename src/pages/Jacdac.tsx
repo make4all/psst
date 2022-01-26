@@ -12,6 +12,8 @@ import { bus } from '../bus'
 import { DataSource } from '../sonification/DataSource'
 import { SettingsOverscanTwoTone } from '@mui/icons-material'
 import { NoteTemplate } from '../sonification/templates/NoteTemplate'
+import { FilterRangeTemplate } from '../sonification/templates/FilterRangeTemplate'
+import { NoiseSonify } from '../sonification/displays/NoiseSonify'
 
 const TONE_THROTTLE = 100
 
@@ -70,6 +72,7 @@ function ConnectButton() {
             if (!src) {
                 src = son.addSource('jacdac demo')
                 src.addTemplate(new NoteTemplate())
+                // src.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
                 src.setStat('max', 1.0)
                 src.setStat('min', -1.0)
