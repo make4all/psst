@@ -21,25 +21,25 @@ function ConnectButton() {
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
     const [sonifier, setSonifier] = useState<Sonifier>()
     const [streaming, setStreaming] = useState(false)
-    const [source,setSource] = useState<DataSource>()
+    const [source, setSource] = useState<DataSource>()
 
-    useEffect(()=>{
-        if (!inIFrame())
-            startDevTools()
-    },[])
+    useEffect(() => {
+        if (!inIFrame() && window.location.hash === '#dbg') startDevTools()
+    }, [])
 
     // register for accelerometer data events
     useEffect(() => {
         if (!services || services.length === 0) return
         const accelService = services[0]
 
+        console.log(accelService.specification)
         const unsubs = accelService.readingRegister.subscribe(
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
                 if (!streaming || !sonifier || !source) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
-                console.log("vpotluri: calling PushPoint.")
+                console.log('vpotluri: calling PushPoint.')
                 sonifier.pushPoint(x, source.id)
             }, TONE_THROTTLE),
         )
@@ -54,28 +54,33 @@ function ConnectButton() {
             await bus.disconnect()
         } else {
             console.log('connect')
-            let jd = bus
-            await jd.connect()
+            await bus.connect()
         }
     }
 
-    function initializeSource() {
-        if (!sonifier) setSonifier(Sonifier.getSonifierInstance())
-        if(sonifier) setSource(sonifier.addSource('jacdac demo'))
-        if(source) {
-            source.addTemplate(new NoteTemplate())
-            // dummy stats. Do we know the min and max for accelerometer?
-            source.setStat('max',100)
-            source.setStat('min',-100);
-        }
-        
-        
-
-    }
     const handleStartStreaming = () => {
-        if (!sonifier) setSonifier(Sonifier.getSonifierInstance())
-        if(!source)initializeSource()
-        if(sonifier)sonifier.onPlay()
+        let son = sonifier
+        let src = source
+        if (!streaming) {
+            if (!son) {
+                son = Sonifier.getSonifierInstance()
+                setSonifier(son)
+            }
+
+            if (!src) {
+                src = son.addSource('jacdac demo')
+                src.addTemplate(new NoteTemplate())
+                // dummy stats. Do we know the min and max for accelerometer?
+                src.setStat('max', 1.0)
+                src.setStat('min', -1.0)
+                setSource(src)
+            }
+
+            son.onPlay()
+        } else {
+            son?.onStop()
+        }
+
         setStreaming(!streaming)
     }
 
@@ -98,5 +103,3 @@ export default function Page() {
         </JacdacProvider>
     )
 }
-
-
