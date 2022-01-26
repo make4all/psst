@@ -23,7 +23,9 @@ export class Sonifier {
      */
     private static sonifierInstance: Sonifier
 
+
     
+
 
     /**
      * Whether or not audio is currently playing
@@ -133,7 +135,7 @@ export class Sonifier {
      */
     private constructor() {
         // super()
-        
+
         //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
