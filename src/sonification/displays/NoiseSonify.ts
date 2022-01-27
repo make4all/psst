@@ -1,5 +1,6 @@
 import { Datum } from '../Datum'
 import { Sonifier } from '../Sonifier'
+import { Sonify } from './Sonify';
 import { SonifyFixedDuration } from './SonifyFixedDuration'
 
 const DEBUG = false;
@@ -33,7 +34,7 @@ export class NoiseSonify extends SonifyFixedDuration {
      * @param time Time to fill it for in seconds
      */
     private fillBuffer(length: number): AudioBuffer {
-        let sampleRate = NoiseSonify.audioCtx.sampleRate
+        let sampleRate = Sonify.audioCtx.sampleRate
         let noiseBufferSize = sampleRate * length;
         let buffer = NoiseSonify.audioCtx.createBuffer(1, noiseBufferSize, NoiseSonify.audioCtx.sampleRate)
         let bufferData = buffer.getChannelData(0)

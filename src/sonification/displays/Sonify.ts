@@ -1,7 +1,8 @@
 import { Datum } from '../Datum'
+import { PlaybackState } from '../SonificationConstants'
 import { Sonifier } from '../Sonifier'
 import { DatumDisplay } from './DatumDisplay'
-
+let DEBUG:boolean = true;
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
  * @field volume Presuming here than anything you play would have a volume.
@@ -10,8 +11,35 @@ import { DatumDisplay } from './DatumDisplay'
  */
 
 export class Sonify extends DatumDisplay {
+    private _playbackState: PlaybackState;
+    public get playbackState(): PlaybackState {
+        return this._playbackState;
+    }
+    public set playbackState(value: PlaybackState) {
+        this._playbackState = value;
+    }
+    public show(): void {
+        if (this.playbackState == PlaybackState.Playing && Sonify.audioCtx.state == 'running') {
+            if (DEBUG) console.log('playing')
+        } else {
+            if (DEBUG) console.log('setting up for playing')
+            Sonify.audioCtx.resume()
+            Sonify.gainNode.connect(Sonify.audioCtx.destination)
+    }
+}
+    public pause(): void {
+        if (DEBUG) console.log('Pausing. Playback state is paused')
+        Sonify.audioCtx.suspend()
+         Sonify.gainNode.disconnect()
+        this._playbackState = PlaybackState.Paused
+        throw new Error('Method not implemented.');
+    }
+    public resume(): void {
+        throw new Error('Method not implemented.');
+    }
     /**
-     * Every display that extends this needs an audio context used to play sounds
+     * Every display that extends this needs an audio context used to play sounds.
+     * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
      */
      private static _audioCtx = new AudioContext();
      public static get audioCtx(): AudioContext {
@@ -66,11 +94,12 @@ export class Sonify extends DatumDisplay {
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
+        this._playbackState = PlaybackState.Stopped
         Sonify._audioCtx.resume()
         Sonify.gainNode = Sonify._audioCtx.createGain()
-        if(!this.outputNode) this.outputNode = audioNode
+        // if(!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
-        if (this.outputNode) this.outputNode.connect(Sonify.gainNode);
+        if (audioNode) audioNode.connect(Sonify.gainNode);
     }
 
     public toString(): string {

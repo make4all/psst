@@ -32,7 +32,7 @@ export abstract class SonifyFixedDuration extends Sonify {
      */
     update(datum: Datum): void {
         if (this.startTime) {
-            let timePlayed = Sonifier.audioCtx.currentTime - this.startTime;
+            let timePlayed = SonifyFixedDuration.audioCtx.currentTime - this.startTime;
             let timeLeft = this.duration - timePlayed;
             this.extend(timeLeft + this.duration)
         } else {

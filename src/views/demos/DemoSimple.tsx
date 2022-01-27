@@ -152,7 +152,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         // SONIFICATION
         this.source = this.sonifierInstance.addSource('SimpleDemo')
         this.source.addTemplate(new NoteTemplate())
-        // this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
+        this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
 
         return this.source
     }

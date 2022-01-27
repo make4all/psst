@@ -4,7 +4,7 @@ import { Datum } from '../Datum'
  * Base class for displaying a single datum. Must be subclassed to be fully defined
  * @field datum The raw data used to generate this sonification type
  */
-export class DatumDisplay {
+export abstract class DatumDisplay {
     /**
      * The datum to display
      */
@@ -30,4 +30,7 @@ export class DatumDisplay {
     public toString(): string {
         return `DatumDisplay: ${this.datum.toString()}`
     }
+    public abstract  show(): void;
+    public abstract pause(): void;
+    public abstract resume(): void;
 }

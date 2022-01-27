@@ -2,7 +2,7 @@ import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
 import { Sonifier } from '../Sonifier'
 
-const DEBUG = false;
+const DEBUG = true;
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -14,7 +14,7 @@ const DEBUG = false;
  * [note implementation not complete. Needs to handle scheduleSound still]
  */
 export class NoteSonify extends Sonify {
-
+private  oscillator:OscillatorNode;
     /**
      * Stores relevant information when a new datum arrives
      * @param datum The data datum to be sonified
@@ -25,8 +25,8 @@ export class NoteSonify extends Sonify {
     public update(datum: Datum, duration = 200, volume?: number, smooth?: boolean) {
         super.update(datum)
         if (DEBUG) console.log(`updating value  ${this.datum.adjustedValue}`)
-        let oscillator = this.outputNode as OscillatorNode
-        oscillator.frequency.value = datum.adjustedValue
+        // let oscillator = this.outputNode as OscillatorNode
+        this.oscillator.frequency.value = datum.adjustedValue
     }
 
 
@@ -38,19 +38,28 @@ export class NoteSonify extends Sonify {
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         
-        super( volume, Sonifier.audioCtx.createOscillator())
+        super( volume)
+        this.oscillator = NoteSonify.audioCtx.createOscillator()
 
-        let oscillator = this.outputNode as OscillatorNode;
-        if (oscillator == undefined) {
-            // oscillator = Sonifier.audioCtx.createOscillator()
-            this.outputNode = oscillator;
-        }
-        oscillator.start();
+        // let oscillator = this.outputNode as OscillatorNode;
+        
+        
+        if(DEBUG) console.log("starting oscilator")
+        
     }
 
     public toString(): string {
-        let oscillator = this.outputNode as OscillatorNode;
-        if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
+        // let oscillator = this.outputNode as OscillatorNode;
+        if (this.oscillator) return `NoteSonify playing ${this.oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
     }
-}
+    public show(){
+        super.show();
+        this.oscillator.start();
+        this.oscillator.connect(Sonify.gainNode)
+    }
+    public pause(): void {
+        super.pause();   
+    }
+    }
+

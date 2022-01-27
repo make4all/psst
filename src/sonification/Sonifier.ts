@@ -1,13 +1,9 @@
 // import { SonificationLevel } from './constents';
 import { Datum } from './Datum'
-import { PlaybackState, SonificationLevel } from './SonificationConstants'
+import { PlaybackState } from './SonificationConstants'
 import { DataSource } from './DataSource'
 import { Template } from './templates/Template'
 import { DatumDisplay } from './displays/DatumDisplay'
-import { Sonify } from './displays/Sonify'
-import { maxHeaderSize } from 'http'
-import { NetworkWifiRounded } from '@mui/icons-material'
-import * as d3 from 'd3'
 
 const DEBUG = false
 
@@ -22,10 +18,6 @@ export class Sonifier {
      * @todo ask group if there is a better way to enforce this.
      */
     private static sonifierInstance: Sonifier
-
-
-    
-
 
     /**
      * Whether or not audio is currently playing
@@ -172,34 +164,34 @@ export class Sonifier {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        // vpotluri:if (this.playbackState == PlaybackState.Playing && Sonifier.audioCtx.state == 'running') {
+if (this.playbackState == PlaybackState.Playing) {
             if (DEBUG) console.log('playing')
-        //vpotluri: } else {
-        //     if (DEBUG) console.log('setting up for playing')
-        //     Sonifier.audioCtx.resume()
-        //     Sonifier.gainNode.connect(Sonifier.audioCtx.destination)
-        //     // this.startSources()
-        //     this._playbackState = PlaybackState.Playing
-        // }
+         } else {
+            if (DEBUG) console.log('setting up for playing')
+        
+
+            this.startSources()
+            this._playbackState = PlaybackState.Playing
+        }
     }
 
 
-    // /**
-    //  * Triggers all existing audio nodes to play.
-    //  * 
-    //  * @todo if a new source is added after onPlay it won't get connected 
-    //  * @todo what about visually displaying things
-    //  */
-    // public startSources() {
-    //     if (DEBUG) console.log(`starting sources ${this.sources.size}`)
-    //     this.sources.forEach((source: DataSource, key: number) => {
-    //         source.displays().map((display) => {
-    //             if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
-    //             display.show();
-    //         })
-    //     })
+    /**
+     * Triggers all existing audio nodes to play.
+     * 
+     * @todo if a new source is added after onPlay it won't get connected 
+     * @todo what about visually displaying things
+     */
+    private startSources() {
+        if (DEBUG) console.log(`starting sources ${this.sources.size}`)
+        this.sources.forEach((source: DataSource, key: number) => {
+            source.displays().map((display) => {
+                if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
+                display.show();
+            })
+        })
     //     Sonifier.gainNode.connect(Sonifier._audioCtx.destination)
-    // }
+    }
 
 
     //needs extensive testing.
