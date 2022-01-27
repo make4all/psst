@@ -1,4 +1,6 @@
+import { listenerCount } from 'process'
 import React from 'react'
+import { bindCallback, from, generate, interval, map, take, timer, zip } from 'rxjs'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
 import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
@@ -88,7 +90,13 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         // SONIFICATION INITIALIZATION
         this.sonifierInstance.onPlay()
 
-        this.playDataSlowly(data, 200)
+        let id = this.source ? this.source.id : 0
+        this.getSource().addDataSource(
+            timer(0, 200).pipe(
+                map((val) => new Datum(id, data[val])),
+                take(data.length),
+            ),
+        )
     }
 
     /**
@@ -101,22 +109,10 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * @param speed How many milliseconds to wait between each data point
      */
     public playDataSlowly(dummyData: number[], speed: number): void {
-        if (DEBUG)
-            console.log(
-                `playTone: sonifying data of length ${dummyData.length} starting at ${this.current} at speed ${speed}`,
-            )
-        this.data = dummyData
-        for (let i = this.current; i < dummyData.length; i++) {
-            this.current = i
-            setTimeout(() => {
-                console.log(`streaming ${dummyData[i]}`)
-                if (this.isStreamInProgress) {
-                    // SONIFICATION
-                    this.sonifierInstance.pushPoint(dummyData[i], this.getSource().id)
-                }
-            }, speed * i)
-        }
-        //this.sonifierInstance.onStop();
+        let id = this.getSource().id
+        interval(speed).subscribe((v) => {
+            this.source?.handleNewDatum(new Datum(id, dummyData[v]))
+        })
     }
 
     public render() {

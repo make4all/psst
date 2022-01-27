@@ -1,6 +1,7 @@
 import { Datum } from './Datum'
 import { DatumDisplay } from './displays/DatumDisplay'
 import { Template } from './templates/Template'
+import { Observable } from 'rxjs'
 
 /**
  * The source for a stream of data
@@ -119,6 +120,10 @@ export class DataSource {
     }
 
     //////////////////////////////// METHODS ///////////////////////////////////
+
+    public addDataSource(data: Observable<Datum>) {
+        data.subscribe((value) => this.handleNewDatum(value as Datum))
+    }
 
     /**
      * Calculate stats and then assign displays
