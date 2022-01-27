@@ -5,10 +5,12 @@ import React, { ChangeEvent } from 'react'
 import { PlaybackState, SonificationLevel } from '../sonification/SonificationConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
+import { ChartView } from '../views/ChartView'
 
 import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid, NativeSelect } from '@mui/material'
 
 import { DataManager } from '../DataManager'
+
 
 import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
@@ -19,7 +21,11 @@ import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemo
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    experimentalHighlightRegion: { value: 'experimentalHighlightRegion', label: 'experimental implementation of highlight points for region', component: ExperimentalDemoHighlightRegion },
+    experimentalHighlightRegion: {
+        value: 'experimentalHighlightRegion',
+        label: 'experimental implementation of highlight points for region',
+        component: ExperimentalDemoHighlightRegion,
+    },
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -61,6 +67,10 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
                 <div>
                     <DataView />
+                </div>
+
+                <div>
+                    <ChartView />
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
