@@ -48,6 +48,9 @@ export class FilterRangeTemplate extends Template {
         return false
     }
 
+    /**
+     * @returns A string describing this class including its range.
+     */
     public toString(): string {
         return `FilterRangeTemplate: Keeping only data in ${this.range[0]},${this.range[1]}`
     }

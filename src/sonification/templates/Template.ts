@@ -41,6 +41,9 @@ export abstract class Template {
         return true
     }
 
+    /**
+     * Set up for display. Datum will only be displayed after this is called.
+     */
     public start() {
         console.log(`template.start ${this}`)
         this.displays.map((display) => display.start())
