@@ -65,13 +65,13 @@ export class Sonify extends DatumDisplay {
     /**
      * An audio node that must be configured to play this sound
      */
-    protected _outputNode: AudioNode | undefined
-    protected get outputNode(): AudioNode | undefined {
-        return this._outputNode
-    }
-    protected set outputNode(value: AudioNode | undefined) {
-        this._outputNode = value
-    }
+    // protected _outputNode: AudioNode | undefined
+    // protected get outputNode(): AudioNode | undefined {
+        // return this._outputNode
+    // }
+    // protected set outputNode(value: AudioNode | undefined) {
+        // this._outputNode = value
+    // }
 
     /**
      * Stores relevant information when a new datum arrives. Value is derived from datum.scaledValue.
