@@ -12,12 +12,12 @@ const DEBUG = false
  * Has a single instance
  * @todo replace parts of this to use RXjs?
  */
-export class Sonifier {
+export class DisplayBoard {
     /**
      * The sonifier. Enfornce that there is only ever one.
      * @todo ask group if there is a better way to enforce this.
      */
-    private static sonifierInstance: Sonifier
+    private static displayBoardInstance: DisplayBoard
 
     /**
      * Whether or not audio is currently playing
@@ -140,12 +140,12 @@ export class Sonifier {
      * Create a new sonifier. Enforces that there is only ever one
      * @returns The sonifier.
      */
-    public static getSonifierInstance(): Sonifier {
-        if (!Sonifier.sonifierInstance) {
-            Sonifier.sonifierInstance = new Sonifier()
+    public static getDisplayBoardInstance(): DisplayBoard {
+        if (!DisplayBoard.displayBoardInstance) {
+            DisplayBoard.displayBoardInstance = new DisplayBoard()
         }
 
-        return Sonifier.sonifierInstance
+        return DisplayBoard.displayBoardInstance
     }
 
     //needs extensive testing.
@@ -156,7 +156,7 @@ export class Sonifier {
 
         //vpotluri: // Sonifier.audioCtx.suspend()
         if (DEBUG) console.log('stopping. playback state is paused')
-        this._playbackState = PlaybackState.Paused
+        this._playbackState = PlaybackState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
     }
 
@@ -234,19 +234,5 @@ if (this.playbackState == PlaybackState.Playing) {
         return datum
     }
 
-    /**
-     * Play a point at a time in the future
-     * @param point The datum to play
-     * @param sourceId The source for the datum
-     * @param time What time to play it at
-     */
-//     public pushPointAtTime(point: number, sourceId: number, time: number) {
-//         let diff = time - d3.now()
-//         if (diff <= 0) this.pushPoint(point, sourceId)
-//         else {
-//             setTimeout(() => {
-//                 this.pushPoint(point, sourceId)
-//             }, time - Sonifier.audioCtx.currentTime*1000);
-//         }
-//     }
+
 }

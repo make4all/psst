@@ -1,4 +1,4 @@
-import { Sonifier } from '../sonification/Sonifier'
+import {DisplayBoard } from '../sonification/DisplayBoard'
 
 import React, { ChangeEvent } from 'react'
 
@@ -14,12 +14,12 @@ import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { op } from 'arquero'
-import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemoHighlightRegion'
+
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    experimentalHighlightRegion: { value: 'experimentalHighlightRegion', label: 'experimental implementation of highlight points for region', component: ExperimentalDemoHighlightRegion },
+    
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -165,12 +165,12 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-        const sonifierInstance = Sonifier.getSonifierInstance()
+        const displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
 
-        if (sonifierInstance) {
-            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
-            if (sonifierInstance.playbackState == PlaybackState.Playing) return
-            sonifierInstance.onPlay()
+        if (displayBoardInstance) {
+            console.log('sonifier instance is present. playback state', displayBoardInstance.playbackState)
+            if (displayBoardInstance.playbackState == PlaybackState.Playing) return
+            displayBoardInstance.onPlay()
         }
 
         let table = DataManager.getInstance().table

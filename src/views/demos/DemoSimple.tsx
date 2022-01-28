@@ -2,7 +2,7 @@ import React from 'react'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
 import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
-import { Sonifier } from '../../sonification/Sonifier'
+import { DisplayBoard } from '../../sonification/DisplayBoard'
 import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 import { IDemoView } from './IDemoView'
@@ -22,7 +22,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     /**
      * There can only be one sonifier! But we need a pointer to it
      */
-    protected sonifierInstance: Sonifier
+    protected displayBoardInstance: DisplayBoard
     /**
      * Are we streaming data right now?
      */
@@ -52,7 +52,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     constructor(props: DemoSimpleProps) {
         super(props)
-        this.sonifierInstance = Sonifier.getSonifierInstance()
+        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance();
     }
 
     /**
@@ -61,7 +61,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public onPause = (data: any) => {
         this.isStreamInProgress = false
-        this.sonifierInstance.onPause()
+        this.displayBoardInstance.onPause()
     }
 
     /**
@@ -86,7 +86,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         this.getSource().setStat('min', Math.min(...data))
 
         // SONIFICATION INITIALIZATION
-        this.sonifierInstance.onPlay()
+        this.displayBoardInstance.onPlay()
 
         this.playDataSlowly(data, 200)
     }
@@ -112,7 +112,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
                 console.log(`streaming ${dummyData[i]}`)
                 if (this.isStreamInProgress) {
                     // SONIFICATION
-                    this.sonifierInstance.pushPoint(dummyData[i], this.getSource().id)
+                    this.displayBoardInstance.pushPoint(dummyData[i], this.getSource().id)
                 }
             }, speed * i)
         }
@@ -139,7 +139,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        this.sonifierInstance.deleteSource(this.source)
+        this.displayBoardInstance.deleteSource(this.source)
     }
 
     ////////// HELPER METHODS ///////////////
@@ -150,7 +150,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public initializeSource() {
         // SONIFICATION
-        this.source = this.sonifierInstance.addSource('SimpleDemo')
+        this.source = this.displayBoardInstance.addSource('SimpleDemo')
         this.source.addTemplate(new NoteTemplate())
         this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
 

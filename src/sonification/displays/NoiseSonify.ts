@@ -1,5 +1,4 @@
 import { Datum } from '../Datum'
-import { Sonifier } from '../Sonifier'
 import { Sonify } from './Sonify';
 import { SonifyFixedDuration } from './SonifyFixedDuration'
 

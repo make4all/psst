@@ -1,6 +1,5 @@
 import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
-import { Sonifier } from '../Sonifier'
 
 const DEBUG = true;
 

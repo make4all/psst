@@ -6,7 +6,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
 import { useServices, useChange, useBus } from 'react-jacdac'
 import { Button } from '@mui/material'
-import { Sonifier } from '../sonification/Sonifier'
+import { DisplayBoard } from '../sonification/DisplayBoard'
 import { JacdacProvider } from 'react-jacdac'
 import { bus } from '../bus'
 import { DataSource } from '../sonification/DataSource'
@@ -21,7 +21,7 @@ function ConnectButton() {
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
-    const [sonifier, setSonifier] = useState<Sonifier>()
+    const [displayBoard,setDisplayBoard] = useState<DisplayBoard>()
     const [streaming, setStreaming] = useState(false)
     const [source, setSource] = useState<DataSource>()
 
@@ -39,10 +39,10 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !sonifier || !source) return
+                if (!streaming || !displayBoard || !source) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
-                sonifier.pushPoint(x, source.id)
+                displayBoard.pushPoint(x, source.id)
             }, TONE_THROTTLE),
         )
 
@@ -61,16 +61,16 @@ function ConnectButton() {
     }
 
     const handleStartStreaming = () => {
-        let son = sonifier
+        let board = displayBoard
         let src = source
         if (!streaming) {
-            if (!son) {
-                son = Sonifier.getSonifierInstance()
-                setSonifier(son)
+            if (!board) {
+                board = DisplayBoard.getDisplayBoardInstance()
+                setDisplayBoard(board)
             }
 
             if (!src) {
-                src = son.addSource('jacdac demo')
+                src = board.addSource('jacdac demo')
                 src.addTemplate(new NoteTemplate())
                 // src.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
@@ -79,9 +79,9 @@ function ConnectButton() {
                 setSource(src)
             }
 
-            son.onPlay()
+            board.onPlay()
         } else {
-            son?.onStop()
+            board?.onStop()
         }
 
         setStreaming(!streaming)

@@ -1,6 +1,5 @@
 import { Datum } from '../Datum'
 import { PlaybackState } from '../SonificationConstants'
-import { Sonifier } from '../Sonifier'
 import { DatumDisplay } from './DatumDisplay'
 let DEBUG:boolean = true;
 /**
