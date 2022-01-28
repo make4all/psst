@@ -1,7 +1,5 @@
 import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
-import { Sonifier } from '../Sonifier'
-import { ThirteenMpSharp } from '@mui/icons-material'
 
 const DEBUG = false
 
@@ -44,7 +42,7 @@ export class NoteSonify extends Sonify {
         super.stop()
         let oscillator = this.outputNode as OscillatorNode
         oscillator?.stop()
-        this.outputNode = Sonifier.audioCtx.createOscillator()
+        this.outputNode = Sonify.audioCtx.createOscillator()
         this.playing = false
     }
 
@@ -61,7 +59,7 @@ export class NoteSonify extends Sonify {
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        super(volume, Sonifier.audioCtx.createOscillator())
+        super(volume, Sonify.audioCtx.createOscillator())
 
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
@@ -74,5 +72,9 @@ export class NoteSonify extends Sonify {
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
+    }
+
+    public pause(): void {
+        super.pause()
     }
 }

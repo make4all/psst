@@ -1,8 +1,8 @@
 import { SuperscriptRounded } from '@mui/icons-material'
 import { Datum } from '../Datum'
-import { Sonifier } from '../Sonifier'
+import { PlaybackState } from '../SonificationConstants'
 import { DatumDisplay } from './DatumDisplay'
-
+let DEBUG: boolean = true
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
  * @field volume Presuming here than anything you play would have a volume.
@@ -11,6 +11,29 @@ import { DatumDisplay } from './DatumDisplay'
  */
 
 export class Sonify extends DatumDisplay {
+    private _playbackState: PlaybackState
+    public get playbackState(): PlaybackState {
+        return this._playbackState
+    }
+    public set playbackState(value: PlaybackState) {
+        this._playbackState = value
+    }
+
+    /**
+     * Every display that extends this needs an audio context used to play sounds.
+     * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
+     */
+    private static _audioCtx = new AudioContext()
+    public static get audioCtx(): AudioContext {
+        return Sonify._audioCtx
+    }
+    private static _gainNode: GainNode
+    public static get gainNode(): GainNode {
+        return Sonify._gainNode
+    }
+    public static set gainNode(value: GainNode) {
+        Sonify._gainNode = value
+    }
     /**
      * The volume a sound will be played at
      */
@@ -52,10 +75,35 @@ export class Sonify extends DatumDisplay {
         this.outputNode?.disconnect()
     }
 
+    /**
+     * called when the DisplayBoard's onPlay is called. should contain the logic to trigger specific output.
+     * Existing implementations use this for example to connect the oscillator in NoteSonify.
+     */
     public start() {
         super.start()
-        this.outputNode?.connect(Sonifier.gainNode)
+
+        if (this.playbackState == PlaybackState.Playing && Sonify.audioCtx.state == 'running') {
+            if (DEBUG) console.log('playing')
+        } else {
+            if (DEBUG) console.log('setting up for playing')
+            Sonify.audioCtx.resume()
+            Sonify.gainNode.connect(Sonify.audioCtx.destination)
+            this.outputNode?.connect(Sonify.gainNode)
+        }
     }
+
+    public pause(): void {
+        if (DEBUG) console.log('Pausing. Playback state is paused')
+        Sonify.audioCtx.suspend()
+        Sonify.gainNode.disconnect()
+        this._playbackState = PlaybackState.Paused
+        throw new Error('Method not implemented.')
+    }
+
+    public resume(): void {
+        throw new Error('Method not implemented.')
+    }
+
     /**
      * Must be overriden. Generates a new instance of a SonificationType from a datum.
      *
@@ -67,8 +115,13 @@ export class Sonify extends DatumDisplay {
         super()
 
         if (!this.outputNode) this.outputNode = audioNode
+
+        this._playbackState = PlaybackState.Stopped
+        Sonify._audioCtx.resume()
+        Sonify.gainNode = Sonify._audioCtx.createGain()
+        // if(!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
-        if (this.outputNode) this.outputNode.connect(Sonifier.gainNode)
+        if (audioNode) audioNode.connect(Sonify.gainNode)
     }
 
     public toString(): string {

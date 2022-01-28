@@ -1,3 +1,3 @@
-import { createWebBus } from "jacdac-ts";
+import { createWebBus } from 'jacdac-ts'
 
 export const bus = createWebBus()

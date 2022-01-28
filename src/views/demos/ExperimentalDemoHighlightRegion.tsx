@@ -4,10 +4,12 @@ import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
 import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
 import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
-import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
-import { Sonifier } from '../../sonification/Sonifier'
 import { DataSource } from '../../sonification/DataSource'
+import { DisplayBoard } from '../../sonification/displays/DisplayBoard'
+import { map, take, timer } from 'rxjs'
+import { Datum } from '../../sonification/Datum'
+
 const DEBUG = false
 
 export interface ExperimentalDemoHighlightRegionState {
@@ -25,13 +27,15 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     implements IDemoView
 {
     /**
-     * There can only be one sonifier! But we need a pointer to it
-     */
-    protected sonifierInstance: Sonifier
-    /**
      * Are we streaming data right now?
      */
     protected isStreamInProgress = false
+
+    /**
+     * There can only be one display board! But we need a pointer to it
+     */
+    protected displayBoardInstance: DisplayBoard
+
     /**
      * @todo implement pausing
      * The index into our data set that we were at when we were paused
@@ -42,6 +46,12 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      * Holder for the current data source object
      */
     protected source: DataSource | undefined
+
+    /**
+     * The filter object
+     */
+    filter: FilterRangeTemplate | undefined
+
     public getSource(): DataSource {
         if (this.source) return this.source
         else return this.initializeSource()
@@ -74,11 +84,8 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      */
     constructor(props: ExperimentalDemoHighlightRegionProps) {
         super(props)
-        // this.state = {
-        // minValue: this.props.dataSummary.min,
-        // maxValue: this.props.dataSummary.max,
-        // }
-        this.sonifierInstance = Sonifier.getSonifierInstance()
+
+        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
         this.min = -1
         this.max = 10
     }
@@ -97,45 +104,37 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      */
     public onPlay = (data: any) => {
         this.isStreamInProgress = true
-        if (!this.source) this.initializeSource()
+        if (this.source) this.getSource().handleEndStream()
+        else this.initializeSource()
 
         // SONIFICATION
         this.getSource().setStat('max', Math.max(...data))
         this.getSource().setStat('min', Math.min(...data))
 
         // SONIFICATION INITIALIZATION
-        this.sonifierInstance.onPlay()
+        this.displayBoardInstance.onPlay()
 
-        this.playDataSlowly(data, 200)
+        let id = this.source ? this.source.id : 0
+        let source = timer(0, 200).pipe(
+            map((val) => new Datum(id, data[val])),
+            take(data.length),
+        )
+        console.log('setStream in demo')
+        this.getSource().setStream(source)
     }
+
     public onPause = (data: any) => {
         this.isStreamInProgress = false
-        this.sonifierInstance.onPause()
+        this.displayBoardInstance.onPause()
     }
+
     /**
-     * Fakes streaming data
-     *
-     * Loops through the data set calling sonifierInstance.pushPoint(...).
-     * Waits speed milliseconds between pushing.
-     *
-     * @param dummyData The data set being fake-streamed
-     * @param speed How many milliseconds to wait between each data point
+     * Garbage collect our data stream.
      */
-    public playDataSlowly(dummyData: number[], speed: number): void {
-        if (DEBUG)
-            console.log(
-                `playTone: sonifying data of length ${dummyData.length} starting at ${this.current} at speed ${speed}`,
-            )
-        this.data = dummyData
-        for (let i = this.current; i < dummyData.length; i++) {
-            this.current = i
-            setTimeout(() => {
-                console.log(`streaming ${dummyData[i]}`)
-                if (this.isStreamInProgress) {
-                    // SONIFICATION
-                    this.sonifierInstance.pushPoint(dummyData[i], this.getSource().id)
-                }
-            }, speed * i)
+    public componentWillUnmount() {
+        if (this.source) {
+            this.source.handleEndStream()
+            this.displayBoardInstance.deleteSource(this.source)
         }
     }
 
@@ -166,25 +165,6 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
         )
     }
 
-    /**
-     * Something was updated in this class.
-     * Make sure that we are updating our filter to reflect the new min/max values
-     * @param prevProps new min/max value
-     */
-    public componentDidUpdate(prevProps: ExperimentalDemoHighlightRegionProps) {
-        // // When the data summary changes, update the min & max value
-        // if (
-        //     this.props.dataSummary.min !== prevProps.dataSummary.min ||
-        //     this.props.dataSummary.max !== prevProps.dataSummary.max
-        // ) {
-        //     let minValue = this.props.dataSummary.min,
-        //         maxValue = this.props.dataSummary.max
-        //     this.setState({ minValue, maxValue })
-        // }
-        // SONIFICATION
-        // if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
-    }
-
     private _handleValueChange = (value: number, which: string) => {
         switch (which) {
             case 'min':
@@ -194,17 +174,19 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
                 this.max = value
                 break
         }
+        if (this.filter) this.filter.range = [this.min, this.max]
     }
 
     ////////// HELPER METHODS ///////////////
     public initializeSource() {
-        this.source = this.sonifierInstance.addSource('HighlightRegionDemo')
+        this.source = this.displayBoardInstance.addSource('HighlightRegionDemo')
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-        // this.filter =
+
         this.source.addTemplate(new NoteTemplate(this.source))
-        this.source.addTemplate(new FilterRangeTemplate(this.source, new NoiseSonify(), [this.min, this.max]))
+        this.filter = new FilterRangeTemplate(this.source, new NoiseSonify(), [this.min, this.max])
+        this.source.addTemplate(this.filter)
         return this.source
     }
 }

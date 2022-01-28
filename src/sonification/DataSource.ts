@@ -206,14 +206,17 @@ export class DataSource {
         })
     }
 
-    protected stopDisplays() {
+    public stopDisplays() {
         this._templates.map((template) => template.stop())
     }
 
-    protected startDisplays() {
+    public startDisplays() {
         this._templates.map((template) => template.start())
     }
 
+    public pauseDisplays() {
+        this._templates.map((template) => template.pause())
+    }
     public toString() {
         let description = this._description
         this._stats.forEach((name, val) => {

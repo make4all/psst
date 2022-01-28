@@ -51,6 +51,11 @@ export abstract class Template {
         this.displays.map((display) => display.stop())
     }
 
+    public pause() {
+        console.log(`template pause ${this}`)
+        this.displays.map((display) => display.pause())
+    }
+
     public toString(): string {
         return `Template ${this}`
     }

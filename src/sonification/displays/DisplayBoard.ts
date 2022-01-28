@@ -1,36 +1,24 @@
 // import { SonificationLevel } from './constents';
-import { Datum } from './Datum'
-import { PlaybackState, SonificationLevel } from './SonificationConstants'
-import { DataSource } from './DataSource'
-import { Template } from './templates/Template'
-import { DatumDisplay } from './displays/DatumDisplay'
-import { Sonify } from './displays/Sonify'
-import { maxHeaderSize } from 'http'
-import { NetworkWifiRounded } from '@mui/icons-material'
-import * as d3 from 'd3'
+import { Datum } from '../Datum'
+import { PlaybackState } from '../SonificationConstants'
+import { DataSource } from '../DataSource'
+import { Template } from '../templates/Template'
+import { DatumDisplay } from './DatumDisplay'
 
 const DEBUG = false
 
 /**
- * Sonifier class
+ * DisplayBoard class
  * Has a single instance
+ * users of our library get an instance of this to control it i.e. get source, play, etc.
  * @todo replace parts of this to use RXjs?
  */
-export class Sonifier {
+export class DisplayBoard {
     /**
-     * The sonifier. Enfornce that there is only ever one.
+     * The display board. Enforce that there is only ever one.
      * @todo ask group if there is a better way to enforce this.
      */
-    private static sonifierInstance: Sonifier
-
-    /**
-     * Every sonifier has an audio context used to play sounds
-     */
-    private static _audioCtx: AudioContext ;
-    public static get audioCtx(): AudioContext {
-        return Sonifier._audioCtx
-    }
-    public static gainNode: GainNode
+    private static displayBoardInstance: DisplayBoard
 
     /**
      * Whether or not audio is currently playing
@@ -45,7 +33,7 @@ export class Sonifier {
     }
 
     /**
-     * A Data sources handled by this sonifier
+     * Amap of Data sources handled by the display board.
      */
     private sources: Map<number, DataSource>
 
@@ -136,30 +124,25 @@ export class Sonifier {
     }
 
     /**
-     * Set up the sonifier. Grab the audio context.
+     * Set up the display board. set up maps needed to keep track of sources and displays.
      */
     private constructor() {
-        // super()
-        Sonifier._audioCtx = new AudioContext()
-        // Sonifier._audioCtx.resume()
-        //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
         this._displays = new Map()
-        Sonifier.gainNode = Sonifier._audioCtx.createGain()
     }
 
     /**
-     * Create a new sonifier. Enforces that there is only ever one
-     * @returns The sonifier.
+     * Create a new display board. Enforces that there is only ever one
+     * @returns The display board's instance..
      */
-    public static getSonifierInstance(): Sonifier {
-        if (!Sonifier.sonifierInstance) {
-            Sonifier.sonifierInstance = new Sonifier()
+    public static getDisplayBoardInstance(): DisplayBoard {
+        if (!DisplayBoard.displayBoardInstance) {
+            DisplayBoard.displayBoardInstance = new DisplayBoard()
         }
 
-        return Sonifier.sonifierInstance
+        return DisplayBoard.displayBoardInstance
     }
 
     //needs extensive testing.
@@ -168,9 +151,8 @@ export class Sonifier {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        Sonifier.audioCtx.suspend()
         if (DEBUG) console.log('stopping. playback state is paused')
-        this._playbackState = PlaybackState.Paused
+        this._playbackState = PlaybackState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
     }
 
@@ -178,42 +160,32 @@ export class Sonifier {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.playbackState == PlaybackState.Playing && Sonifier.audioCtx.state == 'running') {
+        if (this.playbackState == PlaybackState.Playing) {
             if (DEBUG) console.log('playing')
         } else {
             if (DEBUG) console.log('setting up for playing')
-            Sonifier.audioCtx.resume()
-            Sonifier.gainNode.connect(Sonifier.audioCtx.destination)
-            // this.startSources()
+
+            this.startSources()
             this._playbackState = PlaybackState.Playing
         }
     }
 
-
-    // /**
-    //  * Triggers all existing audio nodes to play.
-    //  * 
-    //  * @todo if a new source is added after onPlay it won't get connected 
-    //  * @todo what about visually displaying things
-    //  */
-    // public startSources() {
-    //     if (DEBUG) console.log(`starting sources ${this.sources.size}`)
-    //     this.sources.forEach((source: DataSource, key: number) => {
-    //         source.displays().map((display) => {
-    //             if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
-    //             display.show();
-    //         })
-    //     })
-    //     Sonifier.gainNode.connect(Sonifier._audioCtx.destination)
-    // }
-
+    /**
+     * Triggers all existing sources to show themselves (e.g. set up for playing)
+     *
+     * @todo if a new source is added after onPlay it won't get connected
+     * @todo what about visually displaying things
+     */
+    private startSources() {
+        if (DEBUG) console.log(`starting sources ${this.sources.size}`)
+        this.sources.forEach((source: DataSource, key: number) => source.startDisplays())
+    }
 
     //needs extensive testing.
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
-        Sonifier.audioCtx.suspend()
-        Sonifier.gainNode.disconnect()
         this._playbackState = PlaybackState.Paused
+        this.sources.forEach((source: DataSource, key: number) => source.stopDisplays())
     }
 
     /**
@@ -236,8 +208,7 @@ export class Sonifier {
             case PlaybackState.Playing: {
                 if (DEBUG) console.log(`calling ${source} to handle ${{ datum }}`)
                 source.handleNewDatum(datum)
-                /// make sounds update properly
-                //datum.displays.map((display) => { if (DEBUG) console.log(display.toString()); });
+
                 break
             }
             case PlaybackState.Paused: {
@@ -246,21 +217,5 @@ export class Sonifier {
             }
         }
         return datum
-    }
-
-    /**
-     * Play a point at a time in the future
-     * @param point The datum to play
-     * @param sourceId The source for the datum
-     * @param time What time to play it at
-     */
-    public pushPointAtTime(point: number, sourceId: number, time: number) {
-        let diff = time - d3.now()
-        if (diff <= 0) this.pushPoint(point, sourceId)
-        else {
-            setTimeout(() => {
-                this.pushPoint(point, sourceId)
-            }, time - Sonifier.audioCtx.currentTime*1000);
-        }
     }
 }

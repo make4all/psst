@@ -1,4 +1,4 @@
-import { Sonifier } from '../sonification/Sonifier'
+import { DisplayBoard } from '../sonification/displays/DisplayBoard'
 
 import React, { ChangeEvent } from 'react'
 
@@ -14,16 +14,10 @@ import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { op } from 'arquero'
-import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemoHighlightRegion'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    experimentalHighlightRegion: {
-        value: 'experimentalHighlightRegion',
-        label: 'experimental implementation of highlight points for region',
-        component: ExperimentalDemoHighlightRegion,
-    },
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -169,15 +163,15 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-        const sonifierInstance = Sonifier.getSonifierInstance()
+        const displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
 
-        if (sonifierInstance) {
-            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
+        if (displayBoardInstance) {
+            console.log('display board instance is present. playback state', displayBoardInstance.playbackState)
             if (
-                sonifierInstance.playbackState == PlaybackState.Paused ||
-                sonifierInstance.playbackState == PlaybackState.Stopped
+                displayBoardInstance.playbackState == PlaybackState.Paused ||
+                displayBoardInstance.playbackState == PlaybackState.Stopped
             ) {
-                sonifierInstance.onPlay()
+                displayBoardInstance.onPlay()
             }
         }
 
@@ -213,17 +207,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         console.log('returning. play button label', playbackLabel)
     }
-
-    // private _handlePushRudeData = () => {
-    //     let sonifierInstance = Sonifier.getSonifierInstance()
-    //     if (sonifierInstance) {
-    //         for (let i = 0; i < 5; i++) {
-    //             let dataPoint: number = Math.random()
-    //             dataPoint = dataPoint * 10000
-    //             sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.assertive)
-    //         }
-    //     }
-    // }
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value

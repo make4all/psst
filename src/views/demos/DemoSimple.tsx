@@ -1,8 +1,8 @@
 import React from 'react'
-import { isEmpty, map, take, timer } from 'rxjs'
+import { map, take, timer } from 'rxjs'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
-import { Sonifier } from '../../sonification/Sonifier'
+import { DisplayBoard } from '../../sonification/displays/DisplayBoard'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 import { IDemoView } from './IDemoView'
 
@@ -19,9 +19,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     implements IDemoView
 {
     /**
-     * There can only be one sonifier! But we need a pointer to it
+     * There can only be one display board! But we need a pointer to it
      */
-    protected sonifierInstance: Sonifier
+    protected displayBoardInstance: DisplayBoard
     /**
      * Are we streaming data right now?
      */
@@ -51,7 +51,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     constructor(props: DemoSimpleProps) {
         super(props)
-        this.sonifierInstance = Sonifier.getSonifierInstance()
+        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
     }
 
     /**
@@ -60,7 +60,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public onPause = (data: any) => {
         this.isStreamInProgress = false
-        this.sonifierInstance.onPause()
+        this.displayBoardInstance.onPause()
     }
 
     /**
@@ -71,15 +71,19 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * same value as a result
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
-     * Second, we make a callback to the sonifierInstance to let it know to shift into play mode
+     * Second, we make a callback to the display board instance to let it know to shift into play mode
+     * Third, we create a data stream
      *
      * @param data The data set to be played
      */
     public onPlay = (data: any) => {
+        console.log(`in onPlay ${this.source}`)
         this.isStreamInProgress = true
-        console.log('onPlay' + this.source)
-        if (this.source) this.getSource().handleEndStream()
-        else this.initializeSource()
+
+        if (this.source) {
+            this.getSource().handleEndStream()
+            console.log('called handleEndStream')
+        } else this.initializeSource()
 
         // SONIFICATION
         this.getSource().setStat('max', Math.max(...data))
@@ -87,7 +91,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         console.log(`setting max and min to ${this.getSource()}`)
 
         // SONIFICATION INITIALIZATION
-        this.sonifierInstance.onPlay()
+        this.displayBoardInstance.onPlay()
 
         let id = this.source ? this.source.id : 0
         let source = timer(0, 200).pipe(
@@ -112,7 +116,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     public componentWillUnmount() {
         if (this.source) {
             this.source.handleEndStream()
-            this.sonifierInstance.deleteSource(this.source)
+            this.displayBoardInstance.deleteSource(this.source)
         }
     }
 
@@ -124,7 +128,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public initializeSource() {
         // SONIFICATION
-        this.source = this.sonifierInstance.addSource('SimpleDemo')
+        this.source = this.displayBoardInstance.addSource('SimpleDemo')
         let template = new NoteTemplate(this.source)
         console.log(`adding template ${template}`)
         this.source.addTemplate(template)
