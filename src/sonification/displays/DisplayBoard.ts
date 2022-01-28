@@ -1,9 +1,9 @@
 // import { SonificationLevel } from './constents';
-import { Datum } from './Datum'
-import { PlaybackState } from './SonificationConstants'
-import { DataSource } from './DataSource'
-import { Template } from './templates/Template'
-import { DatumDisplay } from './displays/DatumDisplay'
+import { Datum } from '../Datum'
+import { PlaybackState } from '../SonificationConstants'
+import { DataSource } from '../DataSource'
+import { Template } from '../templates/Template'
+import { DatumDisplay } from './DatumDisplay'
 
 const DEBUG = false
 

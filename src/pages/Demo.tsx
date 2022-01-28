@@ -1,4 +1,4 @@
-import {DisplayBoard } from '../sonification/DisplayBoard'
+import {DisplayBoard } from '../sonification/displays/DisplayBoard'
 
 import React, { ChangeEvent } from 'react'
 
