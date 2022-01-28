@@ -1,6 +1,7 @@
 import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
 import { Sonifier } from '../Sonifier'
+import { ThirteenMpSharp } from '@mui/icons-material'
 
 const DEBUG = false
 
@@ -14,6 +15,8 @@ const DEBUG = false
  * [note implementation not complete. Needs to handle scheduleSound still]
  */
 export class NoteSonify extends Sonify {
+    private playing = false
+
     /**
      * Stores relevant information when a new datum arrives
      * @param datum The data datum to be sonified (or undefined if there is nothing to pla )
@@ -26,13 +29,31 @@ export class NoteSonify extends Sonify {
         let oscillator = this.outputNode as OscillatorNode
         if (datum) {
             if (DEBUG) console.log(`updating value  ${datum.adjustedValue}`)
-            oscillator.start()
             oscillator.frequency.value = datum.adjustedValue
+            if (!this.playing) {
+                oscillator.start()
+                this.playing = true
+            }
         } else {
             oscillator.stop()
+            this.playing = false
         }
     }
 
+    stop() {
+        super.stop()
+        let oscillator = this.outputNode as OscillatorNode
+        oscillator?.stop()
+        this.outputNode = Sonifier.audioCtx.createOscillator()
+        this.playing = false
+    }
+
+    start() {
+        super.start()
+        let oscillator = this.outputNode as OscillatorNode
+        oscillator?.start()
+        this.playing = true
+    }
     /**
      * Generates a new note sonifier
      * @param volume The volume the sound should play at
@@ -47,7 +68,6 @@ export class NoteSonify extends Sonify {
             // oscillator = Sonifier.audioCtx.createOscillator()
             this.outputNode = oscillator
         }
-        oscillator.start()
     }
 
     public toString(): string {

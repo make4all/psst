@@ -1,3 +1,4 @@
+import { SuperscriptRounded } from '@mui/icons-material'
 import { Datum } from '../Datum'
 import { Sonifier } from '../Sonifier'
 import { DatumDisplay } from './DatumDisplay'
@@ -43,6 +44,18 @@ export class Sonify extends DatumDisplay {
         super.update(datum)
     }
 
+    /**
+     * Stop all display. Stream has ended.
+     */
+    stop() {
+        super.stop()
+        this.outputNode?.disconnect()
+    }
+
+    public start() {
+        super.start()
+        this.outputNode?.connect(Sonifier.gainNode)
+    }
     /**
      * Must be overriden. Generates a new instance of a SonificationType from a datum.
      *

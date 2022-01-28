@@ -58,13 +58,14 @@ export class ScaleTemplate extends Template {
      * @param conversionFunction defaults to a linear mapping.
      */
     constructor(
+        source?: DataSource,
         display?: DatumDisplay,
         exceedDomain?: ExceedDomainResponse,
         targetRange?: [number, number],
         sourceRange: [number, number] = [0, 1],
         conversionFunction?: (datum: Datum) => number,
     ) {
-        super(display)
+        super(source, display)
         this.range = targetRange ? targetRange : [0, 1]
         this.domain = sourceRange ? sourceRange : [0, 1]
         this.exceedDomain = exceedDomain ? exceedDomain : ExceedDomainResponse.Expand
@@ -84,14 +85,15 @@ export class ScaleTemplate extends Template {
      * @param source
      * @returns Always returns true
      */
-    handleDatum(datum?: Datum, source?: DataSource): boolean {
-        if (!datum) return super.handleDatum()
+    handleDatum(datum?: Datum): boolean {
+        if (!datum) return true
 
         let sourcemax = this.domain[0]
         let sourcemin = this.domain[1]
-        if (source) {
-            sourcemax = source.getStat('max')
-            sourcemin = source.getStat('min')
+        if (this.source) {
+            console.log('getting max and min')
+            sourcemax = this.source.getStat('max')
+            sourcemin = this.source.getStat('min')
         }
 
         if (
@@ -107,11 +109,10 @@ export class ScaleTemplate extends Template {
         }
 
         datum.adjustedValue = this.conversionFunction(datum, this.domain, this.range)
-        super.handleDatum(datum, source)
-        return true
+        return super.handleDatum(datum)
     }
 
     public toString(): string {
-        return `ScaleTemplate: Converting to ${this.range[0]},${this.range[1]}`
+        return `ScaleTemplate: Converting from ${this.domain[0]}, ${this.domain[1]} to ${this.range[0]},${this.range[1]}`
     }
 }

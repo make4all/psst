@@ -16,6 +16,15 @@ export class DatumDisplay {
         this._datum = value
     }
 
+    public stop() {
+        console.log('datumDisplay.stop')
+        this._datum = undefined
+    }
+
+    public start() {
+        console.log('datumDisplay.start')
+    }
+
     /**
      * prints a description of this display
      */

@@ -19,7 +19,11 @@ import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemo
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    experimentalHighlightRegion: { value: 'experimentalHighlightRegion', label: 'experimental implementation of highlight points for region', component: ExperimentalDemoHighlightRegion },
+    experimentalHighlightRegion: {
+        value: 'experimentalHighlightRegion',
+        label: 'experimental implementation of highlight points for region',
+        component: ExperimentalDemoHighlightRegion,
+    },
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -169,18 +173,23 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         if (sonifierInstance) {
             console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
-            if (sonifierInstance.playbackState == PlaybackState.Playing) return
-            sonifierInstance.onPlay()
+            if (
+                sonifierInstance.playbackState == PlaybackState.Paused ||
+                sonifierInstance.playbackState == PlaybackState.Stopped
+            ) {
+                sonifierInstance.onPlay()
+            }
         }
 
         let table = DataManager.getInstance().table
-
+        console.log('table: ' + table)
         if (table) {
             // Hardcode getting the "Value" column from each data table, this will need to be set by user later
             let data = table.columns()[this.state.columnSelected].data
 
             if (demoViewRef.current) {
                 let demoView: IDemoView = demoViewRef.current
+                console.log("calling demo's onPlay()")
                 demoView.onPlay(data)
             }
         }

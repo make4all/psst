@@ -1,7 +1,7 @@
 import { Datum } from './Datum'
 import { DatumDisplay } from './displays/DatumDisplay'
 import { Template } from './templates/Template'
-import { isEmpty, Observable } from 'rxjs'
+import { bindCallback, finalize, isEmpty, Observable, Subscription } from 'rxjs'
 
 /**
  * The source for a stream of data
@@ -34,18 +34,21 @@ export class DataSource {
      * handleNewDatum() and at the end handleEndStream() will be called.
      */
     private _stream?: Observable<Datum>
+    private subscription: Subscription | undefined
     public get stream(): Observable<Datum> {
         if (this._stream) return this._stream
         else throw Error('no stream')
     }
     public setStream(data?: Observable<Datum>) {
         this._stream = data
+        console.log(`setting up stream for ${this}`)
         if (data) {
-            data.subscribe((value) => {
+            this.startDisplays()
+            this.subscription = data.subscribe((value) => {
                 this.handleNewDatum(value as Datum)
             })
-            const finished = data.pipe(isEmpty())
-            finished.subscribe(() => this.handleEndStream())
+
+            data.pipe(finalize(() => bindCallback(this.handleEndStream)))
         }
     }
 
@@ -147,19 +150,6 @@ export class DataSource {
         this._templates.push(template)
     }
 
-    //////////////////////////////// DISPLAYS ///////////////////////////////////
-
-    public displays(): Array<DatumDisplay> {
-        let displays = new Array<DatumDisplay>()
-        this._templates.map((template) => {
-            //console.log(`checking for displays in ${template.toString()}`)
-            //console.log(`template ${template.toString()} has displays`)
-            //template.displays.map((display) => console.log(`display: ${display}`))
-            template.displays.map((display) => displays.push(display))
-        })
-        return displays
-    }
-
     //////////////////////////////// CONSTRUCTOR ///////////////////////////////////
 
     /**
@@ -194,9 +184,11 @@ export class DataSource {
      * @param stream The stream that ended
      */
     public handleEndStream() {
+        console.log(`handleEndStream for ${this}`)
+        this.subscription?.unsubscribe()
         this.setStream(undefined)
         this.clearStats()
-        this.updateDisplays()
+        this.stopDisplays()
     }
 
     //////////////////////////////// HELPER METHODS ///////////////////////////////////
@@ -208,13 +200,25 @@ export class DataSource {
      */
     protected updateDisplays(datum?: Datum) {
         this._templates.map((template) => {
-            let result = template.handleDatum(datum, this)
+            let result = template.handleDatum(datum)
             if (!result) return
             //console.log(`calculatied note ${template} for ${datum}`)
         })
     }
 
+    protected stopDisplays() {
+        this._templates.map((template) => template.stop())
+    }
+
+    protected startDisplays() {
+        this._templates.map((template) => template.start())
+    }
+
     public toString() {
-        return this._description
+        let description = this._description
+        this._stats.forEach((name, val) => {
+            description += ` (${name}, ${val})`
+        })
+        return description
     }
 }

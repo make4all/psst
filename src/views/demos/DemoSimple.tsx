@@ -77,21 +77,24 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public onPlay = (data: any) => {
         this.isStreamInProgress = true
-        if (!this.source) this.initializeSource()
+        console.log('onPlay' + this.source)
+        if (this.source) this.getSource().handleEndStream()
+        else this.initializeSource()
 
         // SONIFICATION
         this.getSource().setStat('max', Math.max(...data))
         this.getSource().setStat('min', Math.min(...data))
+        console.log(`setting max and min to ${this.getSource()}`)
 
         // SONIFICATION INITIALIZATION
         this.sonifierInstance.onPlay()
 
         let id = this.source ? this.source.id : 0
-        this.getSource().handleEndStream()
         let source = timer(0, 200).pipe(
             map((val) => new Datum(id, data[val])),
             take(data.length),
         )
+        console.log('setStream in demo')
         this.getSource().setStream(source)
     }
 
@@ -104,18 +107,13 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     }
 
     /**
-     * componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
-     * At this point, we set up a new DataSource and store it
-     */
-    public componentDidMount() {
-        this.initializeSource()
-    }
-
-    /**
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        this.sonifierInstance.deleteSource(this.source)
+        if (this.source) {
+            this.source.handleEndStream()
+            this.sonifierInstance.deleteSource(this.source)
+        }
     }
 
     ////////// HELPER METHODS ///////////////
@@ -127,7 +125,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     public initializeSource() {
         // SONIFICATION
         this.source = this.sonifierInstance.addSource('SimpleDemo')
-        this.source.addTemplate(new NoteTemplate())
+        let template = new NoteTemplate(this.source)
+        console.log(`adding template ${template}`)
+        this.source.addTemplate(template)
         // this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
 
         return this.source

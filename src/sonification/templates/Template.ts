@@ -12,12 +12,18 @@ export abstract class Template {
     public displays: Array<DatumDisplay>
 
     /**
+     * Store the source this template is added to
+     */
+    public source?: DataSource
+
+    /**
      *
      * @param display An optional way to display the data
      */
-    constructor(display?: DatumDisplay) {
+    constructor(source?: DataSource, display?: DatumDisplay) {
         this.displays = new Array()
         if (display) this.displays.push(display)
+        if (source) this.source = source
     }
 
     /**
@@ -27,7 +33,7 @@ export abstract class Template {
      * @param source
      * @returns true if processing should continue
      */
-    public handleDatum(datum?: Datum, source: DataSource): boolean {
+    public handleDatum(datum?: Datum): boolean {
         this.displays.map((display) => {
             //console.log(`updating display ${display.toString()} with ${datum.toString()}`)
             display.update(datum)
@@ -35,7 +41,17 @@ export abstract class Template {
         return true
     }
 
+    public start() {
+        console.log(`template.start ${this}`)
+        this.displays.map((display) => display.start())
+    }
+
+    public stop() {
+        console.log(`template.stop ${this}`)
+        this.displays.map((display) => display.stop())
+    }
+
     public toString(): string {
-        return 'Template'
+        return `Template ${this}`
     }
 }
