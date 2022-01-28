@@ -20,7 +20,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     implements IDemoView
 {
     /**
-     * There can only be one sonifier! But we need a pointer to it
+     * There can only be one display board! But we need a pointer to it
      */
     protected displayBoardInstance: DisplayBoard
     /**
@@ -72,7 +72,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * same value as a result
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
-     * Second, we make a callback to the sonifierInstance to let it know to shift into play mode
+     * Second, we make a callback to the display board instance to let it know to shift into play mode
      * Third, we call playDataSlowly() to simulate streaming data
      *
      * @param data The data set to be played
@@ -94,7 +94,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     /**
      * Fakes streaming data
      *
-     * Loops through the data set calling sonifierInstance.pushPoint(...).
+     * Loops through the data set calling displayBoardInstance.pushPoint(...).
      * Waits speed milliseconds between pushing.
      *
      * @param dummyData The data set being fake-streamed

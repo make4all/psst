@@ -91,7 +91,7 @@ export class DemoHighlightRegion
 
     ////////// HELPER METHODS ///////////////
     public initializeSource() {
-        this.source = this.sonifierInstance.addSource('HighlightRegionDemo')
+        this.source = this.displayBoardInstance.addSource('HighlightRegionDemo')
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */

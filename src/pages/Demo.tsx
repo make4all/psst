@@ -168,7 +168,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         const displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
 
         if (displayBoardInstance) {
-            console.log('sonifier instance is present. playback state', displayBoardInstance.playbackState)
+            console.log('display board instance is present. playback state', displayBoardInstance.playbackState)
             if (displayBoardInstance.playbackState == PlaybackState.Playing) return
             displayBoardInstance.onPlay()
         }
@@ -205,16 +205,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         console.log('returning. play button label', playbackLabel)
     }
 
-    // private _handlePushRudeData = () => {
-    //     let sonifierInstance = Sonifier.getSonifierInstance()
-    //     if (sonifierInstance) {
-    //         for (let i = 0; i < 5; i++) {
-    //             let dataPoint: number = Math.random()
-    //             dataPoint = dataPoint * 10000
-    //             sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.assertive)
-    //         }
-    //     }
-    // }
+    
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value

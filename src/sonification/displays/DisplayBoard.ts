@@ -8,13 +8,14 @@ import { DatumDisplay } from './DatumDisplay'
 const DEBUG = false
 
 /**
- * Sonifier class
+ * DisplayBoard class
  * Has a single instance
+ * users of our library get an instance of this to control it i.e. get source, play, etc.
  * @todo replace parts of this to use RXjs?
  */
 export class DisplayBoard {
     /**
-     * The sonifier. Enfornce that there is only ever one.
+     * The display board. Enforce that there is only ever one.
      * @todo ask group if there is a better way to enforce this.
      */
     private static displayBoardInstance: DisplayBoard
@@ -32,7 +33,7 @@ export class DisplayBoard {
     }
 
     /**
-     * A Data sources handled by this sonifier
+     * Amap of Data sources handled by the display board.
      */
     private sources: Map<number, DataSource>
 
@@ -123,12 +124,9 @@ export class DisplayBoard {
     }
 
     /**
-     * Set up the sonifier. Grab the audio context.
+     * Set up the display board. set up maps needed to keep track of sources and displays.
      */
     private constructor() {
-        // super()
-
-        //this.startTime = this.audioCtx.currentTime
         // Always begin in a "stopped" state since there is no data to play yet at construction time
         this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
@@ -137,8 +135,8 @@ export class DisplayBoard {
     }
 
     /**
-     * Create a new sonifier. Enforces that there is only ever one
-     * @returns The sonifier.
+     * Create a new display board. Enforces that there is only ever one
+     * @returns The display board's instance..
      */
     public static getDisplayBoardInstance(): DisplayBoard {
         if (!DisplayBoard.displayBoardInstance) {
@@ -154,7 +152,7 @@ export class DisplayBoard {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        //vpotluri: // Sonifier.audioCtx.suspend()
+        
         if (DEBUG) console.log('stopping. playback state is paused')
         this._playbackState = PlaybackState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
@@ -190,15 +188,13 @@ if (this.playbackState == PlaybackState.Playing) {
                 display.show();
             })
         })
-    //     Sonifier.gainNode.connect(Sonifier._audioCtx.destination)
+    
     }
 
 
     //needs extensive testing.
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
-        //vpotluri: Sonifier.audioCtx.suspend()
-        // vpotluri: Sonifier.gainNode.disconnect()
         this._playbackState = PlaybackState.Paused
     }
 
@@ -222,8 +218,7 @@ if (this.playbackState == PlaybackState.Playing) {
             case PlaybackState.Playing: {
                 if (DEBUG) console.log(`calling ${source} to handle ${{ datum }}`)
                 source.handleNewDatum(datum)
-                /// make sounds update properly
-                //datum.displays.map((display) => { if (DEBUG) console.log(display.toString()); });
+                
                 break
             }
             case PlaybackState.Paused: {
