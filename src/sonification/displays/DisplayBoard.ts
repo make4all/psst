@@ -131,7 +131,6 @@ export class DisplayBoard {
         this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
         this._displays = new Map()
-        
     }
 
     /**
@@ -152,7 +151,6 @@ export class DisplayBoard {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        
         if (DEBUG) console.log('stopping. playback state is paused')
         this._playbackState = PlaybackState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
@@ -162,22 +160,20 @@ export class DisplayBoard {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-if (this.playbackState == PlaybackState.Playing) {
+        if (this.playbackState == PlaybackState.Playing) {
             if (DEBUG) console.log('playing')
-         } else {
+        } else {
             if (DEBUG) console.log('setting up for playing')
-        
 
             this.startSources()
             this._playbackState = PlaybackState.Playing
         }
     }
 
-
     /**
      * Triggers all existing audio nodes to play.
-     * 
-     * @todo if a new source is added after onPlay it won't get connected 
+     *
+     * @todo if a new source is added after onPlay it won't get connected
      * @todo what about visually displaying things
      */
     private startSources() {
@@ -185,12 +181,10 @@ if (this.playbackState == PlaybackState.Playing) {
         this.sources.forEach((source: DataSource, key: number) => {
             source.displays().map((display) => {
                 if (DEBUG) console.log(`Source: ${source} Display: ${display.toString()}`)
-                display.show();
+                display.show()
             })
         })
-    
     }
-
 
     //needs extensive testing.
     public onPause() {
@@ -218,7 +212,7 @@ if (this.playbackState == PlaybackState.Playing) {
             case PlaybackState.Playing: {
                 if (DEBUG) console.log(`calling ${source} to handle ${{ datum }}`)
                 source.handleNewDatum(datum)
-                
+
                 break
             }
             case PlaybackState.Paused: {
@@ -228,6 +222,4 @@ if (this.playbackState == PlaybackState.Playing) {
         }
         return datum
     }
-
-
 }

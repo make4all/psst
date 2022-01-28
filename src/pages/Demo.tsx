@@ -1,4 +1,4 @@
-import {DisplayBoard } from '../sonification/displays/DisplayBoard'
+import { DisplayBoard } from '../sonification/displays/DisplayBoard'
 
 import React, { ChangeEvent } from 'react'
 
@@ -15,11 +15,9 @@ import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { op } from 'arquero'
 
-
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -204,8 +202,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         console.log('returning. play button label', playbackLabel)
     }
-
-    
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value

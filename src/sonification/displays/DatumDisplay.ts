@@ -35,19 +35,19 @@ export abstract class DatumDisplay {
      * called when the DisplayBoard's onPlay is called. should contain the logic to trigger specific output.
      * Existing implementations use this for example to connect the oscillator in NoteSonify.
      */
-    public abstract  show(): void;
+    public abstract show(): void
 
     /**
      * should be implemented to support pause for each of the display.
      * Each display knows best what it should do when it is asked to pause.
      * DisplayBoard asks each display to pause.
      */
-    public abstract pause(): void;
-    
+    public abstract pause(): void
+
     /**
      * should be implemented to support resume for each of the display.
      * Each display knows best what it should do when it is asked to resume.
      * DisplayBoard asks each display to resume.
      */
-    public abstract resume(): void;
+    public abstract resume(): void
 }

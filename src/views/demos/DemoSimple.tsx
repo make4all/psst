@@ -52,7 +52,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     constructor(props: DemoSimpleProps) {
         super(props)
-        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance();
+        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
     }
 
     /**

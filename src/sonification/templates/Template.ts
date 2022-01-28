@@ -18,7 +18,7 @@ export abstract class Template {
      */
     constructor(display?: DatumDisplay) {
         this.displays = new Array()
-        if (display) this.displays.push(display) 
+        if (display) this.displays.push(display)
     }
 
     /**

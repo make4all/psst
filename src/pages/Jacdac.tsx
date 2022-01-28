@@ -21,7 +21,7 @@ function ConnectButton() {
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
-    const [displayBoard,setDisplayBoard] = useState<DisplayBoard>()
+    const [displayBoard, setDisplayBoard] = useState<DisplayBoard>()
     const [streaming, setStreaming] = useState(false)
     const [source, setSource] = useState<DataSource>()
 

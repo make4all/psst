@@ -1,7 +1,7 @@
 import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
 
-const DEBUG = true;
+const DEBUG = true
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -13,7 +13,7 @@ const DEBUG = true;
  * [note implementation not complete. Needs to handle scheduleSound still]
  */
 export class NoteSonify extends Sonify {
-private  oscillator:OscillatorNode;
+    private oscillator: OscillatorNode
     /**
      * Stores relevant information when a new datum arrives
      * @param datum The data datum to be sonified
@@ -28,7 +28,6 @@ private  oscillator:OscillatorNode;
         this.oscillator.frequency.value = datum.adjustedValue
     }
 
-
     /**
      * Generates a new note sonifier
      * @param volume The volume the sound should play at
@@ -36,15 +35,12 @@ private  oscillator:OscillatorNode;
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        
-        super( volume)
+        super(volume)
         this.oscillator = NoteSonify.audioCtx.createOscillator()
 
         // let oscillator = this.outputNode as OscillatorNode;
-        
-        
-        if(DEBUG) console.log("starting oscilator")
-        
+
+        if (DEBUG) console.log('starting oscilator')
     }
 
     public toString(): string {
@@ -52,13 +48,12 @@ private  oscillator:OscillatorNode;
         if (this.oscillator) return `NoteSonify playing ${this.oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
     }
-    public show(){
-        super.show();
-        this.oscillator.start();
+    public show() {
+        super.show()
+        this.oscillator.start()
         this.oscillator.connect(Sonify.gainNode)
     }
     public pause(): void {
-        super.pause();   
+        super.pause()
     }
-    }
-
+}
