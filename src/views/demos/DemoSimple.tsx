@@ -1,11 +1,8 @@
-import { listenerCount } from 'process'
 import React from 'react'
-import { bindCallback, from, generate, interval, map, take, timer, zip } from 'rxjs'
+import { isEmpty, map, take, timer } from 'rxjs'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
-import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
 import { Sonifier } from '../../sonification/Sonifier'
-import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 import { IDemoView } from './IDemoView'
 
@@ -75,7 +72,6 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
      * Second, we make a callback to the sonifierInstance to let it know to shift into play mode
-     * Third, we call playDataSlowly() to simulate streaming data
      *
      * @param data The data set to be played
      */
@@ -91,28 +87,12 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         this.sonifierInstance.onPlay()
 
         let id = this.source ? this.source.id : 0
-        this.getSource().addDataSource(
-            timer(0, 200).pipe(
-                map((val) => new Datum(id, data[val])),
-                take(data.length),
-            ),
+        this.getSource().handleEndStream()
+        let source = timer(0, 200).pipe(
+            map((val) => new Datum(id, data[val])),
+            take(data.length),
         )
-    }
-
-    /**
-     * Fakes streaming data
-     *
-     * Loops through the data set calling sonifierInstance.pushPoint(...).
-     * Waits speed milliseconds between pushing.
-     *
-     * @param dummyData The data set being fake-streamed
-     * @param speed How many milliseconds to wait between each data point
-     */
-    public playDataSlowly(dummyData: number[], speed: number): void {
-        let id = this.getSource().id
-        interval(speed).subscribe((v) => {
-            this.source?.handleNewDatum(new Datum(id, dummyData[v]))
-        })
+        this.getSource().setStream(source)
     }
 
     public render() {

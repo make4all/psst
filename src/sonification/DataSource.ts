@@ -1,7 +1,7 @@
 import { Datum } from './Datum'
 import { DatumDisplay } from './displays/DatumDisplay'
 import { Template } from './templates/Template'
-import { Observable } from 'rxjs'
+import { isEmpty, Observable } from 'rxjs'
 
 /**
  * The source for a stream of data
@@ -26,11 +26,42 @@ export class DataSource {
      */
     private _description: String
 
+    //////////////////////////////// STREAMING DATA SUPPORT ///////////////////////////////////
+
+    /**
+     * The observable that this template is playing
+     * When the stream is set, each new value will trigger a call to
+     * handleNewDatum() and at the end handleEndStream() will be called.
+     */
+    private _stream?: Observable<Datum>
+    public get stream(): Observable<Datum> {
+        if (this._stream) return this._stream
+        else throw Error('no stream')
+    }
+    public setStream(data?: Observable<Datum>) {
+        this._stream = data
+        if (data) {
+            data.subscribe((value) => {
+                this.handleNewDatum(value as Datum)
+            })
+            const finished = data.pipe(isEmpty())
+            finished.subscribe(() => this.handleEndStream())
+        }
+    }
+
+    //////////////////////////////// STATS ///////////////////////////////////
     /**
      * A list of stats that describe this DataSource.
      * Stats each have an associated calculator which can update them every time a new datum arrives
      */
     private _stats: Map<string, number>
+
+    /**
+     * Get the value for a stat.
+     *
+     * @param key The key for the stat
+     * @returns The stat's value
+     */
     public getStat(key: string) {
         if (DEBUG) console.log(`getting stat ${key} ${this._stats.get(key)}`)
         let stat = this._stats.get(key)
@@ -48,6 +79,7 @@ export class DataSource {
         this._stats.set(key, stat)
         if (DEBUG) console.log(`setStat called with ${key} ${stat}`)
     }
+
     /**
      * printStats generates a string description of the statistics
      * @param key If key is provided, it only returns that single statistic
@@ -62,6 +94,27 @@ export class DataSource {
             })
         }
         return stats
+    }
+
+    /**
+     * Update the statistics about the data source based on the new arrival
+     * @param datum The datum to analyze
+     */
+    protected updateStats(datum: Datum) {
+        this._calculators.forEach((calculator, key) => {
+            let stat = this._stats[key]
+            let calc = this._calculators[key] as (datum: Datum, stat: number) => number
+            this._stats[key] = calc(datum, stat)
+        })
+
+        //console.log(`${this.printStats()} `)
+    }
+
+    /**
+     * Empty out all the stats, e.g. if the stream has ended.
+     */
+    public clearStats() {
+        this._stats = new Map<string, number>()
     }
 
     private _calculators: Map<string, (datum: Datum, stat: number) => number>
@@ -82,6 +135,7 @@ export class DataSource {
         this._stats.delete(name)
     }
 
+    //////////////////////////////// TEMPLATES ///////////////////////////////////
     /**
      * A list of templates. Templates are applied to each new Datum when it arrives.
      */
@@ -93,12 +147,14 @@ export class DataSource {
         this._templates.push(template)
     }
 
+    //////////////////////////////// DISPLAYS ///////////////////////////////////
+
     public displays(): Array<DatumDisplay> {
         let displays = new Array<DatumDisplay>()
         this._templates.map((template) => {
-            console.log(`checking for displays in ${template.toString()}`)
-            console.log(`template ${template.toString()} has displays`)
-            template.displays.map((display) => console.log(`display: ${display}`))
+            //console.log(`checking for displays in ${template.toString()}`)
+            //console.log(`template ${template.toString()} has displays`)
+            //template.displays.map((display) => console.log(`display: ${display}`))
             template.displays.map((display) => displays.push(display))
         })
         return displays
@@ -119,14 +175,12 @@ export class DataSource {
         this._calculators = new Map<string, (datum: Datum, stat: number) => number>()
     }
 
-    //////////////////////////////// METHODS ///////////////////////////////////
-
-    public addDataSource(data: Observable<Datum>) {
-        data.subscribe((value) => this.handleNewDatum(value as Datum))
-    }
+    //////////////////////////////// CALLBACKS ///////////////////////////////////
 
     /**
      * Calculate stats and then assign displays
+     * Called each time a new Datum arrives in the stream
+     *
      * @param datum The datum to display
      */
     public handleNewDatum(datum: Datum) {
@@ -134,32 +188,29 @@ export class DataSource {
         this.updateDisplays(datum)
     }
 
-    //////////////////////////////// HELPER METHODS ///////////////////////////////////
-
     /**
-     * Update the statistics about the data source based on the new arrival
-     * @param datum The datum to analyze
+     * The stream associated with this data source has ended.
+     *
+     * @param stream The stream that ended
      */
-    protected updateStats(datum: Datum) {
-        this._calculators.forEach((calculator, key) => {
-            let stat = this._stats[key]
-            let calc = this._calculators[key] as (datum: Datum, stat: number) => number
-            this._stats[key] = calc(datum, stat)
-        })
-
-        console.log(`${this.printStats()} `)
+    public handleEndStream() {
+        this.setStream(undefined)
+        this.clearStats()
+        this.updateDisplays()
     }
+
+    //////////////////////////////// HELPER METHODS ///////////////////////////////////
 
     /**
      * Assign display objects and/or filter or transform the new arrival
      * @todo this doesn't exit if handleDatum false
      * @param datum The datum to display
      */
-    protected updateDisplays(datum: Datum) {
+    protected updateDisplays(datum?: Datum) {
         this._templates.map((template) => {
             let result = template.handleDatum(datum, this)
             if (!result) return
-            console.log(`calculatied note ${template} for ${datum}`)
+            //console.log(`calculatied note ${template} for ${datum}`)
         })
     }
 

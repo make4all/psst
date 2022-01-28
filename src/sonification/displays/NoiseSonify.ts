@@ -2,8 +2,7 @@ import { Datum } from '../Datum'
 import { Sonifier } from '../Sonifier'
 import { SonifyFixedDuration } from './SonifyFixedDuration'
 
-const DEBUG = false;
-
+const DEBUG = false
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -12,19 +11,18 @@ const DEBUG = false;
  *
  */
 export class NoiseSonify extends SonifyFixedDuration {
-
     /**
      * This is the node that knows how to play noise. It is connected to the this.audioNode
      */
-    private filter: BiquadFilterNode | undefined;
+    private filter: BiquadFilterNode | undefined
 
     protected extend(timeAdd: number) {
         let noiseNode = this.outputNode as AudioBufferSourceNode
         if (DEBUG) console.log('noiseSonify, getting noise node', noiseNode)
-        if (noiseNode) noiseNode.buffer = this.fillBuffer(timeAdd);
+        if (noiseNode) noiseNode.buffer = this.fillBuffer(timeAdd)
     }
 
-    /** 
+    /**
      * The length of the buffer for making noise
      */
     private noiseBufferSize = 20
@@ -34,30 +32,30 @@ export class NoiseSonify extends SonifyFixedDuration {
      */
     private fillBuffer(length: number): AudioBuffer {
         let sampleRate = Sonifier.audioCtx.sampleRate
-        let noiseBufferSize = sampleRate * length;
+        let noiseBufferSize = sampleRate * length
         let buffer = Sonifier.audioCtx.createBuffer(1, noiseBufferSize, Sonifier.audioCtx.sampleRate)
         let bufferData = buffer.getChannelData(0)
-        console.log('filling in buffer data');
+        console.log('filling in buffer data')
         for (let i = 0; i < noiseBufferSize; i++) {
             bufferData[i] = Math.random() * 2 - 1
         }
-        return buffer;
+        return buffer
     }
-    
+
     public create(datum: Datum): AudioScheduledSourceNode {
         let outputNode = Sonifier.audioCtx.createBufferSource()
         this.filter = Sonifier.audioCtx.createBiquadFilter()
         this.filter.type = 'bandpass'
         this.filter.frequency.value = 440
-        this.filter.connect(Sonifier.gainNode);
+        this.filter.connect(Sonifier.gainNode)
 
-        outputNode.buffer = this.fillBuffer(this.duration);
-        outputNode.connect(this.filter);
-        this.outputNode = outputNode;
-        outputNode.start();
-        return outputNode;
+        outputNode.buffer = this.fillBuffer(this.duration)
+        outputNode.connect(this.filter)
+        this.outputNode = outputNode
+        outputNode.start()
+        return outputNode
     }
-   
+
     public toString(): string {
         return `NoiseSonify`
     }

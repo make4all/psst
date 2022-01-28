@@ -8,26 +8,19 @@ export class DatumDisplay {
     /**
      * The datum to display
      */
-    private _datum!: Datum
-    public get datum(): Datum {
+    private _datum?: Datum
+    public getDatum(): Datum | undefined {
         return this._datum
     }
-    public set datum(value: Datum) {
+    public update(value?: Datum) {
         this._datum = value
-    }
-
-    /**
-     * Stores relevant information. Value is derived from point.scaledValue.
-     * @param datum The raw datum
-     */
-    update(datum: Datum) {
-        this.datum = datum
     }
 
     /**
      * prints a description of this display
      */
     public toString(): string {
-        return `DatumDisplay: ${this.datum.toString()}`
+        if (this._datum) return `DatumDisplay: ${this._datum.toString()}`
+        else return 'Nothing to display'
     }
 }

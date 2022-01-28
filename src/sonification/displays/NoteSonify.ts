@@ -2,7 +2,7 @@ import { Datum } from '../Datum'
 import { Sonify } from './Sonify'
 import { Sonifier } from '../Sonifier'
 
-const DEBUG = false;
+const DEBUG = false
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -14,21 +14,24 @@ const DEBUG = false;
  * [note implementation not complete. Needs to handle scheduleSound still]
  */
 export class NoteSonify extends Sonify {
-
     /**
      * Stores relevant information when a new datum arrives
-     * @param datum The data datum to be sonified
+     * @param datum The data datum to be sonified (or undefined if there is nothing to pla )
      * @param duration The length of time over which to change to the new pitch. Defaults to 10 ms
      * @param volume The volume to play the note at. Can be overriden globally
      * @param smooth Whether to connect the notes in the sequence being played. If undefined, defaults to true.
      */
-    public update(datum: Datum, duration = 200, volume?: number, smooth?: boolean) {
+    public update(datum?: Datum, duration = 200, volume?: number, smooth?: boolean) {
         super.update(datum)
-        if (DEBUG) console.log(`updating value  ${this.datum.adjustedValue}`)
         let oscillator = this.outputNode as OscillatorNode
-        oscillator.frequency.value = datum.adjustedValue
+        if (datum) {
+            if (DEBUG) console.log(`updating value  ${datum.adjustedValue}`)
+            oscillator.start()
+            oscillator.frequency.value = datum.adjustedValue
+        } else {
+            oscillator.stop()
+        }
     }
-
 
     /**
      * Generates a new note sonifier
@@ -37,19 +40,18 @@ export class NoteSonify extends Sonify {
      * @returns Returns an instance of specific subclass of SonificationType.
      */
     public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        
-        super( volume, Sonifier.audioCtx.createOscillator())
+        super(volume, Sonifier.audioCtx.createOscillator())
 
-        let oscillator = this.outputNode as OscillatorNode;
+        let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
             // oscillator = Sonifier.audioCtx.createOscillator()
-            this.outputNode = oscillator;
+            this.outputNode = oscillator
         }
-        oscillator.start();
+        oscillator.start()
     }
 
     public toString(): string {
-        let oscillator = this.outputNode as OscillatorNode;
+        let oscillator = this.outputNode as OscillatorNode
         if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
     }

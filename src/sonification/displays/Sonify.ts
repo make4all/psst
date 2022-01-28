@@ -39,7 +39,7 @@ export class Sonify extends DatumDisplay {
      * @param volume The volume the sound should play at
      * @param duration The length of time the sound should play for
      */
-    update(datum: Datum) {
+    update(datum?: Datum) {
         super.update(datum)
     }
 
@@ -52,10 +52,10 @@ export class Sonify extends DatumDisplay {
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
-        
-        if(!this.outputNode) this.outputNode = audioNode
+
+        if (!this.outputNode) this.outputNode = audioNode
         if (volume) this.volume = volume
-        if (this.outputNode) this.outputNode.connect(Sonifier.gainNode);
+        if (this.outputNode) this.outputNode.connect(Sonifier.gainNode)
     }
 
     public toString(): string {

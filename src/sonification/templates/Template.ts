@@ -1,4 +1,3 @@
-import { display } from '@mui/system'
 import { DataSource } from '../DataSource'
 import { Datum } from '../Datum'
 import { DatumDisplay } from '../displays/DatumDisplay'
@@ -18,7 +17,7 @@ export abstract class Template {
      */
     constructor(display?: DatumDisplay) {
         this.displays = new Array()
-        if (display) this.displays.push(display) 
+        if (display) this.displays.push(display)
     }
 
     /**
@@ -28,9 +27,9 @@ export abstract class Template {
      * @param source
      * @returns true if processing should continue
      */
-    public handleDatum(datum: Datum, source: DataSource): boolean {
+    public handleDatum(datum?: Datum, source: DataSource): boolean {
         this.displays.map((display) => {
-            console.log(`updating display ${display.toString()} with ${datum.toString()}`)
+            //console.log(`updating display ${display.toString()} with ${datum.toString()}`)
             display.update(datum)
         })
         return true

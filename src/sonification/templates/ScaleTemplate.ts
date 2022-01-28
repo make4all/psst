@@ -77,14 +77,22 @@ export class ScaleTemplate extends Template {
 
     /**
      * Adjusts the value for datum by scaling it to the range [min, max]
+     * Alternatively, if datum is empty, no need to adjust since the stream is empty
+     * at this point in time.
      *
      * @param datum
      * @param source
      * @returns Always returns true
      */
-    handleDatum(datum: Datum, source: DataSource): boolean {
-        let sourcemax = source.getStat('max')
-        let sourcemin = source.getStat('min')
+    handleDatum(datum?: Datum, source?: DataSource): boolean {
+        if (!datum) return super.handleDatum()
+
+        let sourcemax = this.domain[0]
+        let sourcemin = this.domain[1]
+        if (source) {
+            sourcemax = source.getStat('max')
+            sourcemin = source.getStat('min')
+        }
 
         if (
             this.exceedDomain == ExceedDomainResponse.Error &&
@@ -94,16 +102,11 @@ export class ScaleTemplate extends Template {
                 `Datum ${datum} value ${datum.value} outside of range  [${this.domain[0]},${this.domain[1]}]`,
             )
         else if (this.exceedDomain == ExceedDomainResponse.Expand) {
-            console.log('checking for expansion')
             if (sourcemin < this.domain[0]) this.domain[0] = sourcemin
             if (sourcemax > this.domain[1]) this.domain[1] = sourcemax
         }
 
-        console.log(
-            `response = ${this.exceedDomain} vs ${ExceedDomainResponse.Expand}; sourcemaxmin = ${sourcemax}, ${sourcemin}; Range: ${this.range} Domain: ${this.domain} Datum: ${datum.value}`,
-        )
         datum.adjustedValue = this.conversionFunction(datum, this.domain, this.range)
-        console.log(`new value ${datum.adjustedValue}`)
         super.handleDatum(datum, source)
         return true
     }
