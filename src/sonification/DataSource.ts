@@ -2,6 +2,7 @@ import { Datum } from './Datum'
 import { Template } from './templates/Template'
 import { bindCallback, finalize, isEmpty, Observable, Subscription } from 'rxjs'
 import { Calculator } from './stats/Calculator'
+import { DisplayState } from './SonificationConstants'
 
 const DEBUG = false
 
@@ -14,6 +15,8 @@ export class DataSource {
      * A unique id far this data source
      */
     public id: number
+
+    public displayState = DisplayState.Stopped
 
     /**
      * A description of this data source for documentation
@@ -168,6 +171,8 @@ export class DataSource {
      * @param datum The datum to display
      */
     public handleNewDatum(datum: Datum) {
+        if (this.displayState == DisplayState.Stopped) return
+
         this.updateStats(datum)
         this.updateDisplays(datum)
     }
@@ -201,14 +206,17 @@ export class DataSource {
     }
 
     public stopDisplays() {
+        this.displayState = DisplayState.Stopped
         this._templates.map((template) => template.stop())
     }
 
     public startDisplays() {
+        this.displayState = DisplayState.Displaying
         this._templates.map((template) => template.start())
     }
 
     public pauseDisplays() {
+        this.displayState = DisplayState.Paused
         this._templates.map((template) => template.pause())
     }
     public toString() {
