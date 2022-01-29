@@ -65,17 +65,17 @@ function ConnectButton() {
         let src = source
         if (!streaming) {
             if (!board) {
-                board = DisplayBoard.getDisplayBoardInstance()
+                board = DisplayBoard.getInstance()
                 setDisplayBoard(board)
             }
 
             if (!src) {
                 src = board.addSource('jacdac demo')
+                src.setStat('max', 1.0)
+                src.setStat('min', -1.0)
                 src.addTemplate(new NoteTemplate())
                 // src.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
-                src.setStat('max', 1.0)
-                src.setStat('min', -1.0)
                 setSource(src)
             }
 

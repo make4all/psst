@@ -3,7 +3,7 @@ import { Datum } from '../Datum'
 import { DatumDisplay } from '../displays/DatumDisplay'
 
 /**
- * A template interface is used to decide how to display each data point.
+ * A template class is used to decide how to display each data point.
  */
 export abstract class Template {
     /**
@@ -41,6 +41,9 @@ export abstract class Template {
         return true
     }
 
+    /**
+     * Set up for display. Datum will only be displayed after this is called.
+     */
     public start() {
         console.log(`template.start ${this}`)
         this.displays.map((display) => display.start())

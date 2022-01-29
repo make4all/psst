@@ -85,7 +85,7 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     constructor(props: ExperimentalDemoHighlightRegionProps) {
         super(props)
 
-        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
+        this.displayBoardInstance = DisplayBoard.getInstance()
         this.min = -1
         this.max = 10
     }

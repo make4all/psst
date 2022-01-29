@@ -1,4 +1,5 @@
 import { Datum } from '../Datum'
+import { DisplayState } from '../SonificationConstants'
 import { Sonify } from './Sonify'
 
 const DEBUG = false
@@ -24,6 +25,9 @@ export class NoteSonify extends Sonify {
      */
     public update(datum?: Datum, duration = 200, volume?: number, smooth?: boolean) {
         super.update(datum)
+
+        // don't do anything if we are not displaying data
+        if (this.displayState == DisplayState.Paused || this.displayState == DisplayState.Stopped) return
         let oscillator = this.outputNode as OscillatorNode
         if (datum) {
             if (DEBUG) console.log(`updating value  ${datum.adjustedValue}`)
@@ -38,20 +42,29 @@ export class NoteSonify extends Sonify {
         }
     }
 
+    /**
+     * Stop all notes. This tells the oscillator to stop playing.
+     */
     stop() {
-        super.stop()
         let oscillator = this.outputNode as OscillatorNode
         oscillator?.stop()
         this.outputNode = Sonify.audioCtx.createOscillator()
         this.playing = false
+        super.stop()
     }
 
+    /**
+     * Start playing the current datum. This starts the oscillator again.
+     */
     start() {
+        if (this.displayState == DisplayState.Stopped || this.displayState == DisplayState.Paused) {
+            let oscillator = this.outputNode as OscillatorNode
+            oscillator?.start()
+            this.playing = true
+        }
         super.start()
-        let oscillator = this.outputNode as OscillatorNode
-        oscillator?.start()
-        this.playing = true
     }
+
     /**
      * Generates a new note sonifier
      * @param volume The volume the sound should play at
@@ -68,13 +81,13 @@ export class NoteSonify extends Sonify {
         }
     }
 
+    /**
+     *
+     * @returns A string describing the current frequency being played.
+     */
     public toString(): string {
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
-    }
-
-    public pause(): void {
-        super.pause()
     }
 }

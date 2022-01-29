@@ -23,10 +23,6 @@ export class NoiseSonify extends SonifyFixedDuration {
     }
 
     /**
-     * The length of the buffer for making noise
-     */
-    private noiseBufferSize = 20
-    /**
      * create a buffer and fill it
      * @param time Time to fill it for in seconds
      */

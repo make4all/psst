@@ -1,6 +1,6 @@
 // import { SonificationLevel } from './constents';
 import { Datum } from '../Datum'
-import { PlaybackState } from '../SonificationConstants'
+import { DisplayState } from '../SonificationConstants'
 import { DataSource } from '../DataSource'
 import { Template } from '../templates/Template'
 import { DatumDisplay } from './DatumDisplay'
@@ -21,15 +21,17 @@ export class DisplayBoard {
     private static displayBoardInstance: DisplayBoard
 
     /**
-     * Whether or not audio is currently playing
+     * Whether or not audio is currently playing.
+     * Always begin in a "stopped" state since there is
+     * no data to play yet at construction time
      */
-    private _playbackState: PlaybackState
-    public get playbackState(): PlaybackState {
-        return this._playbackState
+    private _displayState = DisplayState.Stopped
+    public get displayState(): DisplayState {
+        return this._displayState
     }
-    public set playbackState(value: PlaybackState) {
-        if (DEBUG) console.log('changing playback state')
-        this._playbackState = value
+    public set displayState(value: DisplayState) {
+        if (DEBUG) console.log('changing display state')
+        this._displayState = value
     }
 
     /**
@@ -105,39 +107,17 @@ export class DisplayBoard {
     }
 
     /**
-     * @todo What is this for?
-     */
-    private _timer: number | undefined
-    public get timer(): number | undefined {
-        return this._timer
-    }
-    public set timer(value: number | undefined) {
-        this._timer = value
-    }
-
-    /**
-     * A list of display nodes that are updated on the basis of template changes
-     */
-    private _displays: Map<Template, DatumDisplay>
-    public getDisplay(key: Template) {
-        return this._displays.get(key)
-    }
-
-    /**
      * Set up the display board. set up maps needed to keep track of sources and displays.
      */
     private constructor() {
-        // Always begin in a "stopped" state since there is no data to play yet at construction time
-        this._playbackState = PlaybackState.Stopped
         this.sources = new Map()
-        this._displays = new Map()
     }
 
     /**
      * Create a new display board. Enforces that there is only ever one
      * @returns The display board's instance..
      */
-    public static getDisplayBoardInstance(): DisplayBoard {
+    public static getInstance(): DisplayBoard {
         if (!DisplayBoard.displayBoardInstance) {
             DisplayBoard.displayBoardInstance = new DisplayBoard()
         }
@@ -151,8 +131,8 @@ export class DisplayBoard {
         // The answer is yes if we ever want to handl control to a new/different audio context
         // maybe have an option for "halt" instead that ends everything?
 
-        if (DEBUG) console.log('stopping. playback state is paused')
-        this._playbackState = PlaybackState.Stopped
+        if (DEBUG) console.log('stopping. display state is paused')
+        this._displayState = DisplayState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
     }
 
@@ -160,13 +140,13 @@ export class DisplayBoard {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.playbackState == PlaybackState.Playing) {
+        if (this.displayState == DisplayState.Displaying) {
             if (DEBUG) console.log('playing')
         } else {
             if (DEBUG) console.log('setting up for playing')
 
             this.startSources()
-            this._playbackState = PlaybackState.Playing
+            this._displayState = DisplayState.Displaying
         }
     }
 
@@ -178,13 +158,13 @@ export class DisplayBoard {
      */
     private startSources() {
         if (DEBUG) console.log(`starting sources ${this.sources.size}`)
-        this.sources.forEach((source: DataSource, key: number) => source.startDisplays())
+        this.sources.forEach((source: DataSource, key: number) => source.pauseDisplays())
     }
 
     //needs extensive testing.
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
-        this._playbackState = PlaybackState.Paused
+        this._displayState = DisplayState.Paused
         this.sources.forEach((source: DataSource, key: number) => source.stopDisplays())
     }
 
@@ -196,22 +176,22 @@ export class DisplayBoard {
      */
     public pushPoint(point: number, sourceId: number): Datum {
         // datum: Datum, source: DataSource) {
-        if (DEBUG) console.log(`pushPoint ${point} for ${sourceId} during ${this.playbackState} `)
+        if (DEBUG) console.log(`pushPoint ${point} for ${sourceId} during ${this.displayState} `)
         let source = this.sources.get(sourceId)
         if (!source) throw new Error(`no source associated with ${sourceId}`)
         if (DEBUG) console.log(`Source ${source}`)
         let datum = new Datum(sourceId, point)
-        switch (this.playbackState) {
-            case PlaybackState.Stopped: // ignore the point
+        switch (this.displayState) {
+            case DisplayState.Stopped: // ignore the point
                 if (DEBUG) console.log(`playback: Stopped`)
                 break
-            case PlaybackState.Playing: {
+            case DisplayState.Displaying: {
                 if (DEBUG) console.log(`calling ${source} to handle ${{ datum }}`)
                 source.handleNewDatum(datum)
 
                 break
             }
-            case PlaybackState.Paused: {
+            case DisplayState.Paused: {
                 if (DEBUG) console.log(`playback: paused`)
                 /// @todo what should we do? Keep a buffer of points and delay them? something else?
             }

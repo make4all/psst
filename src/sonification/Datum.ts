@@ -1,4 +1,3 @@
-import { DataSource } from './DataSource'
 import { DatumDisplay } from './displays/DatumDisplay'
 import * as d3 from 'd3'
 
@@ -18,14 +17,12 @@ export class Datum {
     value: number
     adjustedValue: number
     sourceId: number
-    displays: Array<DatumDisplay>
     time: number
 
     constructor(sourceId: number, value: number, time?: number) {
         this.value = value
         this.adjustedValue = value
         this.sourceId = sourceId
-        this.displays = []
         if (time) this.time = time
         else this.time = d3.now()
     }
