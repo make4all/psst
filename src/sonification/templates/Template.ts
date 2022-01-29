@@ -3,7 +3,7 @@ import { Datum } from '../Datum'
 import { DatumDisplay } from '../displays/DatumDisplay'
 
 /**
- * A template interface is used to decide how to display each data point.
+ * A template class is used to decide how to display each data point.
  */
 export abstract class Template {
     /**
