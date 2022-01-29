@@ -9,22 +9,30 @@
 </a>
 <p>We start with a simple example of how to use PSST. This example is a summary of what is done in <a href="https://github.com/make4all/sonification/blob/main/src/pages/Jacdac.tsx">Jacdac.tsx</a>. </p>
 <ul>
-<li>First get an instance of <code>DisplayBoard</code> using <code>DisplayBoard.getInstance()</code> This method enforces that there is only ever one DisplayBoard. The DisplayBoard is the repository for all data sources and their associated displays.</li>
-<li>Next, add a new <code>DisplaySource</code> to the board, by calling <code>board.addSource(&quot;name&quot;)</code>. </li>
-<li>This <code>DisplaySource</code> must be configured. <ul>
+<li>First get an instance of <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html"><code>DisplayBoard</code></a> using <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html#getInstance"><code>DisplayBoard.getInstance()</code></a> This method enforces that there is only ever one DisplayBoard. The DisplayBoard is the repository for all data sources and their associated displays.</li>
+<li>Next, add a new <a href="https://make4all.github.io/sonification/classes/sonification_DataSource.DataSource.html"><code>DataSource</code></a> to the board, by calling <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html#addSource"><code>board.addSource(&quot;name&quot;)</code></a>. </li>
+<li>This <a href="https://make4all.github.io/sonification/classes/sonification_DataSource.DataSource.html"><code>DataSource</code></a> must be configured. <ul>
 <li>Many displays benefit from a few statistics about the dataset it will display. In the simplest case, if known, it is valuable to add  <code>max</code> and <code>min</code> stat for the dataset. </li>
-<li>In addition, we must add a <code>Template</code> class which knows how to handle and potentially display the data. For example, in <code>Jacdac.tsx</code> we add a  <code>NoteTemplate()</code> to this source, which will cause incoming data to be mapped into an audible range and then displayed as audible notes created using an oscillator. It is possible to add multilpe such templates to a single source.</li>
+<li>In addition, we must add a <a href="https://make4all.github.io/sonification/classes/sonification_templates_Template.Template.html"><code>Template</code></a> class which knows how to handle and potentially display the data. For example, in <a href="https://github.com/make4all/sonification/blob/main/src/pages/Jacdac.tsx"><code>Jacdac.tsx</code></a> we add a  <a href="https://make4all.github.io/sonification/classes/sonification_templates_NoteTemplate.NoteTemplate.html"><code>NoteTemplate</code></a> to this source, which will cause incoming data to be mapped into an audible range and then displayed as audible notes created using an oscillator. It is possible to add multilpe such templates to a single source.</li>
 </ul>
 </li>
-<li>Finlaly, the <code>DisplayBoard</code> must be started up, using <code>board.onPlay()</code></li>
+<li>Finlaly, the <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html"><code>DisplayBoard</code></a> must be started up, using <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html#onPlay"><code>board.onPlay()</code></a></li>
 </ul>
-<p>This is the initial configuration, the only remaining step is to ensure that data is being delivered. There are currently two ways to do this. in <code>Jacdac.tsx</code> we use the <code>DisplayBoard</code> to deliver data to a source declaratively, by calling <code>board.pushPoint(value, sourceId)</code>. The alternative (seen in <a href="https://github.com/make4all/sonification/blob/main/src/views/demos/DemoSimple.tsx">DemoSimple</a>) is to directly subscribe a source to an rxjs stream by calling <code>setStream(source : Observer&lt;Datum&gt;)</code> </p>
+<p>This is the initial configuration, the only remaining step is to ensure that data is being delivered. There are currently two ways to do this. in <code>Jacdac.tsx</code> we use the <code>DisplayBoard</code> to deliver data to a source declaratively, by calling <a href="https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html#pushPoint"><code>board.pushPoint(value, sourceId)</code></a>. The alternative (seen in <a href="https://github.com/make4all/sonification/blob/main/src/views/demos/DemoSimple.tsx">DemoSimple</a>) is to directly subscribe a source to an rxjs stream by calling <code>setStream(source : Observer&lt;Datum&gt;)</code> </p>
 <p>Thatis it. Add a source, configure it with one or more templates, and push data.  More details on all of this below. </p>
 
 <a href="#the-displayboard-class" id="the-displayboard-class" style="color: inherit; text-decoration: none;">
   <h2>The DisplayBoard class</h2>
 </a>
-<p>The DisplayBoard class is designed to only ever have a single instance. This means that even as the user flips from one webpage to another there is still a way to keep displays running (or turn them off, or change their volume). It also handles glabel needs like pausing the audio for all data sources, generating a new data source class with a unique ID as needed, adjusting overall volume (still TBD), and pushing a new data point to a specific stream declaritively. </p>
+<p>The <code>DisplayBoard</code> class is designed to only ever have a single instance. This means that even as the user flips from one webpage to another there is still a way to keep displays running (or turn them off, or change their volume). It also handles glabel needs like pausing the audio for all data sources, generating a new data source class with a unique ID as needed, adjusting overall volume (still TBD), and pushing a new data point to a specific stream declaritively. </p>
+
+<a href="#the-datasource-class" id="the-datasource-class" style="color: inherit; text-decoration: none;">
+  <h2>The DataSource class</h2>
+</a>
+
+<a href="#" id="" style="color: inherit; text-decoration: none;">
+  <h3></h3>
+</a>
 <p>Call ProcessTemplates (which will do two things (1) It will possibly attach a SonificationType, and other relevant properties to the DataPoint (2) it will return true or false)
 If ProcessTemplate returns false (meaning the data should be filtered) halt progress through the list
 If ProcessTemplate returns true (meaning the data should be processed by the next template too) continue to next template. 

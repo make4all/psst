@@ -3,6 +3,8 @@ import { DatumDisplay } from './displays/DatumDisplay'
 import { Template } from './templates/Template'
 import { bindCallback, finalize, isEmpty, Observable, Subscription } from 'rxjs'
 
+const DEBUG = false
+
 /**
  * The source for a stream of data
  * @method id() Returns a unique id for this data source
@@ -11,9 +13,6 @@ import { bindCallback, finalize, isEmpty, Observable, Subscription } from 'rxjs'
  * @field calculators A dictionary of calculators that calculate the statistics.
  * @field templates An array of Templates which can filter or display a given data point
  */
-
-const DEBUG = false
-
 export class DataSource {
     //////////////////////////////// FIELDS ///////////////////////////////////
     /**
