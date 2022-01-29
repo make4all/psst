@@ -1,17 +1,12 @@
 import { Datum } from './Datum'
-import { DatumDisplay } from './displays/DatumDisplay'
 import { Template } from './templates/Template'
 import { bindCallback, finalize, isEmpty, Observable, Subscription } from 'rxjs'
+import { Calculator } from './stats/Calculator'
 
 const DEBUG = false
 
 /**
  * The source for a stream of data
- * @method id() Returns a unique id for this data source
- * @method toString returns a description of this Data Source
- * @field stats A dictionary of statistics about the data that has arrived so far at this Data Source
- * @field calculators A dictionary of calculators that calculate the statistics.
- * @field templates An array of Templates which can filter or display a given data point
  */
 export class DataSource {
     //////////////////////////////// FIELDS ///////////////////////////////////
@@ -105,8 +100,8 @@ export class DataSource {
     protected updateStats(datum: Datum) {
         this._calculators.forEach((calculator, key) => {
             let stat = this._stats[key]
-            let calc = this._calculators[key] as (datum: Datum, stat: number) => number
-            this._stats[key] = calc(datum, stat)
+            let calc = this._calculators[key] as Calculator
+            this._stats[key] = calc.update(datum, stat)
         })
 
         //console.log(`${this.printStats()} `)
@@ -119,17 +114,17 @@ export class DataSource {
         this._stats = new Map<string, number>()
     }
 
-    private _calculators: Map<string, (datum: Datum, stat: number) => number>
+    private _calculators: Map<string, Calculator>
     /**
      * Add or replace a calculator for a statistic.
      * @param key The key for the statistic
      * @param calc A function that takes as input the current data point and previous version of this statistic and outputs an update
      * @param initial A number to initialize the statistic with.
      */
-    public setCalculator(key: string, calc: (datum: Datum, stat: number) => number, initial: number) {
-        this._calculators[key] = calc
+    public setCalculator(key: string, calculator: Calculator, initial: number) {
+        this._calculators[key] = calculator
         this._stats[key] = initial
-        if (DEBUG) console.log(`adding calculator named ${key}: ${calc}`)
+        if (DEBUG) console.log(`adding calculator named ${key}: ${calculator}`)
         if (DEBUG) console.log(this.printStats())
     }
     public removeCalculator(name) {
@@ -161,7 +156,7 @@ export class DataSource {
         this._description = description
         this._templates = new Array<Template>()
         this._stats = new Map<string, number>()
-        this._calculators = new Map<string, (datum: Datum, stat: number) => number>()
+        this._calculators = new Map<string, Calculator>()
     }
 
     //////////////////////////////// CALLBACKS ///////////////////////////////////
