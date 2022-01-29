@@ -14,7 +14,10 @@ We start with a simple example of how to use PSST. This example is a summary of 
 
 This is the initial configuration, the only remaining step is to ensure that data is being delivered. There are currently two ways to do this. in ```Jacdac.tsx``` we use the ```DisplayBoard``` to deliver data to a source declaratively, by calling [```board.pushPoint(value, sourceId)```](https://make4all.github.io/sonification/classes/sonification_displays_DisplayBoard.DisplayBoard.html#pushPoint). The alternative (seen in [DemoSimple](https://github.com/make4all/sonification/blob/main/src/views/demos/DemoSimple.tsx)) is to directly subscribe a source to an rxjs stream by calling ```setStream(source : Observer<Datum>)``` 
 
-Thatis it. Add a source, configure it with one or more templates, and push data.  More details on all of this below. 
+Displays and Templates work together. For example, a ```NoteTemplate``` will sonify incoming data as audible notes. If we also add a ```FilterRangeTemplate``` with an attached ```NoiseSonify``` display, those notes that are inside the specified range will *additionally* play white noise. 
+
+
+That`s it. Add a source, configure it with one or more templates, and push data.  More details on all of this below. 
 
 ## The DisplayBoard class
 
@@ -22,168 +25,46 @@ The ```DisplayBoard``` class is designed to only ever have a single instance. Th
 
 ## The DataSource class
 
+Data sources are holders for a specific data source. For the most part, our current implementation assumes each ``DataSource`` class will handle only a single source of timestamped streaming numbers (specifically, streames containing the [```Datum```](https://make4all.github.io/sonification/classes/sonification_Datum.Datum.html) class.  As described above, streaming data can either be provided as an [Rxjs](https://rxjs.dev/) ```Observable``` or through a call to ```DisplayBoard.pushPoint()```.
 
-### 
-Call ProcessTemplates (which will do two things (1) It will possibly attach a SonificationType, and other relevant properties to the DataPoint (2) it will return true or false)
-If ProcessTemplate returns false (meaning the data should be filtered) halt progress through the list
-If ProcessTemplate returns true (meaning the data should be processed by the next template too) continue to next template. 
-Key Methods
-PushPointToSonify(DataPoint, DataSource)
-Walk through the list of sonification templates to assign sonification types (see above)
-MakeSound(DataPoint)
-AddSonificationTemplate(SonificationTemplate, DataSource)
-removeSonificationTemplate(sonificationTemplate, dataSource)
-SonifyPoint(DataPoint) 
-Plays data point using the template
-Play/Pause (per data source?)
-Volume (per data source)
-Seek (currently missing)	
-Buffering data (if there stream’s coming faster than it can be sonified)
+Data sources do not record data that comes through them, however, they do have the capability to record *statistics about that data*. Specifically, one or more static values, or calculated statistics, can be added to a data source, each of which must implement the [```Calculator```](https://make4all.github.io/sonification/interfaces/sonification_stats_Calculator.Calculator.html) interface.
 
-Library
-DataSource: A unique id (int)
-DataPoint (has SonificationType attached) (see below for interface definition)
-Can have multiple SonificationTypes  selected by the user interface; or could be attached by a template
-toString: string -- a text description of how to speak the point. Should support syntax to use other attributes of the datapoint.
-SonificationType (object hierarchy)
-Tone -- optional parameters on how to sonify. Defaults will be handled by our library.
-ScaledValue:number -- the value to be used when playing the tone for the point.
-White Noise
-Speech -- what words. Uses the toString from the point. 
-SonificationTemplate 
- preferred highlight method:SonificationType
-preferred non-highlight method:SonificationType
-Pass in a D3 compatible function that can transform the data
-Subclasses
-FilterTemplate
-Should always go first in the list
-Should return false if data is irrelevant, causing travealse of the list to end
-Should return true otherwise and not add a sonification type
-HighlightRegionTemplate
-RegionStart, RegionEnd fields
-When it gets a datapoint, compares it to region start and region end, and either sets it as Silent, Tone, Noise, or Highlight based on those values 
-ExtremeTemplate
-Keeps the largest and smallest values so far
-Assigns SonificationType such as highlight with noise whenever a value exceeds those extremes
-SlopeTemplate
-Keep parity of slope
-Whenever the slope parity changes, assign Highlight Noise
-Smoothness Template
-Keep average change in y 
-Whenever the change in y is > 1 std deviation larger than that average, Highlight Noise
-ConvertValueLinearlyToTone
-….
+Data sources also have a list of [```Template```](https://make4all.github.io/sonification/modules/sonification_templates_Template.Template.html) classes which handle incoming data. Templates are described more in depth below, but they may filter data, calculate an adjusted value for data, and/or cause data to be displayed. They can be thought of as dispatch handlers for data. 
 
+The primary role of a ```DataSource``` is to handle incoming data. When the source is not stopped, Data is handled as followed
+- First the ```DataSource``` walks through each calculated statistic and updates it
+- Next, the ```Datasource``` walks through each ```Template```, calling [```Template.handleDatum(Datum) : boolean```](https://make4all.github.io/sonification/classes/sonification_templates_Template.Template.html#handleDatum). If a call to ```Template.handleDatum()``` returns false, dispatch stops, otherwise dispatch continues until the end of the list of templates. 
 
+Finally, each ```DataSource``` can ```start()``` ```stop()``` and ```pause()``` the display of data. When these methods are called, the ```DataSource``` updates its own state, and that of all of its templates. 
 
-Data structure and interface definitions
-Point
-interface Point{ // this lets us use point as a datatype in typescript.
-    value: number;
+# Datum 
+A [```Datum```](https://make4all.github.io/sonification/classes/sonification_Datum.Datum.html) is just a single item of a data stream. It knows which source it is being handled by, and has a raw value, a timestamp, and an adjusted value. Some displays may use the adjusted value instead of the raw value to decide how to render the Datum. 
 
-    Priority: SonificationLevel;
-    sonificationType: SonificationType[]; 
-    toString: string;
-}
+# Templates 
+A Template is an abstract class that is designed to handle streaming data. This happens when [```Template.handleDatum(): boolean```](https://make4all.github.io/sonification/classes/sonification_templates_Template.Template.html#handleDatum) is called. 
 
-Template interface
-Interface template {
-Name:string // a user-readable name of the template.
-highlight:SonificationType // preferred sonification parameters to highlight a point with.
-non-highlight:SonificationType // preferred way to not highlight a point.
-highlightCondition: function(value:number) -> bool // if true, apply highlight sonification type.
-non-highlightCondition?: function(value:number) -> bool // if optional function is defined and returns true, apply non-highlight sonification type.
-Transformation? function(value:number) -> number // optional function to transform the live data we see.
-Filter? function(value:number) -> bool // if this method exists and returns false, data processing will stop.
-apply(point:Point) -> Point // applies the templates and returns the point to be sonified.
-}
+A ```Template``` should behave in the following ways
+- It should handle data apporpriately based on its mode, whether paused, playing or stopped
+- It needs to decide whether data handling is done (in which case it returns false from ```handleDatum()``` or whether it is ok for the (unknown) next ```Template``` class in the disptach order to receive the ```Datum```
+- If relevant, it should display the ```Datum```.
+A template may have one or more [```DatumDisplay```](https://make4all.github.io/sonification/classes/sonification_displays_DatumDisplay.DatumDisplay.html) classes which are used to render the ```Datum```. The template will loop through each, if they exist, and call ```DatumDisplay.update(Datum)```. 
 
-sonificationType
-Interface SonificationType{
-Type: enum{Audio, speech, noise} // which sonification parameter to change?
-Volume:number // the base volume of the sonification.
-}
+In addition, ```Templates``` handle basic features such as adding and removing ```DatumDisplay``` classes and ```start()```, ```stop()``` and ```pause()```.
 
+Some examples may help to clarify how ```Template``` classes work. 
+- The [```FilterRangeTemplate```](https://make4all.github.io/sonification/classes/sonification_templates_FilterRangeTemplate.FilterRangeTemplate.html) causes data dispatch to stop if a data point is outside its specified range. Right now, this class supports only a single range with no intelligence, but more sophisticated filters could be imagined. If a display is attached to the ```FilterRangeTemplate```, it will call  ```update()``` on that display only when  the ```Datum``` is in range.
+- The [```ScaleTemplate```](https://make4all.github.io/sonification/classes/sonification_templates_ScaleTemplate.ScaleTemplate.html) takes in a conversion function and uses it to modify ```Datum.adjustedValue``` for every point it sees. We subclass it in [```NoteTemplate```](https://make4all.github.io/sonification/classes/sonification_templates_NoteTemplate.NoteTemplate.html) to parameterize it with a [Mel Scale](https://en.wikipedia.org/wiki/Mel_scale) transformation. 
 
+We haven't implemented all templates. Some additional ones that we are thinking of adding:
+- *SlopeTemplate* would keep track of the the slope between data points and then assign an adjusted value on that basis. An alternative version might store the parity of the slope.
 
-Class tone implements SonificationType{
-Private _Type: Audio
-Public get type {
-Return _type
-}
-Public value:number
-Public duration: number
-Private _Param: enum{frequency, volume, pan} // the audio parameter to change.
-Public get param{
-Return _param
-}
-Public duration: number;
-// constructur sets defaults
-}
+# Displays 
+The same display can be used by more than one template. We currently include only displays that sonify data with nonspeech audio, though we plan to add a speech display. They all inheret from [```Sonify```](https://make4all.github.io/sonification/classes/sonification_displays_Sonify.Sonify.html), which in turn inherets from ```DatumDisplay```. We currently support the following
+- [```NoteSonify```](https://make4all.github.io/sonification/classes/sonification_displays_NoteSonify.NoteSonify.html) which uses ```Datum.adjustedValue``` as a frequency for an oscillator. It plays data continuously and only stops when the data stream ends on ```stop()``` is called.
+- [```NoiseSonify```](https://make4all.github.io/sonification/classes/sonification_displays_NoiseSonify.NoiseSonify.html), which inherets from [```SonifyFixedDuration```](https://make4all.github.io/sonification/classes/sonification_displays_SonifyFixedDuration.SonifyFixedDuration.html) and creates white noise when a ```Datum``` is passed to it. 
 
-Class noise implements SonificationType {
-Private _Type: Audio
-Public get type {
-Return _type
-}
-Public duration: number
-Private _Param: enum{frequency, volume, pan} // the audio parameter to change.
-Public get param{
-Return _param
-}
-Public duration: number;
-Private _noiseType: enum{white}
-
-// constructur sets defaults
-}
-
-Class speech implements SonificationTYpe {
-Private _Type:Speech 
-Public get type {
-Return _type
-}
-Private _spokenText:string
-Public get spoken text{
-Return _spokenText
-}
-
-//constructor sets spokenText.
-}
-
-
-Jen’s notes from 1/6/22
-User gets instance of sonifier.
-SonifyPushPoint(number, level) 
-“reset”
-Store data
-“Fire timer”
-Creates an audio node (based on type of noise)
-Connects it to the destination (speaker)
-Tells the node when to start and when to stop playing
-This is currently not realtime.
-
-
-
-What does the data input loop look like for realtime data?
-(assume) SonifyPushPoint pushes a point onto a queue
-In some thread, there is a loop
-(1) checks the queue
-(2) If the queue is long, it run a queueShortenerObject on the queue
-By default, this randomly picks a point from the queue and deletes everything else
-Other options are to average the queue, pick the first or last point, median, etc
-(3) Pass the object “out” of the thread to a separate deliver thread
-Delivery thread handles all of the template stuff and plays the note
-Waits until millisecond is over
-Loops back up 
-
-What does the data input loop look like for non realtime data?
-(assume) SonifyPushPoint pushes a point onto a queue
-In some thread, there is a loop
-(1) take the next thing off the queue
-(2) Pass the object “out” of the thread to a separate deliver thread
-Delivery thread handles all of the template stuff and plays the note
-Waits until N millisecond is over (N is a parameter)
-Loops back up 
+# Statistics
+Currently the only implemented statistic is a ```RunningAverage```. However we have discussed other ideas for statistics such as  an ```Extreme``` (could keep track of outliers in the data stream)
 
 
 
