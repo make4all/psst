@@ -40,16 +40,19 @@ export class DataSource {
         else throw Error('no stream')
     }
     public setStream(data?: Observable<Datum>) {
-        this._stream = data
+        // this._stream = data
         console.log(`setting up stream for ${this}`)
         if (data) {
             this.startDisplays()
             this.subscription = data.subscribe((value) => {
                 this.handleNewDatum(value as Datum)
-            })
+            },() => this.handleEndStream(),() => this.handleEndStream())
 
-            data.pipe(finalize(() => bindCallback(this.handleEndStream)))
+            
+             
+            
         }
+        this._stream = data;
     }
 
     //////////////////////////////// STATS ///////////////////////////////////
@@ -186,7 +189,7 @@ export class DataSource {
     public handleEndStream() {
         console.log(`handleEndStream for ${this}`)
         this.subscription?.unsubscribe()
-        this.setStream(undefined)
+        // this.setStream(undefined)
         this.clearStats()
         this.stopDisplays()
     }
@@ -207,10 +210,12 @@ export class DataSource {
     }
 
     public stopDisplays() {
+
         this._templates.map((template) => template.stop())
     }
 
     public startDisplays() {
+        
         this._templates.map((template) => template.start())
     }
 
