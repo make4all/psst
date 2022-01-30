@@ -6,6 +6,8 @@ import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTem
 import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
+import { Speech } from '../../sonification/displays/Speech'
+import { SpeechTemplate } from '../../sonification/templates/SpeechTemplate'
 
 export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
@@ -95,9 +97,10 @@ export class DemoHighlightRegion
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-        this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue])
-        this.source.addTemplate(new NoteTemplate())
-        this.source.addTemplate(this.filter)
+        this.source.addTemplate(new SpeechTemplate())
+        //this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue])
+        //this.source.addTemplate(new NoteTemplate())
+        //this.source.addTemplate(this.filter)
         return this.source
     }
 }
