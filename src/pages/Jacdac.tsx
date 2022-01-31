@@ -63,11 +63,12 @@ function ConnectButton() {
     const handleStartStreaming = () => {
         let board = displayBoard
         let src = source
+        if (!board) {
+            board = DisplayBoard.getInstance()
+            setDisplayBoard(board)
+        }
         if (!streaming) {
-            if (!board) {
-                board = DisplayBoard.getInstance()
-                setDisplayBoard(board)
-            }
+            
 
             if (!src) {
                 src = board.addSource('jacdac demo')
@@ -81,7 +82,7 @@ function ConnectButton() {
 
             board.onPlay()
         } else {
-            board?.onStop()
+            board.onStop()
         }
 
         setStreaming(!streaming)

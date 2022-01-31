@@ -132,6 +132,7 @@ export class DisplayBoard {
         // maybe have an option for "halt" instead that ends everything?
 
         if (DEBUG) console.log('stopping. display state is paused')
+        this.sources.forEach((source: DataSource, key: number) => source.handleEndStream())
         this._displayState = DisplayState.Stopped
         // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
     }
