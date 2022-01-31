@@ -158,7 +158,7 @@ export class DisplayBoard {
      */
     private startSources() {
         if (DEBUG) console.log(`starting sources ${this.sources.size}`)
-        this.sources.forEach((source: DataSource, key: number) => source.pauseDisplays())
+        this.sources.forEach((source: DataSource, key: number) => source.startDisplays())
     }
 
     //needs extensive testing.
