@@ -80,10 +80,8 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         console.log(`in onPlay ${this.source}`)
         this.isStreamInProgress = true
 
-        if (this.source) {
-            this.getSource().handleEndStream()
-            console.log('called handleEndStream')
-        } else this.initializeSource()
+        if (!this.source) 
+            this.initializeSource()
 
         // SONIFICATION
         this.getSource().setStat('max', Math.max(...data))
