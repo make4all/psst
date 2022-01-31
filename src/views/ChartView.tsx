@@ -2,6 +2,7 @@ import React from 'react'
 
 import { DataManager } from '../DataManager'
 import * as d3 from 'd3'
+import { YoutubeSearchedForOutlined } from '@mui/icons-material'
 
 export interface ChartViewState {
     rows: any[]
@@ -36,6 +37,7 @@ export class ChartView extends React.Component<ChartViewProps, ChartViewState> {
     // Private parameters
     private scaleX = d3.scaleLinear()
     private scaleY = d3.scaleLinear()
+    private chartContainer: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>()
 
     public render() {
         const { rows, width, height, margin, domainX, domainY, fieldX, fieldY } = this.state
@@ -51,7 +53,7 @@ export class ChartView extends React.Component<ChartViewProps, ChartViewState> {
                         d={`M0,${y0}h${this.scaleX.range()[1]}`}
                         style={{ stroke: '#999', shapeRendering: 'crispEdges' }}
                     />
-                    <text>{t}</text>
+                    <text x={this.scaleX(0)} y={y0} dy="0.3em" style={{ textAnchor: 'middle' }}>{t}</text>
                 </g>
             )
         })
@@ -64,7 +66,7 @@ export class ChartView extends React.Component<ChartViewProps, ChartViewState> {
                         d={`M${x0},0v${this.scaleY.range()[0]}`}
                         style={{ stroke: '#999', shapeRendering: 'crispEdges' }}
                     />
-                    <text>{t}</text>
+                    <text x={x0} y={this.scaleY(0)} dy="0.7em" style={{ textAnchor: 'middle' }}>{t}</text>
                 </g>
             )
         })
@@ -78,7 +80,7 @@ export class ChartView extends React.Component<ChartViewProps, ChartViewState> {
         })
 
         return (
-            <div style={{ height: 500, width: '100%' }}>
+            <div ref={this.chartContainer} style={{ height: 500, width: '100%' }}>
                 <svg style={{ width: '100%', height: '100%' }}>
                     <g id="chart" transform={`translate(${margin.l},${margin.t})`}>
                         <g className="axis-group">
@@ -90,6 +92,19 @@ export class ChartView extends React.Component<ChartViewProps, ChartViewState> {
                 </svg>
             </div>
         )
+    }
+
+    public componentDidMount() {
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
+    }
+
+    public handleResize = (): void => {
+        if (this.chartContainer && this.chartContainer.current) {
+            const dimensions = this.chartContainer.current.getBoundingClientRect(),
+                {width, height} = dimensions;
+            this.setState({width, height});
+        }
     }
 
     public handleDataUpdate = (table: any): void => {
