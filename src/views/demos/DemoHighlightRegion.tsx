@@ -97,19 +97,12 @@ export class DemoHighlightRegion
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-<<<<<<< HEAD
-        this.source.addTemplate(new SpeechTemplate())
-        //this.filter = new FilterRangeTemplate(new NoiseSonify(), [this.state.minValue, this.state.maxValue])
-        //this.source.addTemplate(new NoteTemplate())
-        //this.source.addTemplate(this.filter)
-=======
         this.filter = new FilterRangeTemplate(this.source, new NoiseSonify(), [
             this.state.minValue,
             this.state.maxValue,
         ])
         this.source.addTemplate(new NoteTemplate(this.source))
         this.source.addTemplate(this.filter)
->>>>>>> main
         return this.source
     }
 }
