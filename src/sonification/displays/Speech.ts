@@ -6,21 +6,20 @@ export class Speech extends DatumDisplay {
     private _utterance : SpeechSynthesisUtterance
 
     // construct the utterance and set its properties
-    public constructor(lang?: string, volume?: number, voice?: SpeechSynthesisVoice) {
+    public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice) {
         super()
         this._speechSynthesis = window.speechSynthesis;
         this._utterance = new SpeechSynthesisUtterance()
-        this._utterance.rate = 5
+        this._utterance.rate = rate? rate : 7 // rate is 0.1-10
+        this._utterance.volume = volume? volume : 1 // volume is 0-1
         if (lang) this._utterance.lang = lang
-        if (volume) this._utterance.volume = volume
         if (voice) this._utterance.voice = voice
     }
 
     // update the datum being used
-    // NORA: switch the utterance on the update method
-    public update(datum: Datum) {
+    public update(datum?: Datum) {
         super.update(datum)
-        this._utterance.text = this.datum.toString();
+        if (datum) this._utterance.text = datum.value.toString()
         this.show()
     }
 
