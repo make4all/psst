@@ -58,13 +58,14 @@ export class ScaleTemplate extends Template {
      * @param conversionFunction defaults to a linear mapping.
      */
     constructor(
+        source?: DataSource,
         display?: DatumDisplay,
         exceedDomain?: ExceedDomainResponse,
         targetRange?: [number, number],
         sourceRange: [number, number] = [0, 1],
         conversionFunction?: (datum: Datum) => number,
     ) {
-        super(display)
+        super(source, display)
         this.range = targetRange ? targetRange : [0, 1]
         this.domain = sourceRange ? sourceRange : [0, 1]
         this.exceedDomain = exceedDomain ? exceedDomain : ExceedDomainResponse.Expand
@@ -77,14 +78,23 @@ export class ScaleTemplate extends Template {
 
     /**
      * Adjusts the value for datum by scaling it to the range [min, max]
+     * Alternatively, if datum is empty, no need to adjust since the stream is empty
+     * at this point in time.
      *
      * @param datum
      * @param source
      * @returns Always returns true
      */
-    handleDatum(datum: Datum, source: DataSource): boolean {
-        let sourcemax = source.getStat('max')
-        let sourcemin = source.getStat('min')
+    handleDatum(datum?: Datum): boolean {
+        if (!datum) return true
+
+        let sourcemax = this.domain[0]
+        let sourcemin = this.domain[1]
+        if (this.source) {
+            console.log('getting max and min')
+            sourcemax = this.source.getStat('max')
+            sourcemin = this.source.getStat('min')
+        }
 
         if (
             this.exceedDomain == ExceedDomainResponse.Error &&
@@ -94,21 +104,15 @@ export class ScaleTemplate extends Template {
                 `Datum ${datum} value ${datum.value} outside of range  [${this.domain[0]},${this.domain[1]}]`,
             )
         else if (this.exceedDomain == ExceedDomainResponse.Expand) {
-            console.log('checking for expansion')
             if (sourcemin < this.domain[0]) this.domain[0] = sourcemin
             if (sourcemax > this.domain[1]) this.domain[1] = sourcemax
         }
 
-        console.log(
-            `response = ${this.exceedDomain} vs ${ExceedDomainResponse.Expand}; sourcemaxmin = ${sourcemax}, ${sourcemin}; Range: ${this.range} Domain: ${this.domain} Datum: ${datum.value}`,
-        )
         datum.adjustedValue = this.conversionFunction(datum, this.domain, this.range)
-        console.log(`new value ${datum.adjustedValue}`)
-        super.handleDatum(datum, source)
-        return true
+        return super.handleDatum(datum)
     }
 
     public toString(): string {
-        return `ScaleTemplate: Converting to ${this.range[0]},${this.range[1]}`
+        return `ScaleTemplate: Converting from ${this.domain[0]}, ${this.domain[1]} to ${this.range[0]},${this.range[1]}`
     }
 }

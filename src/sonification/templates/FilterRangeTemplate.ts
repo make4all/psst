@@ -1,4 +1,3 @@
-import { display } from '@mui/system'
 import { DataSource } from '../DataSource'
 import { Datum } from '../Datum'
 import { DatumDisplay } from '../displays/DatumDisplay'
@@ -26,8 +25,8 @@ export class FilterRangeTemplate extends Template {
      * @param display. Optional display for this data
      * @param range [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(display?: DatumDisplay, range?: [number, number]) {
-        super(display)
+    constructor(source?: DataSource, display?: DatumDisplay, range?: [number, number]) {
+        super(source, display)
         if (range) this._range = range
         else this._range = [0, 0]
     }
@@ -38,15 +37,20 @@ export class FilterRangeTemplate extends Template {
      * @param source The DataSource
      * @returns
      */
-    handleDatum(datum: Datum, source: DataSource): boolean {
+    handleDatum(datum?: Datum): boolean {
+        if (!datum) return false
+
         if (this.range[0] <= datum.value && datum.value <= this.range[1]) {
             console.log('in range. ')
-            return super.handleDatum(datum, source)
+            return super.handleDatum(datum)
         }
         console.log('not in range. ')
         return false
     }
 
+    /**
+     * @returns A string describing this class including its range.
+     */
     public toString(): string {
         return `FilterRangeTemplate: Keeping only data in ${this.range[0]},${this.range[1]}`
     }

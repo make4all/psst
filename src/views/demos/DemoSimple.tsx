@@ -1,9 +1,8 @@
 import React from 'react'
+import { map, take, timer } from 'rxjs'
 import { DataSource } from '../../sonification/DataSource'
 import { Datum } from '../../sonification/Datum'
-import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
 import { DisplayBoard } from '../../sonification/displays/DisplayBoard'
-import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
 import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
 import { IDemoView } from './IDemoView'
 
@@ -52,7 +51,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     constructor(props: DemoSimpleProps) {
         super(props)
-        this.displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
+        this.displayBoardInstance = DisplayBoard.getInstance()
     }
 
     /**
@@ -73,50 +72,32 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
      * Second, we make a callback to the display board instance to let it know to shift into play mode
-     * Third, we call playDataSlowly() to simulate streaming data
+     * Third, we create a data stream
      *
      * @param data The data set to be played
      */
     public onPlay = (data: any) => {
+        console.log(`in onPlay ${this.source}`)
         this.isStreamInProgress = true
-        if (!this.source) this.initializeSource()
+
+        if (!this.source) 
+            this.initializeSource()
 
         // SONIFICATION
         this.getSource().setStat('max', Math.max(...data))
         this.getSource().setStat('min', Math.min(...data))
+        console.log(`setting max and min to ${this.getSource()}`)
 
         // SONIFICATION INITIALIZATION
         this.displayBoardInstance.onPlay()
 
-        this.playDataSlowly(data, 200)
-    }
-
-    /**
-     * Fakes streaming data
-     *
-     * Loops through the data set calling displayBoardInstance.pushPoint(...).
-     * Waits speed milliseconds between pushing.
-     *
-     * @param dummyData The data set being fake-streamed
-     * @param speed How many milliseconds to wait between each data point
-     */
-    public playDataSlowly(dummyData: number[], speed: number): void {
-        if (DEBUG)
-            console.log(
-                `playTone: sonifying data of length ${dummyData.length} starting at ${this.current} at speed ${speed}`,
-            )
-        this.data = dummyData
-        for (let i = this.current; i < dummyData.length; i++) {
-            this.current = i
-            setTimeout(() => {
-                console.log(`streaming ${dummyData[i]}`)
-                if (this.isStreamInProgress) {
-                    // SONIFICATION
-                    this.displayBoardInstance.pushPoint(dummyData[i], this.getSource().id)
-                }
-            }, speed * i)
-        }
-        //this.sonifierInstance.onStop();
+        let id = this.source ? this.source.id : 0
+        let source = timer(0, 200).pipe(
+            map((val) => new Datum(id, data[val])),
+            take(data.length),
+        )
+        console.log('setStream in demo')
+        this.getSource().setStream(source)
     }
 
     public render() {
@@ -128,18 +109,13 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     }
 
     /**
-     * componentDidMount() is invoked immediately after a component is mounted (inserted into the tree).
-     * At this point, we set up a new DataSource and store it
-     */
-    public componentDidMount() {
-        this.initializeSource()
-    }
-
-    /**
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        this.displayBoardInstance.deleteSource(this.source)
+        if (this.source) {
+            this.source.handleEndStream()
+            this.displayBoardInstance.deleteSource(this.source)
+        }
     }
 
     ////////// HELPER METHODS ///////////////
@@ -151,7 +127,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     public initializeSource() {
         // SONIFICATION
         this.source = this.displayBoardInstance.addSource('SimpleDemo')
-        this.source.addTemplate(new NoteTemplate())
+        let template = new NoteTemplate(this.source)
+        console.log(`adding template ${template}`)
+        this.source.addTemplate(template)
         // this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
 
         return this.source

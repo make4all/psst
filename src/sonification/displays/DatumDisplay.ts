@@ -1,4 +1,5 @@
 import { Datum } from '../Datum'
+import { DisplayState } from '../SonificationConstants'
 
 /**
  * Base class for displaying a single datum. Must be subclassed to be fully defined
@@ -6,48 +7,64 @@ import { Datum } from '../Datum'
  */
 export abstract class DatumDisplay {
     /**
+     * Whether this is currently playing, paused, or stopped.
+     */
+    private _displayState = DisplayState.Stopped
+    public get displayState(): DisplayState {
+        return this._displayState
+    }
+    public set displayState(value: DisplayState) {
+        this._displayState = value
+    }
+
+    /**
      * The datum to display
      */
-    private _datum!: Datum
-    public get datum(): Datum {
+    private _datum?: Datum
+    public getDatum(): Datum | undefined {
         return this._datum
     }
-    public set datum(value: Datum) {
+
+    /**
+     * Update the display with a new value
+     *
+     * @param value The new datum
+     */
+    public update(value?: Datum) {
         this._datum = value
     }
 
     /**
-     * Stores relevant information. Value is derived from point.scaledValue.
-     * @param datum The raw datum
+     * Stop displaying the current value
      */
-    update(datum: Datum) {
-        this.datum = datum
+    public stop() {
+        console.log('datumDisplay.stop')
+        this._datum = undefined
+        this._displayState = DisplayState.Stopped
     }
 
     /**
-     * prints a description of this display
+     * Set up for display. Datum will only be displayed after this is called.
      */
-    public toString(): string {
-        return `DatumDisplay: ${this.datum.toString()}`
+    public start() {
+        console.log('datumDisplay.start')
+        this._displayState = DisplayState.Displaying
     }
-
-    /**
-     * called when the DisplayBoard's onPlay is called. should contain the logic to trigger specific output.
-     * Existing implementations use this for example to connect the oscillator in NoteSonify.
-     */
-    public abstract show(): void
 
     /**
      * should be implemented to support pause for each of the display.
      * Each display knows best what it should do when it is asked to pause.
      * DisplayBoard asks each display to pause.
      */
-    public abstract pause(): void
+    public pause(): void {
+        this.displayState = DisplayState.Paused
+    }
 
     /**
-     * should be implemented to support resume for each of the display.
-     * Each display knows best what it should do when it is asked to resume.
-     * DisplayBoard asks each display to resume.
+     * prints a description of this display
      */
-    public abstract resume(): void
+    public toString(): string {
+        if (this._datum) return `DatumDisplay: ${this._datum.toString()}`
+        else return 'Nothing to display'
+    }
 }

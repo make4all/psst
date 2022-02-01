@@ -1,41 +1,15 @@
 import { Datum } from '../Datum'
-import { PlaybackState } from '../SonificationConstants'
+import { DisplayState } from '../SonificationConstants'
 import { DatumDisplay } from './DatumDisplay'
 let DEBUG: boolean = true
+
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
  * @field volume Presuming here than anything you play would have a volume.
  * @todo how is this combined with priority for datum; and global volume?]
  * @field datum The raw data used to generate this sonification type
  */
-
 export class Sonify extends DatumDisplay {
-    private _playbackState: PlaybackState
-    public get playbackState(): PlaybackState {
-        return this._playbackState
-    }
-    public set playbackState(value: PlaybackState) {
-        this._playbackState = value
-    }
-    public show(): void {
-        if (this.playbackState == PlaybackState.Playing && Sonify.audioCtx.state == 'running') {
-            if (DEBUG) console.log('playing')
-        } else {
-            if (DEBUG) console.log('setting up for playing')
-            Sonify.audioCtx.resume()
-            Sonify.gainNode.connect(Sonify.audioCtx.destination)
-        }
-    }
-    public pause(): void {
-        if (DEBUG) console.log('Pausing. Playback state is paused')
-        Sonify.audioCtx.suspend()
-        Sonify.gainNode.disconnect()
-        this._playbackState = PlaybackState.Paused
-        throw new Error('Method not implemented.')
-    }
-    public resume(): void {
-        throw new Error('Method not implemented.')
-    }
     /**
      * Every display that extends this needs an audio context used to play sounds.
      * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
@@ -80,8 +54,43 @@ export class Sonify extends DatumDisplay {
      * @param volume The volume the sound should play at
      * @param duration The length of time the sound should play for
      */
-    update(datum: Datum) {
+    update(datum?: Datum) {
         super.update(datum)
+    }
+
+    /**
+     * Stop all display. Stream has ended.
+     */
+    stop() {
+        super.stop()
+        this.outputNode?.disconnect()
+    }
+
+    /**
+     * Connects the oscillator node so that playback will resume.
+     */
+    public start() {
+        if (this.displayState == DisplayState.Displaying && Sonify.audioCtx.state == 'running') {
+            if (DEBUG) console.log('playing')
+        } else {
+            if (DEBUG) console.log('setting up for playing')
+            Sonify.audioCtx.resume()
+            Sonify.gainNode.connect(Sonify.audioCtx.destination)
+            this.outputNode?.connect(Sonify.gainNode)
+            this.displayState = DisplayState.Displaying
+        }
+        super.start()
+    }
+
+    /**
+     * Pause suspends current playing of audio and disconnects the oscillator node.
+     * Not currently working.
+     */
+    public pause(): void {
+        if (DEBUG) console.log('Pausing. Playback state is paused')
+        Sonify.audioCtx.suspend()
+        Sonify.gainNode.disconnect()
+        super.pause()
     }
 
     /**
@@ -93,7 +102,10 @@ export class Sonify extends DatumDisplay {
      */
     constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
         super()
-        this._playbackState = PlaybackState.Stopped
+
+        if (!this.outputNode) this.outputNode = audioNode
+
+        this.displayState = DisplayState.Stopped
         Sonify._audioCtx.resume()
         Sonify.gainNode = Sonify._audioCtx.createGain()
         // if(!this.outputNode) this.outputNode = audioNode
@@ -101,6 +113,10 @@ export class Sonify extends DatumDisplay {
         if (audioNode) audioNode.connect(Sonify.gainNode)
     }
 
+    /**
+     *
+     * @returns A string representing this object.
+     */
     public toString(): string {
         return `Sonify`
     }

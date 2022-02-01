@@ -2,11 +2,11 @@ import { DisplayBoard } from '../sonification/displays/DisplayBoard'
 
 import React, { ChangeEvent } from 'react'
 
-import { PlaybackState, SonificationLevel } from '../sonification/SonificationConstants'
+import { DisplayState } from '../sonification/SonificationConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 
-import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid, NativeSelect } from '@mui/material'
+import { FormControl, InputLabel, Grid, NativeSelect } from '@mui/material'
 
 import { DataManager } from '../DataManager'
 
@@ -163,35 +163,40 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-        const displayBoardInstance = DisplayBoard.getDisplayBoardInstance()
+        const displayBoardInstance = DisplayBoard.getInstance()
 
         if (displayBoardInstance) {
-            console.log('display board instance is present. playback state', displayBoardInstance.playbackState)
-            if (displayBoardInstance.playbackState == PlaybackState.Playing) return
-            displayBoardInstance.onPlay()
+            console.log('display board instance is present. display state', displayBoardInstance.displayState)
+            if (
+                displayBoardInstance.displayState == DisplayState.Paused ||
+                displayBoardInstance.displayState == DisplayState.Stopped
+            ) {
+                displayBoardInstance.onPlay()
+            }
         }
 
         let table = DataManager.getInstance().table
-
+        console.log('table: ' + table)
         if (table) {
             // Hardcode getting the "Value" column from each data table, this will need to be set by user later
             let data = table.columns()[this.state.columnSelected].data
 
             if (demoViewRef.current) {
                 let demoView: IDemoView = demoViewRef.current
+                console.log("calling demo's onPlay()")
                 demoView.onPlay(data)
             }
         }
     }
 
-    private _handlePlaybackStateChanged = (e: PlaybackState) => {
+    private _handlePlaybackStateChanged = (e: DisplayState) => {
         console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
-            case PlaybackState.Playing:
+            case DisplayState.Displaying:
                 playbackLabel = 'pause'
                 break
-            case PlaybackState.Paused:
+            case DisplayState.Paused:
                 playbackLabel = 'resume'
                 break
             default:

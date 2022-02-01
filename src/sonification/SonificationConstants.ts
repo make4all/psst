@@ -16,9 +16,9 @@ export enum SonificationLevel {
  * @readonly
  * @enum {number}
  */
-export enum PlaybackState {
+export enum DisplayState {
     /** Audio is currently playing */
-    Playing,
+    Displaying,
     /** Audio is paused, meaning the Audio context is suspended */
     Paused,
     /** Playback has ended. We can close the context once playback stops if necessary.*/
