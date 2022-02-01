@@ -12,16 +12,27 @@ const DEBUG = false
 export class DataSource {
     //////////////////////////////// FIELDS ///////////////////////////////////
     /**
-     * A unique id far this data source
+     * A unique id for this data source
      */
     public id: number
 
+    /**
+     * the overall state of all the displays attached to this source.
+     */
     public displayState = DisplayState.Stopped
 
     /**
      * A description of this data source for documentation
      */
     private _description: String
+
+    
+    /**
+     * An event hook to know when the data stream for a source has ended.
+     * The DisplayBoard needs to handle this for each source to know when a source has stopped because the data stream has ended.
+     * If this event is not handled, the DisplayBoard will not know when the datastream for the source has ended. Consequently, the DisplayBoard's displayState never goes to stop after initial call to onPlay.
+     */
+    public onSourceDataStreamEnded?: () => void
 
     //////////////////////////////// STREAMING DATA SUPPORT ///////////////////////////////////
 
@@ -186,11 +197,12 @@ export class DataSource {
      * @param stream The stream that ended
      */
     public handleEndStream() {
-        console.log(`handleEndStream for ${this}`)
+        if(DEBUG)        console.log(`handleEndStream for ${this}`)
         this.subscription?.unsubscribe()
         // this.setStream(undefined)
         this.clearStats()
         this.stopDisplays()
+        if(this.onSourceDataStreamEnded) this.onSourceDataStreamEnded()
     }
 
     //////////////////////////////// HELPER METHODS ///////////////////////////////////
@@ -223,11 +235,13 @@ export class DataSource {
     }
 
     public pauseDisplays() {
+        if(DEBUG) console.log("pausing sources.")
         this.displayState = DisplayState.Paused
         this._templates.map((template) => template.pause())
     }
     public toString() {
         let description = this._description
+        description+= `(id: ${this.id})`
         this._stats.forEach((name, val) => {
             description += ` (${name}, ${val})`
         })

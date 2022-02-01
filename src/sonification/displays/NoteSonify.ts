@@ -57,8 +57,9 @@ export class NoteSonify extends Sonify {
      * Start playing the current datum. This starts the oscillator again.
      */
     start() {
-        if (this.displayState == DisplayState.Stopped || this.displayState == DisplayState.Paused) {
+        if (this.displayState == DisplayState.Stopped ) {
             let oscillator = this.outputNode as OscillatorNode
+            
             oscillator?.start()
             this.playing = true
         }
@@ -90,4 +91,6 @@ export class NoteSonify extends Sonify {
         if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
     }
+
+    
 }
