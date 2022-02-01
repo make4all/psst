@@ -167,15 +167,20 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         if (displayBoardInstance) {
             console.log('display board instance is present. display state', displayBoardInstance.displayState)
+            displayBoardInstance.onDisplayStateChanged = this._handlePlaybackStateChanged;
             if (
-                displayBoardInstance.displayState == DisplayState.Paused ||
-                displayBoardInstance.displayState == DisplayState.Stopped
+                displayBoardInstance.displayState == DisplayState.Paused 
+                // displayBoardInstance.displayState == DisplayState.Stopped
             ) {
                 displayBoardInstance.onPlay()
             }
-        }
-
-        let table = DataManager.getInstance().table
+            else if(displayBoardInstance.displayState == DisplayState.Displaying)
+            {
+                console.log("pausing display.")
+                displayBoardInstance.onPause();
+            }
+            else{
+                let table = DataManager.getInstance().table
         console.log('table: ' + table)
         if (table) {
             // Hardcode getting the "Value" column from each data table, this will need to be set by user later
@@ -187,7 +192,11 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 demoView.onPlay(data)
             }
         }
-    }
+    
+            }
+        }
+
+        }
 
     private _handlePlaybackStateChanged = (e: DisplayState) => {
         console.log('handlePlaybackStateChanged', e)
