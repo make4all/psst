@@ -11,7 +11,7 @@ const DEBUG = false
  * DisplayBoard class
  * Has a single instance
  * users of our library get an instance of this to control it i.e. get source, play, etc.
- * @todo replace parts of this to use RXjs?
+ 
  */
 export class DisplayBoard {
     /**
@@ -33,6 +33,17 @@ export class DisplayBoard {
         if (DEBUG) console.log('changing display state')
         this._displayState = value
     }
+    /**
+     * tracks the previous display state. Used for firing the onDisplayStateChanged event that users can hook into. This event hook can be used to drive the UI.
+     */
+    private _previousDisplayState
+
+    /**
+     * Event that users of the DisplayBoard can hook into to be alerted when the playback state changes.
+     * 
+     */
+    public onDisplayStateChanged?: (state: DisplayState) => void
+
 
     /**
      * Amap of Data sources handled by the display board.
@@ -93,9 +104,26 @@ export class DisplayBoard {
                 source = new DataSource(this.getUniqueId(), description)
             }
         }
+        source.onSourceDataStreamEnded = () =>  this.handleSourceStreamEnded();
         this.sources.set(source.id, source)
         return source
     }
+    handleSourceStreamEnded () {
+        let didAllSourcesEndPlaying = true
+    for(let [id,source] of this.sources)    
+    {
+        if(source.displayState != DisplayState.Stopped){
+            didAllSourcesEndPlaying = false;
+            break;
+        }
+    }
+    if(didAllSourcesEndPlaying){
+        this.displayState = DisplayState.Stopped
+        this.fireDisplayStateChangedEvent();
+        if(DEBUG) console.log("stream has ended. stopping display")
+    }
+    }
+
     /**
      * Removes a data source. Once removed, that Id may be re-used.
      * @param sourceId Data source to remove.
@@ -148,6 +176,7 @@ export class DisplayBoard {
 
             this.startSources()
             this._displayState = DisplayState.Displaying
+            this.fireDisplayStateChangedEvent()
         }
     }
 
@@ -166,7 +195,7 @@ export class DisplayBoard {
     public onPause() {
         if (DEBUG) console.log('Pausing. Playback state is paused')
         this._displayState = DisplayState.Paused
-        this.sources.forEach((source: DataSource, key: number) => source.stopDisplays())
+        this.sources.forEach((source: DataSource, key: number) => source.pauseDisplays())
     }
 
     /**
@@ -198,5 +227,12 @@ export class DisplayBoard {
             }
         }
         return datum
+    }
+
+    private fireDisplayStateChangedEvent() {
+        if(this._displayState != this._previousDisplayState){
+            if(this.onDisplayStateChanged) this.onDisplayStateChanged(this._displayState)
+            this._previousDisplayState = this._displayState
+        }
     }
 }
