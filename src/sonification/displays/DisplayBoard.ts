@@ -196,6 +196,7 @@ export class DisplayBoard {
         if (DEBUG) console.log('Pausing. Playback state is paused')
         this._displayState = DisplayState.Paused
         this.sources.forEach((source: DataSource, key: number) => source.pauseDisplays())
+        this.fireDisplayStateChangedEvent();
     }
 
     /**
