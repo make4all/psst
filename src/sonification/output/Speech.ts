@@ -1,11 +1,11 @@
 import { Datum } from '../Datum'
-import { DisplayState } from '../SonificationConstants';
-import { DatumDisplay } from './DatumDisplay'
+import { OutputState } from '../OutputConstants';
+import { DatumOutput } from './DatumOutput'
 const DEBUG = true;
-export class Speech extends DatumDisplay {
+export class Speech extends DatumOutput {
     private _speechSynthesis : SpeechSynthesis
     private _utterance : SpeechSynthesisUtterance
-    private _volume:number;
+    private _volume: number;
 
     // construct the utterance and set its properties
     public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice) {
@@ -19,11 +19,12 @@ export class Speech extends DatumDisplay {
         else{
             this._utterance.voice = this._speechSynthesis.getVoices()[0];
         }
+        if(DEBUG) console.log("initialized")
     }
 
     // update the datum being used
     public update(datum?: Datum) {
-        if (this.displayState == DisplayState.Paused || this.displayState == DisplayState.Stopped) return
+        if (this.outputState == OutputState.Paused || this.outputState == OutputState.Stopped) return
         super.update(datum)
         if(DEBUG) console.log("update called")
         if (datum) this._utterance.text = datum.value.toString()
@@ -48,7 +49,7 @@ export class Speech extends DatumDisplay {
     // pause the speech if it was playing
     public pause(): void {
         this._utterance.volume = 0;
-        //this._speechSynthesis.cancel();
+        this._speechSynthesis.cancel();
         //this._utterance.text = "";
         super.pause();
 

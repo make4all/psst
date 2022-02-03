@@ -2,10 +2,11 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
-import { Speech } from '../../sonification/displays/Speech'
+import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
+import { Speech } from '../../sonification/output/Speech'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
-import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
+import { NoteHandler } from '../../sonification/handler/NoteHandler'
+import { OutputEngine } from '../../sonification/OutputEngine'
 
 export interface DemoSpeakRangeState extends DemoSimpleState {
     minValue: number
@@ -19,7 +20,7 @@ export class DemoSpeakRange
     extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRangeState>
     implements IDemoView
 {
-    filter: FilterRangeTemplate | undefined
+    filter: FilterRangeHandler | undefined
 
     constructor(props: DemoSpeakRangeProps) {
         super(props)
@@ -84,14 +85,14 @@ export class DemoSpeakRange
     }
 
     ////////// HELPER METHODS ///////////////
-    public initializeSource() {
-        this.source = this.displayBoardInstance.addSource('SpeakRangeDemo')
-        this.filter = new FilterRangeTemplate(this.source, new Speech(), [
+    public initializeSink() {
+        this.sink = OutputEngine.getInstance().addSink('SpeakRangeDemo')
+        this.filter = new FilterRangeHandler(this.sink, new Speech(), [
             this.state.minValue,
             this.state.maxValue,
         ])
-        this.source.addTemplate(new NoteTemplate(this.source))
-        this.source.addTemplate(this.filter)
-        return this.source
+        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.sink.addDataHandler(this.filter)
+        return this.sink
     }
 }
