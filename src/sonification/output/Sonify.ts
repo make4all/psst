@@ -70,14 +70,14 @@ export class Sonify extends DatumOutput {
      * Connects the oscillator node so that playback will resume.
      */
     public start() {
-        if (this.outputState == OutputState.Playing && Sonify.audioCtx.state == 'running') {
+        if (this.outputState == OutputState.Outputting&& Sonify.audioCtx.state == 'running') {
             if (DEBUG) console.log('playing')
         } else {
             if (DEBUG) console.log('setting up for playing')
             Sonify.audioCtx.resume()
             Sonify.gainNode.connect(Sonify.audioCtx.destination)
             this.outputNode?.connect(Sonify.gainNode)
-            this.outputState = OutputState.Playing
+            this.outputState = OutputState.Outputting
         }
         super.start()
     }

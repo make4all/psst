@@ -170,7 +170,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
             outputEngineInstance.onOutputStateChanged = this._handlePlaybackStateChanged
             if (outputEngineInstance.outputState == OutputState.Paused) {
                 outputEngineInstance.onPlay()
-            } else if (outputEngineInstance.outputState == OutputState.Playing) {
+            } else if (outputEngineInstance.outputState == OutputState.Outputting) {
                 console.log('pausing output.')
                 outputEngineInstance.onPause()
             } else {
@@ -194,7 +194,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
-            case OutputState.Playing:
+            case OutputState.Outputting:
                 playbackLabel = 'pause'
                 break
             case OutputState.Paused:

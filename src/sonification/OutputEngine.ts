@@ -163,13 +163,13 @@ export class OutputEngine {
     public onPlay() {
         // @todo do I need to do anything differently if was stopped instead of paused?
         // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.outputState == OutputState.Playing) {
+        if (this.outputState == OutputState.Outputting) {
             if (DEBUG) console.log('playing')
         } else {
             if (DEBUG) console.log('setting up for playing')
 
             this.startSinks()
-            this._outputState = OutputState.Playing
+            this._outputState = OutputState.Outputting
             this.fireOutputStateChangedEvent()
         }
     }
@@ -210,7 +210,7 @@ export class OutputEngine {
             case OutputState.Stopped: // ignore the point
                 if (DEBUG) console.log(`playback: Stopped`)
                 break
-            case OutputState.Playing: {
+            case OutputState.Outputting: {
                 if (DEBUG) console.log(`calling ${sink} to handle ${{ datum }}`)
                 sink.handleNewDatum(datum)
 

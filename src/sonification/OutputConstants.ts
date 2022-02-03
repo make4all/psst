@@ -18,7 +18,7 @@ export enum SonificationLevel {
  */
 export enum OutputState {
     /** Output is currently visible/audible */
-    Playing,
+    Outputting,
     /** Output is paused, i.e. the Audio context is suspended */
     Paused,
     /** Output has ended.*/

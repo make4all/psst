@@ -226,7 +226,7 @@ export class DataSink {
     }
 
     public startOutputs() {
-        this.outputState = OutputState.Playing
+        this.outputState = OutputState.Outputting
 
         this._dataHandlers.map((dataHandler) => dataHandler.start())
     }

@@ -48,7 +48,7 @@ export abstract class DatumOutput {
      */
     public start() {
         console.log('datumOutput.start')
-        this._outputState = OutputState.Playing
+        this._outputState = OutputState.Outputting
     }
 
     /**

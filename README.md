@@ -10,7 +10,7 @@ We start with a simple example of how to use PSST. This example is a summary of 
 - This [```DataSink```](https://make4all.github.io/sonification/classes/sonification_DataSink.DataSink.html) must be configured. 
    - Many outputs benefit from a few statistics about the dataset it will output. In the simplest case, if known, it is valuable to add  ```max``` and ```min``` stat for the dataset. 
 	 - In addition, we must add a [```DataHandler```](https://make4all.github.io/sonification/classes/sonification_handler_DataHandler.DataHandler.html) class which knows how to handle and potentially output the data. For example, in [```Jacdac.tsx```](https://github.com/make4all/sonification/blob/main/src/pages/Jacdac.tsx) we add a  [```NoteHandler```](https://make4all.github.io/sonification/classes/sonification_handler_NoteHandler.NoteHandler.html) to this sink, which will cause incoming data to be mapped into an audible range and then outputed as audible notes created using an oscillator. It is possible to add multilpe such handlers to a single sink. 
-- Finlaly, the [```OutputEngine```](https://make4all.github.io/sonification/classes/sonification_OutputEngine.OutputEngine.html) must be started up, using [```board.onPlay()```](https://make4all.github.io/sonification/classes/sonification_OutputEngine.OutputEngine.html#onPlay)
+- Finally, the [```OutputEngine```](https://make4all.github.io/sonification/classes/sonification_OutputEngine.OutputEngine.html) must be started up, using [```board.onPlay()```](https://make4all.github.io/sonification/classes/sonification_OutputEngine.OutputEngine.html#onPlay)
 
 This is the initial configuration, the only remaining step is to ensure that data is being delivered. There are currently two ways to do this. in ```Jacdac.tsx``` we use the ```OutputEngine``` to deliver data to a sink declaratively, by calling [```board.pushPoint(value, sinkId)```](https://make4all.github.io/sonification/classes/sonification_OutputEngine.OutputEngine.html#pushPoint). The alternative (seen in [DemoSimple](https://github.com/make4all/sonification/blob/main/src/views/demos/DemoSimple.tsx)) is to directly subscribe a sink to an rxjs stream by calling ```setStream(sink : Observer<Datum>)``` 
 
@@ -44,7 +44,7 @@ A [```Datum```](https://make4all.github.io/sonification/classes/sonification_Dat
 A Handler is an abstract class that is designed to handle streaming data. This happens when [```DataHandler.handleDatum(): boolean```](https://make4all.github.io/sonification/classes/sonification_handler_DataHandler.DataHandler.html#handleDatum) is called. 
 
 A ```DataHandler``` should behave in the following ways
-- It should handle data apporpriately based on its mode, whether paused, playing or stopped
+- It should handle data appropriately based on its mode, whether paused, outputting or stopped
 - It needs to decide whether data handling is done (in which case it returns false from ```handleDatum()``` or whether it is ok for the (unknown) next ```DataHandler``` class in the disptach order to receive the ```Datum```
 - If relevant, it should output the ```Datum```.
 A handler may have one or more [```DatumOutput```](https://make4all.github.io/sonification/classes/sonification_output_DatumOutput.DatumOutput.html) classes which are used to render the ```Datum```. The handler will loop through each, if they exist, and call ```DatumOutput.update(Datum)```. 
