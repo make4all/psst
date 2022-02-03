@@ -2,10 +2,11 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
-import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
+import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
+import { NoiseSonify } from '../../sonification/output/NoiseSonify'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
-import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
+import { NoteHandler } from '../../sonification/handler/NoteHandler'
+import { OutputEngine } from '../../sonification/OutputEngine'
 
 export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
@@ -22,7 +23,7 @@ export class DemoHighlightRegion
     extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
     implements IDemoView
 {
-    filter: FilterRangeTemplate | undefined
+    filter: FilterRangeHandler | undefined
 
     constructor(props: DemoHighlightRegionProps) {
         super(props)
@@ -90,17 +91,14 @@ export class DemoHighlightRegion
     }
 
     ////////// HELPER METHODS ///////////////
-    public initializeSource() {
-        this.source = this.displayBoardInstance.addSource('HighlightRegionDemo')
+    public initializeSink() {
+        this.sink = OutputEngine.getInstance().addSink('HighlightRegionDemo')
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-        this.filter = new FilterRangeTemplate(this.source, new NoiseSonify(), [
-            this.state.minValue,
-            this.state.maxValue,
-        ])
-        this.source.addTemplate(new NoteTemplate(this.source))
-        this.source.addTemplate(this.filter)
-        return this.source
+        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.state.minValue, this.state.maxValue])
+        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.sink.addDataHandler(this.filter)
+        return this.sink
     }
 }
