@@ -1,9 +1,9 @@
 import React from 'react'
 import { map, take, timer } from 'rxjs'
-import { DataSource } from '../../sonification/DataSource'
+import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
-import { DisplayBoard } from '../../sonification/displays/DisplayBoard'
-import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
+import { OutputEngine } from '../../sonification/OutputEngine'
+import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { IDemoView } from './IDemoView'
 
 const DEBUG = false
@@ -18,10 +18,6 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     extends React.Component<DemoSimpleProps, DemoSimpleState>
     implements IDemoView
 {
-    /**
-     * There can only be one display board! But we need a pointer to it
-     */
-    protected displayBoardInstance: DisplayBoard
     /**
      * Are we streaming data right now?
      */
@@ -38,20 +34,12 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     protected data: number[] | undefined
 
     /**
-     * Holder for the current data source object
+     * Holder for the current DataSink object
      */
-    protected source: DataSource | undefined
-    public getSource(): DataSource {
-        if (this.source) return this.source
-        else return this.initializeSource()
-    }
-    /**
-     * Constructor
-     * @param props Normal react props
-     */
-    constructor(props: DemoSimpleProps) {
-        super(props)
-        this.displayBoardInstance = DisplayBoard.getInstance()
+    protected sink: DataSink | undefined
+    public getSink(): DataSink {
+        if (this.sink) return this.sink
+        else return this.initializeSink()
     }
 
     /**
@@ -60,44 +48,43 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public onPause = (data: any) => {
         this.isStreamInProgress = false
-        this.displayBoardInstance.onPause()
+        OutputEngine.getInstance().onPause()
     }
 
     /**
      * The play button has been pressed and data set specified. Time to start sonificatino
      *
      * First, since we now know what data we are playing, this adds a max/min calculator
-     * to our data source. The calculation is based on the full data set and always returns the
+     * to our DataSink. The calculation is based on the full data set and always returns the
      * same value as a result
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
-     * Second, we make a callback to the display board instance to let it know to shift into play mode
+     * Second, we make a callback to the OutputEngine instance to let it know to shift into play mode
      * Third, we create a data stream
      *
      * @param data The data set to be played
      */
     public onPlay = (data: any) => {
-        console.log(`in onPlay ${this.source}`)
+        console.log(`in onPlay ${this.sink}`)
         this.isStreamInProgress = true
 
-        if (!this.source) 
-            this.initializeSource()
+        if (!this.sink) this.initializeSink()
 
         // SONIFICATION
-        this.getSource().setStat('max', Math.max(...data))
-        this.getSource().setStat('min', Math.min(...data))
-        console.log(`setting max and min to ${this.getSource()}`)
+        this.getSink().setStat('max', Math.max(...data))
+        this.getSink().setStat('min', Math.min(...data))
+        console.log(`setting max and min to ${this.getSink()}`)
 
         // SONIFICATION INITIALIZATION
-        this.displayBoardInstance.onPlay()
+        OutputEngine.getInstance().onPlay()
 
-        let id = this.source ? this.source.id : 0
+        let id = this.sink ? this.sink.id : 0
         let source = timer(0, 200).pipe(
             map((val) => new Datum(id, data[val])),
             take(data.length),
         )
         console.log('setStream in demo')
-        this.getSource().setStream(source)
+        this.getSink().setStream(source)
     }
 
     public render() {
@@ -112,26 +99,26 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        if (this.source) {
-            this.source.handleEndStream()
-            this.displayBoardInstance.deleteSource(this.source)
+        if (this.sink) {
+            this.sink.handleEndStream()
+            OutputEngine.getInstance().deleteSink(this.sink)
         }
     }
 
     ////////// HELPER METHODS ///////////////
     /**
-     * This initializes the source, but to work fully, it is important to also
+     * This initializes the sink, but to work fully, it is important to also
      * assign max and min values when the data set is specified.
-     * @returns a source
+     * @returns a sink
      */
-    public initializeSource() {
+    public initializeSink() {
         // SONIFICATION
-        this.source = this.displayBoardInstance.addSource('SimpleDemo')
-        let template = new NoteTemplate(this.source)
-        console.log(`adding template ${template}`)
-        this.source.addTemplate(template)
-        // this.source.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [4, 10]))
+        this.sink = OutputEngine.getInstance().addSink('SimpleDemo')
+        let handler = new NoteHandler(this.sink)
+        console.log(`adding handler ${handler}`)
+        this.sink.addDataHandler(handler)
+        // this.sink.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [4, 10]))
 
-        return this.source
+        return this.sink
     }
 }

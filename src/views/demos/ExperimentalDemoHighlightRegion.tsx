@@ -2,13 +2,13 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { FilterRangeTemplate } from '../../sonification/templates/FilterRangeTemplate'
-import { NoiseSonify } from '../../sonification/displays/NoiseSonify'
-import { NoteTemplate } from '../../sonification/templates/NoteTemplate'
-import { DataSource } from '../../sonification/DataSource'
-import { DisplayBoard } from '../../sonification/displays/DisplayBoard'
+import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
+import { NoiseSonify } from '../../sonification/output/NoiseSonify'
+import { NoteHandler } from '../../sonification/handler/NoteHandler'
+import { DataSink } from '../../sonification/DataSink'
 import { map, take, timer } from 'rxjs'
 import { Datum } from '../../sonification/Datum'
+import { OutputEngine } from '../../sonification/OutputEngine'
 
 const DEBUG = false
 
@@ -32,29 +32,24 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     protected isStreamInProgress = false
 
     /**
-     * There can only be one display board! But we need a pointer to it
-     */
-    protected displayBoardInstance: DisplayBoard
-
-    /**
      * @todo implement pausing
      * The index into our data set that we were at when we were paused
      */
     protected current = 0
 
     /**
-     * Holder for the current data source object
+     * Holder for the current data sink object
      */
-    protected source: DataSource | undefined
+    protected sink: DataSink | undefined
 
     /**
      * The filter object
      */
-    filter: FilterRangeTemplate | undefined
+    filter: FilterRangeHandler | undefined
 
-    public getSource(): DataSource {
-        if (this.source) return this.source
-        else return this.initializeSource()
+    public getSink(): DataSink {
+        if (this.sink) return this.sink
+        else return this.initializeSink()
     }
 
     /**
@@ -85,7 +80,6 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     constructor(props: ExperimentalDemoHighlightRegionProps) {
         super(props)
 
-        this.displayBoardInstance = DisplayBoard.getInstance()
         this.min = -1
         this.max = 10
     }
@@ -93,7 +87,7 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      * The play button has been pressed and data set specified. Time to start sonificatino
      *
      * First, since we now know what data we are playing, this adds a max/min calculator
-     * to our data source. The calculation is based on the full data set and always returns the
+     * to our data sink. The calculation is based on the full data set and always returns the
      * same value as a result
      * @todo think about how to set up static calculations so they don't run over and over again.
      *
@@ -104,37 +98,37 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      */
     public onPlay = (data: any) => {
         this.isStreamInProgress = true
-        if (this.source) this.getSource().handleEndStream()
-        else this.initializeSource()
+        if (this.sink) this.getSink().handleEndStream()
+        else this.initializeSink()
 
         // SONIFICATION
-        this.getSource().setStat('max', Math.max(...data))
-        this.getSource().setStat('min', Math.min(...data))
+        this.getSink().setStat('max', Math.max(...data))
+        this.getSink().setStat('min', Math.min(...data))
 
         // SONIFICATION INITIALIZATION
-        this.displayBoardInstance.onPlay()
+        OutputEngine.getInstance().onPlay()
 
-        let id = this.source ? this.source.id : 0
-        let source = timer(0, 200).pipe(
+        let id = this.sink ? this.sink.id : 0
+        let sink = timer(0, 200).pipe(
             map((val) => new Datum(id, data[val])),
             take(data.length),
         )
         console.log('setStream in demo')
-        this.getSource().setStream(source)
+        this.getSink().setStream(sink)
     }
 
     public onPause = (data: any) => {
         this.isStreamInProgress = false
-        this.displayBoardInstance.onPause()
+        OutputEngine.getInstance().onPause()
     }
 
     /**
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
-        if (this.source) {
-            this.source.handleEndStream()
-            this.displayBoardInstance.deleteSource(this.source)
+        if (this.sink) {
+            this.sink.handleEndStream()
+            OutputEngine.getInstance().deleteSink(this.sink)
         }
     }
 
@@ -178,15 +172,15 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     }
 
     ////////// HELPER METHODS ///////////////
-    public initializeSource() {
-        this.source = this.displayBoardInstance.addSource('HighlightRegionDemo')
+    public initializeSink() {
+        this.sink = OutputEngine.getInstance().addSink('HighlightRegionDemo')
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
 
-        this.source.addTemplate(new NoteTemplate(this.source))
-        this.filter = new FilterRangeTemplate(this.source, new NoiseSonify(), [this.min, this.max])
-        this.source.addTemplate(this.filter)
-        return this.source
+        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.min, this.max])
+        this.sink.addDataHandler(this.filter)
+        return this.sink
     }
 }
