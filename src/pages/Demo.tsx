@@ -1,8 +1,8 @@
-import { DisplayBoard } from '../sonification/displays/DisplayBoard'
+import { OutputEngine } from '../sonification/OutputEngine'
 
 import React, { ChangeEvent } from 'react'
 
-import { DisplayState } from '../sonification/SonificationConstants'
+import { OutputState } from '../sonification/OutputConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 
@@ -163,49 +163,41 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-        const displayBoardInstance = DisplayBoard.getInstance()
+        const outputEngineInstance = OutputEngine.getInstance()
 
-        if (displayBoardInstance) {
-            console.log('display board instance is present. display state', displayBoardInstance.displayState)
-            displayBoardInstance.onDisplayStateChanged = this._handlePlaybackStateChanged;
-            if (
-                displayBoardInstance.displayState == DisplayState.Paused 
-                // displayBoardInstance.displayState == DisplayState.Stopped
-            ) {
-                displayBoardInstance.onPlay()
-            }
-            else if(displayBoardInstance.displayState == DisplayState.Displaying)
-            {
-                console.log("pausing display.")
-                displayBoardInstance.onPause();
-            }
-            else{
+        if (outputEngineInstance) {
+            console.log('Output Engine instance is present. Output state', outputEngineInstance.outputState)
+            outputEngineInstance.onOutputStateChanged = this._handlePlaybackStateChanged
+            if (outputEngineInstance.outputState == OutputState.Paused) {
+                outputEngineInstance.onPlay()
+            } else if (outputEngineInstance.outputState == OutputState.Playing) {
+                console.log('pausing output.')
+                outputEngineInstance.onPause()
+            } else {
                 let table = DataManager.getInstance().table
-        console.log('table: ' + table)
-        if (table) {
-            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-            let data = table.columns()[this.state.columnSelected].data
+                console.log('table: ' + table)
+                if (table) {
+                    // Hardcode getting the "Value" column from each data table, this will need to be set by user later
+                    let data = table.columns()[this.state.columnSelected].data
 
-            if (demoViewRef.current) {
-                let demoView: IDemoView = demoViewRef.current
-                console.log("calling demo's onPlay()")
-                demoView.onPlay(data)
+                    if (demoViewRef.current) {
+                        let demoView: IDemoView = demoViewRef.current
+                        console.log("calling demo's onPlay()")
+                        demoView.onPlay(data)
+                    }
+                }
             }
         }
-    
-            }
-        }
+    }
 
-        }
-
-    private _handlePlaybackStateChanged = (e: DisplayState) => {
+    private _handlePlaybackStateChanged = (e: OutputState) => {
         console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
-            case DisplayState.Displaying:
+            case OutputState.Playing:
                 playbackLabel = 'pause'
                 break
-            case DisplayState.Paused:
+            case OutputState.Paused:
                 playbackLabel = 'resume'
                 break
             default:
