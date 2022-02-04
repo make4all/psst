@@ -2,7 +2,7 @@ import { Speech } from '../output/Speech'
 import * as d3 from 'd3'
 import { Datum } from '../Datum'
 import { DataSink } from '../DataSink'
-import { DataHandler } from '../handler/DataHandler'
+import { DataHandler } from './DataHandler'
 const DEBUG=true;
 /**
  * A DataHandler that outputs a Datum as speech.
