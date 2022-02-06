@@ -7,6 +7,7 @@ import { NoiseSonify } from '../../sonification/output/NoiseSonify'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
+import { FileOutput } from '../../sonification/output/FileOutput'
 
 export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
@@ -96,8 +97,8 @@ export class DemoHighlightRegion
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.state.minValue, this.state.maxValue])
-        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.filter = new FilterRangeHandler(this.sink, new FileOutput(), [this.state.minValue, this.state.maxValue])
+        //this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.filter)
         return this.sink
     }
