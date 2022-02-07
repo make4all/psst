@@ -1,12 +1,15 @@
 import React from 'react'
-import { map, take, timer } from 'rxjs'
+import { map, Observable, tap, timer } from 'rxjs'
 import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { IDemoView } from './IDemoView'
-
-const DEBUG = false
+import {
+    getSonificationLoggingLevel,
+    OutputStateChange,
+    SonificationLoggingLevel,
+} from '../../sonification/OutputConstants'
 
 export interface DemoSimpleState {}
 
@@ -18,10 +21,6 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     extends React.Component<DemoSimpleProps, DemoSimpleState>
     implements IDemoView
 {
-    /**
-     * Are we streaming data right now?
-     */
-    protected isStreamInProgress = false
     /**
      * @todo implement pausing
      * The index into our data set that we were at when we were paused
@@ -47,8 +46,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * @param data Not sure what this is -- someone else wrote ti
      */
     public onPause = (data: any) => {
-        this.isStreamInProgress = false
-        OutputEngine.getInstance().onPause()
+        OutputEngine.getInstance().next(OutputStateChange.Pause)
     }
 
     /**
@@ -64,27 +62,26 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      *
      * @param data The data set to be played
      */
-    public onPlay = (data: any) => {
-        console.log(`in onPlay ${this.sink}`)
-        this.isStreamInProgress = true
+    public onPlay = (data: Array<number>) => {
+        debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${this.sink} ${data}`)
 
         if (!this.sink) this.initializeSink()
 
-        // SONIFICATION
-        this.getSink().setStat('max', Math.max(...data))
-        this.getSink().setStat('min', Math.min(...data))
-        console.log(`setting max and min to ${this.getSink()}`)
+        let id = this.sink ? this.sink.id : 0
+        // let source = timer(0, 200).pipe(
+        //     map((val) => new Datum(id, data.next())),
+        // )
+        let source = timer(0, 200).pipe(
+            map((val) => {
+                //console.log(`${data[val]}`)
+                return new Datum(id, data[val])
+            }),
+        )
+        debugStatic(SonificationLoggingLevel.DEBUG, 'calling setStream')
+        OutputEngine.getInstance().setStream(id, source)
 
         // SONIFICATION INITIALIZATION
-        OutputEngine.getInstance().onPlay()
-
-        let id = this.sink ? this.sink.id : 0
-        let source = timer(0, 200).pipe(
-            map((val) => new Datum(id, data[val])),
-            take(data.length),
-        )
-        console.log('setStream in demo')
-        this.getSink().setStream(source)
+        OutputEngine.getInstance().next(OutputStateChange.Play)
     }
 
     public render() {
@@ -99,8 +96,8 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
+        OutputEngine.getInstance().next(OutputStateChange.Stop)
         if (this.sink) {
-            this.sink.handleEndStream()
             OutputEngine.getInstance().deleteSink(this.sink)
         }
     }
@@ -113,12 +110,28 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public initializeSink() {
         // SONIFICATION
-        this.sink = OutputEngine.getInstance().addSink('SimpleDemo')
-        let handler = new NoteHandler(this.sink)
-        console.log(`adding handler ${handler}`)
-        this.sink.addDataHandler(handler)
-        // this.sink.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [4, 10]))
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
+
+        this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+
+        this.sink.addDataHandler(new NoteHandler())
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `success`)
 
         return this.sink
     }
+}
+
+const debug = (level: number, message: string) => (source: Observable<any>) =>
+    source.pipe(
+        tap((val) => {
+            debugStatic(level, message + ': ' + val)
+        }),
+    )
+const debugStatic = (level: number, message: string) => {
+    if (level >= getSonificationLoggingLevel()) {
+        console.log(message)
+    } //else console.log('debug message dumped')
 }

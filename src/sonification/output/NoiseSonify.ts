@@ -1,14 +1,13 @@
+import { tap, Observable } from 'rxjs'
 import { Datum } from '../Datum'
+import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../OutputConstants'
 import { Sonify } from './Sonify'
 import { SonifyFixedDuration } from './SonifyFixedDuration'
-
-const DEBUG = false
 
 /**
  * Class for sonifying a data point as a pitch.
  * @extends Sonify
  * @todo only plays noise once. investigate further. probably have to create new noise nodes for each point.
- *
  */
 export class NoiseSonify extends SonifyFixedDuration {
     /**
@@ -18,7 +17,7 @@ export class NoiseSonify extends SonifyFixedDuration {
 
     protected extend(timeAdd: number) {
         let noiseNode = this.outputNode as AudioBufferSourceNode
-        if (DEBUG) console.log('noiseSonify, getting noise node', noiseNode)
+        debugStatic(SonificationLoggingLevel.DEBUG, `noiseSonify, getting noise node ${noiseNode}`)
         if (noiseNode) noiseNode.buffer = this.fillBuffer(timeAdd)
     }
 
@@ -55,4 +54,16 @@ export class NoiseSonify extends SonifyFixedDuration {
     public toString(): string {
         return `NoiseSonify`
     }
+}
+
+const debug = (level: number, message: string) => (source: Observable<any>) =>
+    source.pipe(
+        tap((val) => {
+            debugStatic(level, message + ': ' + val)
+        }),
+    )
+const debugStatic = (level: number, message: string) => {
+    if (level >= getSonificationLoggingLevel()) {
+        console.log(message)
+    } //else console.log('debug message dumped')
 }

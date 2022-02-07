@@ -3,17 +3,15 @@ import React, { FC, useState, useEffect } from 'react'
 
 // import { JDBus } from "jacdac-ts/src/jdom/bus"
 
-import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
+import { SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
 import { useServices, useChange, useBus } from 'react-jacdac'
 import { Button } from '@mui/material'
 import { OutputEngine } from '../sonification/OutputEngine'
 import { JacdacProvider } from 'react-jacdac'
 import { bus } from '../bus'
 import { DataSink } from '../sonification/DataSink'
-import { SettingsOverscanTwoTone } from '@mui/icons-material'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
-import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
-import { NoiseSonify } from '../sonification/output/NoiseSonify'
+import { OutputStateChange } from '../sonification/OutputConstants'
 
 const TONE_THROTTLE = 100
 
@@ -64,17 +62,15 @@ function ConnectButton() {
         if (!streaming) {
             if (!src) {
                 src = OutputEngine.getInstance().addSink('jacdac demo')
-                src.setStat('max', 1.0)
-                src.setStat('min', -1.0)
                 src.addDataHandler(new NoteHandler())
                 // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
                 setSink(src)
             }
 
-            OutputEngine.getInstance().onPlay()
+            OutputEngine.getInstance().next(OutputStateChange.Play)
         } else {
-            OutputEngine.getInstance().onStop()
+            OutputEngine.getInstance().next(OutputStateChange.Stop)
         }
 
         setStreaming(!streaming)

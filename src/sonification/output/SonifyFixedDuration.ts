@@ -1,7 +1,7 @@
+import assert from 'assert'
 import { Datum } from '../Datum'
-import { OutputState } from '../OutputConstants'
+import { OutputStateChange } from '../OutputConstants'
 import { Sonify } from './Sonify'
-
 /**
  * Abstract class for sonifying a data point as a pitch.
  * @extends Sonify
@@ -21,8 +21,8 @@ export abstract class SonifyFixedDuration extends Sonify {
      * @param audioNode An audio node to connect up to make sounds
      * @param duration How long the node should play for
      */
-    constructor(volume?: number, audioNode?: AudioScheduledSourceNode, duration?: number) {
-        super(volume, audioNode)
+    constructor(audioNode?: AudioScheduledSourceNode, duration?: number) {
+        super(audioNode)
         if (duration) this.duration = duration
     }
 
@@ -38,11 +38,8 @@ export abstract class SonifyFixedDuration extends Sonify {
      * Call extend if the audio node is still playing
      * Otherwise just show this data point
      */
-    update(datum: Datum): void {
-        super.update(datum)
-
-        // don't do anything if we are not outputing data
-        if (this.outputState == OutputState.Paused || this.outputState == OutputState.Stopped) return
+    next(datum: Datum): void {
+        assert(this.outputState == OutputStateChange.Play, 'Should only be called if we are in Output mode')
 
         if (this.startTime) {
             let timePlayed = SonifyFixedDuration.audioCtx.currentTime - this.startTime

@@ -50,6 +50,7 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         this._textArea = React.createRef()
         this._inputFile = React.createRef()
         this._textField = React.createRef()
+        this._handleExampleChange()
     }
 
     public render() {
@@ -265,8 +266,8 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         }
     }
 
-    private _handleExampleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        let exampleValue = event.target.value
+    private _handleExampleChange = (event?: ChangeEvent<HTMLSelectElement>) => {
+        let exampleValue = event?.target.value ? event.target.value : this.state.exampleValue
         this.setState({ exampleValue })
         let url = `./data/${exampleValue}`
         DataManager.getInstance().loadDataFromUrl(url)

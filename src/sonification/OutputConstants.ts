@@ -1,3 +1,6 @@
+import { Observable, tap } from 'rxjs'
+import { Datum } from './Datum'
+
 /**
  * SonificationLevel is typically associated with a specific point being sonified
  * It is intended to be used similar to aria-live tags="polite","assertive", etc. for sonification
@@ -16,11 +19,59 @@ export enum SonificationLevel {
  * @readonly
  * @enum {number}
  */
-export enum OutputState {
-    /** Output is currently visible/audible */
-    Playing,
-    /** Output is paused, i.e. the Audio context is suspended */
-    Paused,
-    /** Output has ended.*/
-    Stopped,
+export enum OutputStateChange {
+    /** Output should start (become visible/audible) */
+    Play,
+    /** Output should pause */
+    Pause,
+    /** Output should end */
+    Stop,
+    /** Output state unknown */
+    Undefined,
+    /** Swap States (between Pause and Play)*/
+    Swap,
 }
+
+/**
+ * The type of the streams used by Data Sinks and all related classes
+ */
+export type StateDatum = { state: OutputStateChange; datum: Datum | undefined }
+
+/**
+ * Used by statistics keeping track of a value with regard to the data domain
+ */
+export enum GrowthDirection {
+    Max,
+    Min,
+}
+
+/**
+ * For debugging
+ */
+export enum SonificationLoggingLevel {
+    TRACE,
+    DEBUG,
+    INFO,
+    ERROR,
+}
+
+let sonificationLoggingLevel = SonificationLoggingLevel.DEBUG
+
+export function getSonificationLoggingLevel(): SonificationLoggingLevel {
+    return sonificationLoggingLevel
+}
+export function setSonificationsLoggingLevel(level: SonificationLoggingLevel) {
+    sonificationLoggingLevel = level
+}
+
+// export const debug = (level: number, message: string) => (source: Observable<any>) =>
+//     source.pipe(
+//         tap((val) => {
+//             debugStatic(level, message + ': ' + val)
+//         }),
+//     )
+// export const debugStatic = (level: number, message: string) => {
+//     if (level >= sonificationLoggingLevel) {
+//         console.log(message)
+//     } //else console.log('debug message dumped')
+// }

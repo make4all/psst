@@ -1,41 +1,40 @@
 import { List } from '@mui/material'
+import { bufferCount, filter, map, Observable, Subscription } from 'rxjs'
 import { Datum } from '../Datum'
-import { Calculator } from './Calculator'
+import { StateDatum } from '../OutputConstants'
+import { Statistic } from './Statistic'
 
 /**
  * Calculates a running average based on the last n values seen.
  */
-class RunningAverage implements Calculator {
+class RunningAverage extends Statistic {
     /**
-     * How many points should be kept to calculate this running average?
+     * What buffer should the average be calculated over?
      */
-    private _k = 3
-    public get k() {
-        return this._k
-    }
-    public set k(value) {
-        this._k = value
-    }
-
-    private data = Datum[this._k]
-
-    constructor(k?: number) {
-        if (k) {
-            this.k = k
-            this.data = Datum[k]
-        }
-    }
+    buffer = 3
 
     /**
-     * Update the running average statistic
-     * @param datum The new data point
-     * @param stat The current running average
-     * @returns The new running average
+     *
+     * @param stream$ The stream of data over which to calculate the statistic
+     * @param len The number of data points to calculate the running average over
      */
-    public update(datum: Datum, stat: number): number {
-        this.data.push(datum)
-        let dNk = this.data.shift()
+    constructor(len: number, stream$: Observable<StateDatum>) {
+        super(0, stream$)
+        this.buffer = len ? len : this.buffer
+    }
 
-        return stat + (1 / this.k) * (datum.value - dNk.value)
+    public setupSubscription(stream$: Observable<number>): Subscription {
+        return super.setupSubscription(
+            stream$.pipe(
+                bufferCount(this.buffer),
+                map((frames) => {
+                    const total = frames.reduce((acc, curr) => {
+                        acc += curr
+                        return acc
+                    }, 0)
+                    return 1 / (total / frames.length)
+                }),
+            ),
+        )
     }
 }

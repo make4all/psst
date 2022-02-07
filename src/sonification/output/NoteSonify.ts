@@ -1,8 +1,8 @@
 import { Datum } from '../Datum'
-import { OutputState } from '../OutputConstants'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { Sonify } from './Sonify'
-
-const DEBUG = false
+import assert from 'assert'
+import { Observable, tap } from 'rxjs'
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -19,33 +19,19 @@ export class NoteSonify extends Sonify {
     /**
      * Stores relevant information when a new datum arrives
      * @param datum The data datum to be sonified (or undefined if there is nothing to pla )
-     * @param duration The length of time over which to change to the new pitch. Defaults to 10 ms
-     * @param volume The volume to play the note at. Can be overriden globally
-     * @param smooth Whether to connect the notes in the sequence being played. If undefined, defaults to true.
      */
-    public update(datum?: Datum, duration = 200, volume?: number, smooth?: boolean) {
-        super.update(datum)
+    public next(datum: Datum) {
+        assert(this.outputState == OutputStateChange.Play, 'Should only be called if we are in Output mode')
 
-        // don't do anything if we are not outputting data
-        if (this.outputState == OutputState.Paused || this.outputState == OutputState.Stopped) return
         let oscillator = this.outputNode as OscillatorNode
-        if (datum) {
-            if (DEBUG) console.log(`updating value  ${datum.adjustedValue}`)
-            oscillator.frequency.value = datum.adjustedValue
-            if (!this.playing) {
-                oscillator.start()
-                this.playing = true
-            }
-        } else {
-            oscillator.stop()
-            this.playing = false
-        }
+        debugStatic(SonificationLoggingLevel.DEBUG, `updating value  ${datum.value}`)
+        oscillator.frequency.value = datum.value
     }
 
     /**
      * Stop all notes. This tells the oscillator to stop playing.
      */
-    stop() {
+    protected stop() {
         let oscillator = this.outputNode as OscillatorNode
         oscillator?.stop()
         this.outputNode = Sonify.audioCtx.createOscillator()
@@ -56,8 +42,8 @@ export class NoteSonify extends Sonify {
     /**
      * Start playing the current datum. This starts the oscillator again.
      */
-    start() {
-        if (this.outputState == OutputState.Stopped) {
+    protected start() {
+        if (this.outputState == OutputStateChange.Stop) {
             let oscillator = this.outputNode as OscillatorNode
 
             oscillator?.start()
@@ -68,12 +54,9 @@ export class NoteSonify extends Sonify {
 
     /**
      * Generates a new note sonifier
-     * @param volume The volume the sound should play at
-     * @param optionally include an audio node that can be played
-     * @returns Returns an instance of specific subclass of SonificationType.
      */
-    public constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
-        super(volume, Sonify.audioCtx.createOscillator())
+    public constructor() {
+        super(Sonify.audioCtx.createOscillator())
 
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
@@ -91,4 +74,16 @@ export class NoteSonify extends Sonify {
         if (oscillator) return `NoteSonify playing ${oscillator.frequency.value}`
         else return `NoteSonify not currently playing`
     }
+}
+
+const debug = (level: number, message: string) => (source: Observable<any>) =>
+    source.pipe(
+        tap((val) => {
+            debugStatic(level, message + ': ' + val)
+        }),
+    )
+const debugStatic = (level: number, message: string) => {
+    if (level >= getSonificationLoggingLevel()) {
+        console.log(message)
+    } //else console.log('debug message dumped')
 }

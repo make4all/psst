@@ -1,15 +1,15 @@
 import { Datum } from './Datum'
-import { OutputState } from './OutputConstants'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel, StateDatum } from './OutputConstants'
 import { DataSink } from './DataSink'
-
-const DEBUG = false
+import { BehaviorSubject, combineLatest, distinctUntilChanged, lastValueFrom, map, Observable, share, tap } from 'rxjs'
+import assert from 'assert'
 
 /**
  * OutputEngine class
  * Has a single instance
  * Users of our library get an instance of this to control it i.e. get sink, play, etc.
  */
-export class OutputEngine {
+export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     /**
      * The Output Engine. Enforce that there is only ever one.
      * @todo ask group if there is a better way to enforce this.
@@ -17,33 +17,15 @@ export class OutputEngine {
     private static outputEngineInstance: OutputEngine
 
     /**
-     * Whether or not output is currently playing.
-     * Always begin in a "stopped" state since there is
-     * no data to output yet at construction time
-     */
-    private _outputState = OutputState.Stopped
-    public get outputState(): OutputState {
-        return this._outputState
-    }
-    public set outputState(value: OutputState) {
-        if (DEBUG) console.log('changing output state')
-        this._outputState = value
-    }
-    /**
-     * Tracks the previous output state. Used for firing the onOutputStateChanged event that users can hook into. This event hook can be used to drive the UI.
-     */
-    private _previousOutputState
-
-    /**
-     * Event that users of the OutputEngine can hook into to be alerted when the playback state changes.
-     *
-     */
-    public onOutputStateChanged?: (state: OutputState) => void
-
-    /**
      * A map of Data sinks handled by the Output Engine.
      */
-    private sinks: Map<number, DataSink>
+    private sinks: Map<
+        number,
+        {
+            sink: DataSink
+            stream$: Observable<StateDatum> | undefined
+        }
+    >
 
     /**
      * @returns A dataSink Id that is unique
@@ -57,24 +39,14 @@ export class OutputEngine {
     }
 
     /**
-     * @param sinkId An id
-     * @returns true if the id is unique (not already in sinks)
-     */
-    public isUnique(sinkId: number): boolean {
-        if (sinkId in this.sinks.keys) {
-            return false
-        }
-        return true
-    }
-
-    /**
      * Get a sink given an Id. Throws an error of sinkId doesn't exist.
      * @param sinkId
      * @returns Returns the DataSink associated with sinkId.
      */
     public getSink(sinkId: number): DataSink {
-        let sink = this.sinks.get(sinkId)
-        if (!sink) throw new Error(`no sink associated with ${sinkId}`)
+        let sink,
+            stream = this.sinks.get(sinkId)?.sink
+        assert(sink, `no sink associated with ${sinkId}`)
         return sink
     }
 
@@ -86,36 +58,16 @@ export class OutputEngine {
      * @param sinkId A unique id for the sink
      * @param sink The DataSink object
      */
-    public addSink(description?: string, sinkId?: number, sink?: DataSink): DataSink {
-        if (!description) description = 'Unknown Sink'
-        if (sink) {
-            if (!sinkId) sinkId = sink.id
-            if (sinkId != sink.id) throw Error("sinkId and sink.id don't match")
-        } else {
-            if (sinkId) {
-                if (!this.isUnique(sinkId)) throw Error('sinkId is not unique')
-                sink = new DataSink(sinkId, description)
-            } else {
-                sink = new DataSink(this.getUniqueId(), description)
-            }
-        }
-        sink.onStreamEnded = () => this.handleSinkStreamEnded()
-        this.sinks.set(sink.id, sink)
+    public addSink(description?: string, sinkId?: number, sink?: DataSink, stream$?: Observable<Datum>): DataSink {
+        description = description ? description : 'Unknown Sink'
+        sinkId = sink ? sink.id : sinkId
+        if (!sinkId) sinkId = this.getUniqueId()
+        assert(!this.sinks.has(sinkId), 'sinkId is not unique')
+        sink = sink ? sink : new DataSink(sinkId, description)
+        assert(sink?.id == sinkId, "sinkId and sink.id don't match")
+        this.sinks.set(sinkId, { sink: sink, stream$: undefined })
+        if (stream$) this.setStream(sinkId, stream$)
         return sink
-    }
-    handleSinkStreamEnded() {
-        let didAllSinksEndPlaying = true
-        for (let [id, sink] of this.sinks) {
-            if (sink.outputState != OutputState.Stopped) {
-                didAllSinksEndPlaying = false
-                break
-            }
-        }
-        if (didAllSinksEndPlaying) {
-            this.outputState = OutputState.Stopped
-            this.fireOutputStateChangedEvent()
-            if (DEBUG) console.log('stream has ended. stopping output')
-        }
     }
 
     /**
@@ -123,16 +75,77 @@ export class OutputEngine {
      * @param sinkId Data sink to remove.
      */
     public deleteSink(sink?: DataSink, sinkId?: number) {
-        if (sink) this.sinks.delete(sink.id)
-        if (sinkId) this.sinks.delete(sinkId)
+        if (sink) sinkId = sink.id
+        if (sinkId) {
+            this.sinks.get(sinkId)?.sink.complete()
+            this.sinks.delete(sinkId)
+        }
+
         if (!sink && !sinkId) throw Error('Must specify sink or ID')
     }
 
+    pushPoint(x: number, sinkId: number) {
+        let sink = this.getSink(sinkId)
+        lastValueFrom(this).then((state) => {
+            sink.next({ state: state, datum: new Datum(sinkId, x) })
+        })
+    }
+
+    /////////////////// STREAM SUPPORT /////////////////////////////////
+
+    /**
+     * Sets up the stream and/or hot swaps this stream
+     * for another.
+     *
+     * Makes sure that the stream replaces SWAP events with the
+     * correct Play/Pause event and doesn't ever repeat the same state
+     *
+     * @todo should we disable hot swapping?
+     * @param data$ an observable stream of Datum
+     */
+    public setStream(sinkId: number, data$: Observable<Datum>) {
+        let res = this.sinks.get(sinkId)
+        if (!res) return
+        if (res.stream$) res?.sink?.complete()
+        let sink = res.sink
+
+        let filteredState$ = this.pipe(
+            map((state) => {
+                switch (state) {
+                    case OutputStateChange.Swap:
+                        {
+                            if (this.value == OutputStateChange.Pause) return OutputStateChange.Play
+                            else if (this.value == OutputStateChange.Play) return OutputStateChange.Pause
+                            else Error('can only swap Play and Pause')
+                        }
+                        return state
+                }
+            }),
+            distinctUntilChanged(),
+        )
+        let combined$ = combineLatest({ state: filteredState$, datum: data$ }) as Observable<StateDatum>
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `Loading Data with outputstate ${sink}`)
+
+        // subscribe the sink to the stream
+        combined$
+            .pipe(debug(SonificationLoggingLevel.DEBUG, `loading combined stream into Sink ${sink}`))
+            .subscribe(res?.sink)
+
+        this.sinks.set(sink.id, {
+            sink: sink,
+            stream$: combined$,
+        })
+    }
+
+    ////////////////// CONSTRUCTOR /////////////////////////////////////
     /**
      * Set up the output board. set up maps needed to keep track of sinks and outputs.
      */
     private constructor() {
+        super(OutputStateChange.Undefined)
         this.sinks = new Map()
+        this.pipe(share())
     }
 
     /**
@@ -146,88 +159,16 @@ export class OutputEngine {
 
         return OutputEngine.outputEngineInstance
     }
+}
 
-    //needs extensive testing.
-    public onStop() {
-        // @todo do I need to do anything differently if was stopped instead of paused?
-        // The answer is yes if we ever want to handl control to a new/different audio context
-        // maybe have an option for "halt" instead that ends everything?
-
-        if (DEBUG) console.log('stopping. output state is paused')
-        this.sinks.forEach((sink: DataSink, key: number) => sink.handleEndStream())
-        this._outputState = OutputState.Stopped
-        // this.audioCtx.close() -- gives everything up, should only be done at the very very end.
-    }
-
-    //needs extensive testing.
-    public onPlay() {
-        // @todo do I need to do anything differently if was stopped instead of paused?
-        // The answer is yes if we ever want to handl control to a new/different audio context
-        if (this.outputState == OutputState.Playing) {
-            if (DEBUG) console.log('playing')
-        } else {
-            if (DEBUG) console.log('setting up for playing')
-
-            this.startSinks()
-            this._outputState = OutputState.Playing
-            this.fireOutputStateChangedEvent()
-        }
-    }
-
-    /**
-     * Triggers all existing sinks to show themselves (e.g. set up for playing)
-     *
-     * @todo if a new sink is added after onPlay it won't get connected
-     * @todo what about visually outputing things
-     */
-    private startSinks() {
-        if (DEBUG) console.log(`starting sinks ${this.sinks.size}`)
-        this.sinks.forEach((sink: DataSink, key: number) => sink.startOutputs())
-    }
-
-    //needs extensive testing.
-    public onPause() {
-        if (DEBUG) console.log('Pausing. Playback state is paused')
-        this._outputState = OutputState.Paused
-        this.sinks.forEach((sink: DataSink, key: number) => sink.pauseOutputs())
-        this.fireOutputStateChangedEvent()
-    }
-
-    /**
-     * Plays each data point as it arrives.
-     * @param point The point to sonify
-     * @param sinkId The sink that point is associated with
-     * @returns The resulting data point
-     */
-    public pushPoint(point: number, sinkId: number): Datum {
-        // datum: Datum, sink: Datasink) {
-        if (DEBUG) console.log(`pushPoint ${point} for ${sinkId} during ${this.outputState} `)
-        let sink = this.sinks.get(sinkId)
-        if (!sink) throw new Error(`no sink associated with ${sinkId}`)
-        if (DEBUG) console.log(`Sink ${sink}`)
-        let datum = new Datum(sinkId, point)
-        switch (this.outputState) {
-            case OutputState.Stopped: // ignore the point
-                if (DEBUG) console.log(`playback: Stopped`)
-                break
-            case OutputState.Playing: {
-                if (DEBUG) console.log(`calling ${sink} to handle ${{ datum }}`)
-                sink.handleNewDatum(datum)
-
-                break
-            }
-            case OutputState.Paused: {
-                if (DEBUG) console.log(`playback: paused`)
-                /// @todo what should we do? Keep a buffer of points and delay them? something else?
-            }
-        }
-        return datum
-    }
-
-    private fireOutputStateChangedEvent() {
-        if (this._outputState != this._previousOutputState) {
-            if (this.onOutputStateChanged) this.onOutputStateChanged(this._outputState)
-            this._previousOutputState = this._outputState
-        }
-    }
+const debug = (level: number, message: string) => (source: Observable<any>) =>
+    source.pipe(
+        tap((val) => {
+            debugStatic(level, message + ': ' + val)
+        }),
+    )
+const debugStatic = (level: number, message: string) => {
+    if (level >= getSonificationLoggingLevel()) {
+        console.log(message)
+    } //else console.log('debug message dumped')
 }
