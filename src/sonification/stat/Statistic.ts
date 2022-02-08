@@ -1,6 +1,6 @@
 import assert from 'assert'
 import { BehaviorSubject, filter, map, Observable, of, Subscription } from 'rxjs'
-import { StateDatum } from '../OutputConstants'
+import { NullableDatum, OutputStateChange } from '../OutputConstants'
 
 /**
  * Base class for calculating a statistic for a data stream.
@@ -10,14 +10,14 @@ import { StateDatum } from '../OutputConstants'
  * Stores the last  value of the statistic
  */
 export class Statistic extends BehaviorSubject<number> {
-    constructor(value: number, stream$?: Observable<StateDatum>) {
+    constructor(value: number, stream$?: Observable<[OutputStateChange, NullableDatum]>) {
         super(value)
         if (stream$) {
             this.setupSubscription(
                 stream$.pipe(
-                    filter((stateDatum) => !stateDatum.datum),
-                    map((stateDatum) => {
-                        if (stateDatum.datum) return stateDatum.datum.value
+                    filter(([state, datum]) => !datum),
+                    map(([state, datum]) => {
+                        if (datum) return datum.value
                         return 0
                     }),
                 ),

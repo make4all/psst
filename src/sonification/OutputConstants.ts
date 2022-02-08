@@ -33,9 +33,9 @@ export enum OutputStateChange {
 }
 
 /**
- * The type of the streams used by Data Sinks and all related classes
+ * An alias for Datum that can be undefined
  */
-export type StateDatum = { state: OutputStateChange; datum: Datum | undefined }
+export type NullableDatum = Datum | undefined
 
 /**
  * Used by statistics keeping track of a value with regard to the data domain

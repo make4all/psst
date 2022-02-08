@@ -1,5 +1,5 @@
 import { distinctUntilChanged, filter, Observable, reduce, Subscription } from 'rxjs'
-import { GrowthDirection, StateDatum } from '../OutputConstants'
+import { GrowthDirection, NullableDatum, OutputStateChange } from '../OutputConstants'
 import { Statistic } from './Statistic'
 
 /**
@@ -16,7 +16,7 @@ export class RangeEndExpander extends Statistic {
      * @param stream$
      * @param startVal
      */
-    constructor(direction: GrowthDirection, stream$: Observable<StateDatum>, val?: number) {
+    constructor(direction: GrowthDirection, stream$: Observable<[OutputStateChange, NullableDatum]>, val?: number) {
         super(val ? val : 0, stream$)
         this.direction = direction
     }

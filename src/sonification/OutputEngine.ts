@@ -1,7 +1,12 @@
 import { Datum } from './Datum'
-import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel, StateDatum } from './OutputConstants'
+import {
+    getSonificationLoggingLevel,
+    NullableDatum,
+    OutputStateChange,
+    SonificationLoggingLevel,
+} from './OutputConstants'
 import { DataSink } from './DataSink'
-import { BehaviorSubject, combineLatest, distinctUntilChanged, lastValueFrom, map, Observable, share, tap } from 'rxjs'
+import { BehaviorSubject, distinctUntilChanged, lastValueFrom, map, Observable, share, tap, zip } from 'rxjs'
 import assert from 'assert'
 
 /**
@@ -23,7 +28,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         number,
         {
             sink: DataSink
-            stream$: Observable<StateDatum> | undefined
+            stream$: Observable<[OutputStateChange, Datum]> | undefined
         }
     >
 
@@ -44,8 +49,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
      * @returns Returns the DataSink associated with sinkId.
      */
     public getSink(sinkId: number): DataSink {
-        let sink,
-            stream = this.sinks.get(sinkId)?.sink
+        let sink = this.sinks.get(sinkId)?.sink
         assert(sink, `no sink associated with ${sinkId}`)
         return sink
     }
@@ -87,7 +91,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     pushPoint(x: number, sinkId: number) {
         let sink = this.getSink(sinkId)
         lastValueFrom(this).then((state) => {
-            sink.next({ state: state, datum: new Datum(sinkId, x) })
+            sink.next([state, new Datum(sinkId, x)])
         })
     }
 
@@ -123,14 +127,13 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
             }),
             distinctUntilChanged(),
         )
-        let combined$ = combineLatest({ state: filteredState$, datum: data$ }) as Observable<StateDatum>
+        let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
 
         debugStatic(SonificationLoggingLevel.DEBUG, `Loading Data with outputstate ${sink}`)
 
-        // subscribe the sink to the stream
-        combined$
-            .pipe(debug(SonificationLoggingLevel.DEBUG, `loading combined stream into Sink ${sink}`))
-            .subscribe(res?.sink)
+        sink.setupSubscription(combined$ as Observable<[OutputStateChange, NullableDatum]>)
+        /// .pipe(debug(SonificationLoggingLevel.DEBUG, `loading combined stream into Sink ${sink}`))
+        /// .subscribe(res?.sink)
 
         this.sinks.set(sink.id, {
             sink: sink,

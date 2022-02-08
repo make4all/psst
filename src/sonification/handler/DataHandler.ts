@@ -3,15 +3,15 @@ import { DatumOutput } from '../output/DatumOutput'
 import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, tap } from 'rxjs'
 import {
     getSonificationLoggingLevel,
+    NullableDatum,
     OutputStateChange,
     SonificationLoggingLevel,
-    StateDatum,
 } from '../OutputConstants'
 
 /**
  * A DataHandler class is used to decide how to output each data point.
  */
-export abstract class DataHandler extends BehaviorSubject<StateDatum> {
+export abstract class DataHandler extends BehaviorSubject<[OutputStateChange, NullableDatum]> {
     /**
      * Store a DatumOutput if this DataHandler has one
      */
@@ -24,14 +24,11 @@ export abstract class DataHandler extends BehaviorSubject<StateDatum> {
      */
     public addOutput(output: DatumOutput) {
         this.outputs.push(output)
-        this.pipe(
-            filter((datumOutput) => datumOutput.state == OutputStateChange.Play && !datumOutput.datum),
-            map((stateDatum) => {
-                return stateDatum.datum
-            }),
-        )
-            .pipe(debug(SonificationLoggingLevel.DEBUG, `outputing datum to output ${output}`))
-            .subscribe(output)
+        let outputStream$ = this.pipe(
+            filter(([state, datum]) => state == OutputStateChange.Play && !datum),
+            map(([state, datum]) => datum),
+        ).pipe(debug(SonificationLoggingLevel.DEBUG, `outputing datum to output ${output}`))
+        output.setupSubscription(outputStream$ as DataHandler)
 
         this.updateOutputAboutState(output)
     }
@@ -43,9 +40,9 @@ export abstract class DataHandler extends BehaviorSubject<StateDatum> {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: DataSink) {
-        console.log(`setting up subscription for ${this}`)
+        console.log(`setting up subscription for ${this} ${sink$}`)
         sink$
-            .pipe(debug(SonificationLoggingLevel.DEBUG, `Notifying sink about data handler about events ${this}`))
+            .pipe(debug(SonificationLoggingLevel.DEBUG, `Sink notifying data handler about events ${this}`))
             .subscribe(this)
     }
 
@@ -54,8 +51,8 @@ export abstract class DataHandler extends BehaviorSubject<StateDatum> {
      */
     protected updateOutputAboutState(output: DatumOutput) {
         let stateStream$ = this.pipe(
-            map((stateDatum) => {
-                return stateDatum.state
+            map(([state, datum]) => {
+                return state
             }),
         )
         stateStream$ = stateStream$.pipe(distinctUntilChanged())
@@ -68,7 +65,7 @@ export abstract class DataHandler extends BehaviorSubject<StateDatum> {
      * @param output An optional way to output the data
      */
     constructor(output?: DatumOutput) {
-        super({ datum: undefined, state: OutputStateChange.Undefined })
+        super([OutputStateChange.Undefined, undefined])
         this.outputs = new Array<DatumOutput>()
         if (output) this.addOutput(output)
     }

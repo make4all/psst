@@ -91,20 +91,20 @@ export class ScaleHandler extends DataHandler {
      * @param sink$ The data comes from here
      */
     public setupSubscription(sink$: DataSink): void {
+        console.log(`setting up subscription for ${this} ${sink$}`)
         let merged$ = combineLatest([...this.domain, ...this.range, sink$])
         merged$
             .pipe(
-                map(([dmin, dmax, rmin, rmax, stateDatum]) => {
-                    if (stateDatum.datum) {
-                        let datum = stateDatum.datum
+                map(([dmin, dmax, rmin, rmax, [state, datum]]) => {
+                    if (datum) {
                         datum = new Datum(
                             datum.sinkId,
                             this.conversionFunction(datum.value, [dmin, dmax], [rmin, rmax]),
                             datum.time,
                         )
-                        stateDatum.datum = datum
+                        datum = datum
                     }
-                    return stateDatum
+                    return [state, datum]
                 }),
             )
             .pipe(debug(SonificationLoggingLevel.DEBUG, `outputing state to handler ${this}`))

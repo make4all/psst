@@ -1,5 +1,5 @@
 import React from 'react'
-import { map, Observable, tap, timer } from 'rxjs'
+import { combineLatest, map, Observable, of, tap, timer, zip } from 'rxjs'
 import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
@@ -68,17 +68,13 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         if (!this.sink) this.initializeSink()
 
         let id = this.sink ? this.sink.id : 0
-        // let source = timer(0, 200).pipe(
-        //     map((val) => new Datum(id, data.next())),
-        // )
-        let source = timer(0, 200).pipe(
-            map((val) => {
-                //console.log(`${data[val]}`)
-                return new Datum(id, data[val])
-            }),
-        )
+
+        let data$ = of(...data)
+        let timer$ = timer(0, 200).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num))
+
         debugStatic(SonificationLoggingLevel.DEBUG, 'calling setStream')
-        OutputEngine.getInstance().setStream(id, source)
+        OutputEngine.getInstance().setStream(id, source$)
 
         // SONIFICATION INITIALIZATION
         OutputEngine.getInstance().next(OutputStateChange.Play)
@@ -116,7 +112,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
 
-        this.sink.addDataHandler(new NoteHandler())
+        this.sink?.addDataHandler(new NoteHandler())
 
         debugStatic(SonificationLoggingLevel.DEBUG, `success`)
 
