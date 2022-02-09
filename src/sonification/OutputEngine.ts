@@ -102,6 +102,16 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         if (!sink && !sinkId) throw Error('Must specify sink or ID')
     }
 
+    /**
+     * @deprecated
+     *
+     * pushPoint is sort of legacy. It feeds data in to the sink by calling
+     * sink.next(). However this should not be used as things like automatic
+     * calls to complete() when the stream ends break when you use this approach.
+     *
+     * @param x A number
+     * @param sinkId Which sink it should go to
+     */
     pushPoint(x: number, sinkId: number) {
         let sink = this.getSink(sinkId)
         lastValueFrom(this).then((state) => {
@@ -148,6 +158,11 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
             distinctUntilChanged(),
         )
         //let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
+        // TODO: This may cause a small error in data calculations. Specifically,
+        // when the state changes (e.g. from Play to Pause and back), combineLatest will
+        // include the latest datum in the resulting tuple, even if it was previously provided
+        // when that datum arrived. I think this is a bug that could cause statistics to be
+        // calculated wrong...
         let combined$ = combineLatest([filteredState$, data$])
 
         sink.setupSubscription(combined$)
