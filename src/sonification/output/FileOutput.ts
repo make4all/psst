@@ -12,7 +12,7 @@ export class FileOutput extends Sonify {
     // stop() not necessary atm?
     // pause() also not necessary
 
-    private fileName = "./beep.mp3"
+    private fileName = "./beep.wav"
 
     /**
      * Start playing the current datum. This starts the oscillator again.
@@ -27,28 +27,17 @@ export class FileOutput extends Sonify {
      */
     public constructor() {
         super()
-        let buffer;
-        let load = () => {
-            const request = new XMLHttpRequest();
-            request.open("GET", this.fileName);
-            request.responseType = "arraybuffer";
-            request.onload = function() {
-                let undecodedAudio = request.response;
-                FileOutput.audioCtx.decodeAudioData(undecodedAudio, (data) => buffer = data, function(error) {
-                    console.error("decodeAudioData error", error);
-                });
-                console.log("loaded!")
-            };
-            request.send();
-        }
-        load()
-        const source = FileOutput.audioCtx.createBufferSource();
-        source.buffer = buffer;
-        this._outputNode = source
+        this.getFile(FileOutput.audioCtx, this.fileName)
     }
 
-    public load() {
-
+    public getFile(audioContext, filepath) {
+        const source = FileOutput.audioCtx.createBufferSource();
+        fetch(filepath)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(sample => source.buffer = sample)
+            .catch(console.error)
+        return source;
     }
 
     /**
