@@ -1,13 +1,13 @@
-import { Sonifier } from '../sonification/Sonifier'
+import { OutputEngine } from '../sonification/OutputEngine'
 
 import React, { ChangeEvent } from 'react'
 
-import { PlaybackState, SonificationLevel } from '../sonification/SonificationConstants'
+import { OutputState } from '../sonification/OutputConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 import { ChartView } from '../views/ChartView'
 
-import { FormControl, InputLabel, Select, SelectChangeEvent, MenuItem, Grid, NativeSelect } from '@mui/material'
+import { FormControl, InputLabel, Grid, NativeSelect } from '@mui/material'
 
 import { DataManager } from '../DataManager'
 
@@ -15,17 +15,13 @@ import { DataManager } from '../DataManager'
 import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
 import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
+import { DemoSpeakRange } from '../views/demos/DemoSpeakRange'
 import { op } from 'arquero'
-import { ExperimentalDemoHighlightRegion } from '../views/demos/ExperimentalDemoHighlightRegion'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    experimentalHighlightRegion: {
-        value: 'experimentalHighlightRegion',
-        label: 'experimental implementation of highlight points for region',
-        component: ExperimentalDemoHighlightRegion,
-    },
+    speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange}
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
@@ -175,35 +171,41 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         // for (let i = 0; i < dataText.length; i++) {
         //     data.push(parseInt(dataText[i]))
         // }
-        const sonifierInstance = Sonifier.getSonifierInstance()
+        const outputEngineInstance = OutputEngine.getInstance()
 
-        if (sonifierInstance) {
-            console.log('sonifier instance is present. playback state', sonifierInstance.playbackState)
-            if (sonifierInstance.playbackState == PlaybackState.Playing) return
-            sonifierInstance.onPlay()
-        }
+        if (outputEngineInstance) {
+            console.log('Output Engine instance is present. Output state', outputEngineInstance.outputState)
+            outputEngineInstance.onOutputStateChanged = this._handlePlaybackStateChanged
+            if (outputEngineInstance.outputState == OutputState.Paused) {
+                outputEngineInstance.onPlay()
+            } else if (outputEngineInstance.outputState == OutputState.Outputting) {
+                console.log('pausing output.')
+                outputEngineInstance.onPause()
+            } else {
+                let table = DataManager.getInstance().table
+                console.log('table: ' + table)
+                if (table) {
+                    // Hardcode getting the "Value" column from each data table, this will need to be set by user later
+                    let data = table.columns()[this.state.columnSelected].data
 
-        let table = DataManager.getInstance().table
-
-        if (table) {
-            // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-            let data = table.columns()[this.state.columnSelected].data
-
-            if (demoViewRef.current) {
-                let demoView: IDemoView = demoViewRef.current
-                demoView.onPlay(data)
+                    if (demoViewRef.current) {
+                        let demoView: IDemoView = demoViewRef.current
+                        console.log("calling demo's onPlay()")
+                        demoView.onPlay(data)
+                    }
+                }
             }
         }
     }
 
-    private _handlePlaybackStateChanged = (e: PlaybackState) => {
+    private _handlePlaybackStateChanged = (e: OutputState) => {
         console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
-            case PlaybackState.Playing:
+            case OutputState.Outputting:
                 playbackLabel = 'pause'
                 break
-            case PlaybackState.Paused:
+            case OutputState.Paused:
                 playbackLabel = 'resume'
                 break
             default:
@@ -214,17 +216,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
         console.log('returning. play button label', playbackLabel)
     }
-
-    // private _handlePushRudeData = () => {
-    //     let sonifierInstance = Sonifier.getSonifierInstance()
-    //     if (sonifierInstance) {
-    //         for (let i = 0; i < 5; i++) {
-    //             let dataPoint: number = Math.random()
-    //             dataPoint = dataPoint * 10000
-    //             sonifierInstance.SonifyPushedPoint(dataPoint, SonificationLevel.assertive)
-    //         }
-    //     }
-    // }
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value

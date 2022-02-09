@@ -1,4 +1,5 @@
 {
+    "homepage": ".",
     "name": "sonification",
     "version": "1.1.1",
     "description": "library that provides sonification primitives to make data accessible.",
@@ -41,6 +42,7 @@
         "jacdac-ts": "^1.24.4",
         "react-jacdac": "^1.1.1",
         "rxjs": "^7.5.2",
+        "typedoc": "^0.22.11",
         "webusb": "^2.2.0"
     },
     "devDependencies": {
@@ -89,5 +91,7 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
-    }
+    },
+    "repository": "https://github.com/make4all/sonification.git",
+    "author": "Jennifer Mankoff <jmankoff@cs.washington.edu>"
 }

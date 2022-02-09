@@ -1,14 +1,13 @@
-import { display } from '@mui/system'
-import { DataSource } from '../DataSource'
+import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
-import { DatumDisplay } from '../displays/DatumDisplay'
-import { Template } from './Template'
+import { DatumOutput } from '../output/DatumOutput'
+import { DataHandler } from './DataHandler'
 
 /**
- * A template that filters out things which are not betwen min and max (inclusive)
+ * A DataHandler that filters out things which are not betwen min and max (inclusive)
  * @todo change this to take a function that decides how to filter?
  */
-export class FilterRangeTemplate extends Template {
+export class FilterRangeHandler extends DataHandler {
     /**
      * The range to accept points within. Defaults to 0,0 if not defined in constructor
      */
@@ -23,11 +22,12 @@ export class FilterRangeTemplate extends Template {
     /**
      * Constructor
      *
-     * @param display. Optional display for this data
+     * @param sink. DataSink that is providing data to this Handler.
+     * @param output. Optional output for this data
      * @param range [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(display?: DatumDisplay, range?: [number, number]) {
-        super(display)
+    constructor(sink?: DataSink, output?: DatumOutput, range?: [number, number]) {
+        super(sink, output)
         if (range) this._range = range
         else this._range = [0, 0]
     }
@@ -35,19 +35,23 @@ export class FilterRangeTemplate extends Template {
     /**
      * Handle the next datum by filtering if it is not inside the range (inclusive)
      * @param datum The datum to handle
-     * @param source The DataSource
      * @returns
      */
-    handleDatum(datum: Datum, source: DataSource): boolean {
+    handleDatum(datum?: Datum): boolean {
+        if (!datum) return false
+
         if (this.range[0] <= datum.value && datum.value <= this.range[1]) {
             console.log('in range. ')
-            return super.handleDatum(datum, source)
+            return super.handleDatum(datum)
         }
         console.log('not in range. ')
         return false
     }
 
+    /**
+     * @returns A string describing this class including its range.
+     */
     public toString(): string {
-        return `FilterRangeTemplate: Keeping only data in ${this.range[0]},${this.range[1]}`
+        return `FilterRangeHandler: Keeping only data in ${this.range[0]},${this.range[1]}`
     }
 }

@@ -3,29 +3,26 @@ import React from 'react'
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
 import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
-import { NoiseSonify } from '../../sonification/output/NoiseSonify'
+import { Speech } from '../../sonification/output/Speech'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
 
-export interface DemoHighlightRegionState extends DemoSimpleState {
+export interface DemoSpeakRangeState extends DemoSimpleState {
     minValue: number
     maxValue: number
 }
-export interface DemoHighlightRegionProps extends DemoSimpleProps {
+export interface DemoSpeakRangeProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-// I don't know react well enough -- can this extend demosimple instead? Would be much simpler...
-// would still need to get the highlightRegionProps...
-// there is a lot of duplication between this and DemoSimple right now...
-export class DemoHighlightRegion
-    extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
+export class DemoSpeakRange
+    extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRangeState>
     implements IDemoView
 {
     filter: FilterRangeHandler | undefined
 
-    constructor(props: DemoHighlightRegionProps) {
+    constructor(props: DemoSpeakRangeProps) {
         super(props)
         this.state = {
             minValue: this.props.dataSummary.min,
@@ -61,11 +58,9 @@ export class DemoHighlightRegion
     }
 
     /**
-     * Something was updated in this class.
-     * Make sure that we are updating our filter to reflect the new min/max values
      * @param prevProps new min/max value
      */
-    public componentDidUpdate(prevProps: DemoHighlightRegionProps) {
+    public componentDidUpdate(prevProps: DemoSpeakRangeProps) {
         // When the data summary changes, update the min & max value
         if (
             this.props.dataSummary.min !== prevProps.dataSummary.min ||
@@ -75,7 +70,6 @@ export class DemoHighlightRegion
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
         }
-        // SONIFICATION
         if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
     }
 
@@ -92,11 +86,11 @@ export class DemoHighlightRegion
 
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
-        this.sink = OutputEngine.getInstance().addSink('HighlightRegionDemo')
-        /**
-         * @todo vpotluri to understand: where is the update datum method for this being called?
-         */
-        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.state.minValue, this.state.maxValue])
+        this.sink = OutputEngine.getInstance().addSink('SpeakRangeDemo')
+        this.filter = new FilterRangeHandler(this.sink, new Speech(), [
+            this.state.minValue,
+            this.state.maxValue,
+        ])
         this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.filter)
         return this.sink

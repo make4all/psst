@@ -6,14 +6,14 @@ import React, { FC, useState, useEffect } from 'react'
 import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
 import { useServices, useChange, useBus } from 'react-jacdac'
 import { Button } from '@mui/material'
-import { Sonifier } from '../sonification/Sonifier'
+import { OutputEngine } from '../sonification/OutputEngine'
 import { JacdacProvider } from 'react-jacdac'
 import { bus } from '../bus'
-import { DataSource } from '../sonification/DataSource'
+import { DataSink } from '../sonification/DataSink'
 import { SettingsOverscanTwoTone } from '@mui/icons-material'
-import { NoteTemplate } from '../sonification/templates/NoteTemplate'
-import { FilterRangeTemplate } from '../sonification/templates/FilterRangeTemplate'
-import { NoiseSonify } from '../sonification/displays/NoiseSonify'
+import { NoteHandler } from '../sonification/handler/NoteHandler'
+import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
+import { NoiseSonify } from '../sonification/output/NoiseSonify'
 
 const TONE_THROTTLE = 100
 
@@ -21,9 +21,8 @@ function ConnectButton() {
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
-    const [sonifier, setSonifier] = useState<Sonifier>()
     const [streaming, setStreaming] = useState(false)
-    const [source, setSource] = useState<DataSource>()
+    const [sink, setSink] = useState<DataSink>()
 
     useEffect(() => {
         if (!inIFrame() && window.location.hash === '#dbg') startDevTools()
@@ -39,10 +38,10 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !sonifier || !source) return
+                if (!streaming || !sink) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
-                sonifier.pushPoint(x, source.id)
+                OutputEngine.getInstance().pushPoint(x, sink.id)
             }, TONE_THROTTLE),
         )
 
@@ -61,27 +60,21 @@ function ConnectButton() {
     }
 
     const handleStartStreaming = () => {
-        let son = sonifier
-        let src = source
+        let src = sink
         if (!streaming) {
-            if (!son) {
-                son = Sonifier.getSonifierInstance()
-                setSonifier(son)
-            }
-
             if (!src) {
-                src = son.addSource('jacdac demo')
-                src.addTemplate(new NoteTemplate())
-                // src.addTemplate(new FilterRangeTemplate(new NoiseSonify(), [-1, 0]))
-                // dummy stats. Do we know the min and max for accelerometer?
+                src = OutputEngine.getInstance().addSink('jacdac demo')
                 src.setStat('max', 1.0)
                 src.setStat('min', -1.0)
-                setSource(src)
+                src.addDataHandler(new NoteHandler())
+                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                // dummy stats. Do we know the min and max for accelerometer?
+                setSink(src)
             }
 
-            son.onPlay()
+            OutputEngine.getInstance().onPlay()
         } else {
-            son?.onStop()
+            OutputEngine.getInstance().onStop()
         }
 
         setStreaming(!streaming)
