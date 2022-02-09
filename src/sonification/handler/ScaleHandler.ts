@@ -4,7 +4,12 @@ import { DataHandler } from './DataHandler'
 import { DatumOutput } from '../output/DatumOutput'
 import { map, combineLatest, Observable, tap, filter, Subject } from 'rxjs'
 import { Statistic } from '../stat/Statistic'
-import { getSonificationLoggingLevel, GrowthDirection, SonificationLoggingLevel } from '../OutputConstants'
+import {
+    getSonificationLoggingLevel,
+    GrowthDirection,
+    OutputStateChange,
+    SonificationLoggingLevel,
+} from '../OutputConstants'
 import { RangeEndExpander } from '../stat/RangeEndExpander'
 import assert from 'assert'
 
@@ -90,7 +95,7 @@ export class ScaleHandler extends DataHandler {
      *
      * @param sink$ The data comes from here
      */
-    public setupSubscription(sink$: DataSink): void {
+    public setupSubscription(sink$: Observable<[OutputStateChange, Datum]>): void {
         super.setupSubscription(
             sink$.pipe(
                 debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
@@ -111,7 +116,7 @@ export class ScaleHandler extends DataHandler {
                     return [state, datum]
                 }),
                 debug(SonificationLoggingLevel.DEBUG, 'scaled', false),
-            ) as DataSink,
+            ),
         )
     }
 
