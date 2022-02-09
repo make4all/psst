@@ -1,5 +1,5 @@
 import React from 'react'
-import { combineLatest, map, Observable, of, tap, timer, zip } from 'rxjs'
+import { Observable, of, tap, timer, zip } from 'rxjs'
 import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
