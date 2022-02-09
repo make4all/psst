@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, share, Subject, tap } from 'rxjs'
+import { map, Observable, Subject, tap } from 'rxjs'
 import {
     getSonificationLoggingLevel,
     NullableDatum,
@@ -31,7 +31,8 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
         this._dataHandlers = this._dataHandlers.filter((dataHandler) => dataHandler !== dataHandler)
     }
     public addDataHandler(dataHandler: DataHandler) {
-        dataHandler.setupSubscription(this)
+        let lastHandler = this._dataHandlers[this._dataHandlers.length - 1]
+        dataHandler.setupSubscription(lastHandler as Observable<[OutputStateChange, Datum]>)
         this._dataHandlers.push(dataHandler)
     }
 
@@ -56,7 +57,15 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
      * @param engine$ An Output's stream of Datum comes from a DataHandlar
      */
     public setupSubscription(statedatum$: Observable<[OutputStateChange, NullableDatum]>) {
-        statedatum$.pipe(debug(SonificationLoggingLevel.DEBUG, `dataSink`, true)).subscribe(this)
+        statedatum$
+            .pipe(
+                map(([state, datum]) => {
+                    if (datum) datum.sinkId = this.id
+                    return [state, datum]
+                }),
+                debug(SonificationLoggingLevel.DEBUG, `dataSink`, true),
+            )
+            .subscribe(this)
     }
 
     public toString() {
@@ -68,6 +77,7 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from './Datum'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(tag(message))
