@@ -1,6 +1,6 @@
 import { DataSink } from '../DataSink'
 import { DatumOutput } from '../output/DatumOutput'
-import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, tap } from 'rxjs'
+import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, Observer, Subject, tap } from 'rxjs'
 import {
     getSonificationLoggingLevel,
     NullableDatum,
@@ -11,7 +11,7 @@ import {
 /**
  * A DataHandler class is used to decide how to output each data point.
  */
-export abstract class DataHandler extends BehaviorSubject<[OutputStateChange, NullableDatum]> {
+export abstract class DataHandler extends Subject<[OutputStateChange, NullableDatum]> {
     /**
      * Store a DatumOutput if this DataHandler has one
      */
@@ -24,13 +24,7 @@ export abstract class DataHandler extends BehaviorSubject<[OutputStateChange, Nu
      */
     public addOutput(output: DatumOutput) {
         this.outputs.push(output)
-        let outputStream$ = this.pipe(
-            filter(([state, datum]) => state == OutputStateChange.Play && !datum),
-            map(([state, datum]) => datum),
-        ).pipe(debug(SonificationLoggingLevel.DEBUG, `outputing datum to output ${output}`))
-        output.setupSubscription(outputStream$ as DataHandler)
-
-        this.updateOutputAboutState(output)
+        this.setupOutputSubscription(output)
     }
 
     /**
@@ -40,32 +34,25 @@ export abstract class DataHandler extends BehaviorSubject<[OutputStateChange, Nu
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: DataSink) {
-        console.log(`setting up subscription for ${this} ${sink$}`)
-        sink$
-            .pipe(debug(SonificationLoggingLevel.DEBUG, `Sink notifying data handler about events ${this}`))
-            .subscribe(this)
+        sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', true)).subscribe(this)
     }
 
     /**
-     * Notify output about updates about the current output state
+     * Call output.setupSubscription, possibly modify stream before sending to output.
+     *
+     * @param output The output object
      */
-    protected updateOutputAboutState(output: DatumOutput) {
-        let stateStream$ = this.pipe(
-            map(([state, datum]) => {
-                return state
-            }),
-        )
-        stateStream$ = stateStream$.pipe(distinctUntilChanged())
-        stateStream$.pipe(debug(SonificationLoggingLevel.DEBUG, `outputing state to output ${output}`)).subscribe({
-            next: (state) => output.setOutputState(state),
-        })
+    setupOutputSubscription(output: DatumOutput) {
+        let outputStream$ = this.pipe(filter(([state, datum]) => datum != undefined))
+        debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
+        output.setupSubscription(outputStream$ as Observable<[OutputStateChange, Datum]>)
     }
 
     /**
      * @param output An optional way to output the data
      */
     constructor(output?: DatumOutput) {
-        super([OutputStateChange.Undefined, undefined])
+        super()
         this.outputs = new Array<DatumOutput>()
         if (output) this.addOutput(output)
     }
@@ -75,14 +62,28 @@ export abstract class DataHandler extends BehaviorSubject<[OutputStateChange, Nu
     }
 }
 
-const debug = (level: number, message: string) => (source: Observable<any>) =>
-    source.pipe(
-        tap((val) => {
-            debugStatic(level, message + ': ' + val)
-        }),
-    )
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from '../Datum'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
 const debugStatic = (level: number, message: string) => {
     if (level >= getSonificationLoggingLevel()) {
         console.log(message)
-    } //else console.log('debug message dumped')
+    } else console.log('debug message dumped')
 }

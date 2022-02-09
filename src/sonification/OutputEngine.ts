@@ -6,8 +6,20 @@ import {
     SonificationLoggingLevel,
 } from './OutputConstants'
 import { DataSink } from './DataSink'
-import { BehaviorSubject, distinctUntilChanged, lastValueFrom, map, Observable, share, tap, zip } from 'rxjs'
+import {
+    BehaviorSubject,
+    combineLatest,
+    distinctUntilChanged,
+    filter,
+    lastValueFrom,
+    map,
+    Observable,
+    share,
+    tap,
+    zip,
+} from 'rxjs'
 import assert from 'assert'
+import { create } from 'rxjs-spy'
 
 /**
  * OutputEngine class
@@ -15,6 +27,8 @@ import assert from 'assert'
  * Users of our library get an instance of this to control it i.e. get sink, play, etc.
  */
 export class OutputEngine extends BehaviorSubject<OutputStateChange> {
+    public spy = create()
+
     /**
      * The Output Engine. Enforce that there is only ever one.
      * @todo ask group if there is a better way to enforce this.
@@ -28,7 +42,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         number,
         {
             sink: DataSink
-            stream$: Observable<[OutputStateChange, Datum]> | undefined
+            stream$: Observable<[OutputStateChange, NullableDatum]> | undefined
         }
     >
 
@@ -108,32 +122,35 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
      * @param data$ an observable stream of Datum
      */
     public setStream(sinkId: number, data$: Observable<Datum>) {
+        debugStatic(SonificationLoggingLevel.DEBUG, `Setting Stream: ${sinkId}`)
         let res = this.sinks.get(sinkId)
         if (!res) return
         if (res.stream$) res?.sink?.complete()
         let sink = res.sink
 
+        //data$ = data$.pipe(debug(SonificationLoggingLevel.DEBUG, 'data'))
         let filteredState$ = this.pipe(
             map((state) => {
                 switch (state) {
                     case OutputStateChange.Swap:
                         {
+                            debugStatic(SonificationLoggingLevel.DEBUG, 'Swapping Play and Pause')
                             if (this.value == OutputStateChange.Pause) return OutputStateChange.Play
                             else if (this.value == OutputStateChange.Play) return OutputStateChange.Pause
                             else Error('can only swap Play and Pause')
                         }
                         return state
+                    default:
+                        debugStatic(SonificationLoggingLevel.DEBUG, `state changed to ${state}`)
+                        return state
                 }
             }),
             distinctUntilChanged(),
         )
-        let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
+        //let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
+        let combined$ = combineLatest([filteredState$, data$])
 
-        debugStatic(SonificationLoggingLevel.DEBUG, `Loading Data with outputstate ${sink}`)
-
-        sink.setupSubscription(combined$ as Observable<[OutputStateChange, NullableDatum]>)
-        /// .pipe(debug(SonificationLoggingLevel.DEBUG, `loading combined stream into Sink ${sink}`))
-        /// .subscribe(res?.sink)
+        sink.setupSubscription(combined$)
 
         this.sinks.set(sink.id, {
             sink: sink,
@@ -144,11 +161,15 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     ////////////////// CONSTRUCTOR /////////////////////////////////////
     /**
      * Set up the output board. set up maps needed to keep track of sinks and outputs.
+     *
+     * Also turns this into a "hot" stream
      */
     private constructor() {
         super(OutputStateChange.Undefined)
         this.sinks = new Map()
-        this.pipe(share())
+        //this.pipe(share()) /// makes this "hot"
+        this.spy.show()
+        this.spy.log()
     }
 
     /**
@@ -164,14 +185,23 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     }
 }
 
-const debug = (level: number, message: string) => (source: Observable<any>) =>
-    source.pipe(
-        tap((val) => {
-            debugStatic(level, message + ': ' + val)
-        }),
-    )
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(tag(message))
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
 const debugStatic = (level: number, message: string) => {
     if (level >= getSonificationLoggingLevel()) {
         console.log(message)
-    } //else console.log('debug message dumped')
+    } else console.log('debug message dumped')
 }

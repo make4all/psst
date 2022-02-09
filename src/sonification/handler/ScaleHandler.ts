@@ -2,7 +2,7 @@ import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DataHandler } from './DataHandler'
 import { DatumOutput } from '../output/DatumOutput'
-import { map, combineLatest, Observable, tap } from 'rxjs'
+import { map, combineLatest, Observable, tap, filter, Subject } from 'rxjs'
 import { Statistic } from '../stat/Statistic'
 import { getSonificationLoggingLevel, GrowthDirection, SonificationLoggingLevel } from '../OutputConstants'
 import { RangeEndExpander } from '../stat/RangeEndExpander'
@@ -91,24 +91,28 @@ export class ScaleHandler extends DataHandler {
      * @param sink$ The data comes from here
      */
     public setupSubscription(sink$: DataSink): void {
-        console.log(`setting up subscription for ${this} ${sink$}`)
-        let merged$ = combineLatest([...this.domain, ...this.range, sink$])
-        merged$
-            .pipe(
-                map(([dmin, dmax, rmin, rmax, [state, datum]]) => {
-                    if (datum) {
-                        datum = new Datum(
-                            datum.sinkId,
-                            this.conversionFunction(datum.value, [dmin, dmax], [rmin, rmax]),
-                            datum.time,
-                        )
-                        datum = datum
-                    }
+        super.setupSubscription(
+            sink$.pipe(
+                debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
+                filter(([state, datum]) => datum != undefined),
+                //debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
+                map(([state, datum]) => {
+                    console.log('setting up new datum')
+                    datum = new Datum(
+                        datum.sinkId,
+                        this.conversionFunction(
+                            datum.value,
+                            [this.domain[0].value, this.domain[1].value],
+                            [this.range[0].value, this.range[1].value],
+                        ),
+                        datum.time,
+                    )
+                    console.log('set up new datum')
                     return [state, datum]
                 }),
-            )
-            .pipe(debug(SonificationLoggingLevel.DEBUG, `outputing state to handler ${this}`))
-            .subscribe(this)
+                debug(SonificationLoggingLevel.DEBUG, 'scaled', false),
+            ) as DataSink,
+        )
     }
 
     public toString(): string {
@@ -116,14 +120,27 @@ export class ScaleHandler extends DataHandler {
     }
 }
 
-const debug = (level: number, message: string) => (source: Observable<any>) =>
-    source.pipe(
-        tap((val) => {
-            debugStatic(level, message + ': ' + val)
-        }),
-    )
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
 const debugStatic = (level: number, message: string) => {
     if (level >= getSonificationLoggingLevel()) {
         console.log(message)
-    } //else console.log('debug message dumped')
+    } else console.log('debug message dumped')
 }

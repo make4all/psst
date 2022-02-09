@@ -15,7 +15,7 @@ export class Statistic extends BehaviorSubject<number> {
         if (stream$) {
             this.setupSubscription(
                 stream$.pipe(
-                    filter(([state, datum]) => !datum),
+                    filter(([state, datum]) => datum != undefined),
                     map(([state, datum]) => {
                         if (datum) return datum.value
                         return 0

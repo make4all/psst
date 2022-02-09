@@ -56,14 +56,27 @@ export class NoiseSonify extends SonifyFixedDuration {
     }
 }
 
-const debug = (level: number, message: string) => (source: Observable<any>) =>
-    source.pipe(
-        tap((val) => {
-            debugStatic(level, message + ': ' + val)
-        }),
-    )
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
 const debugStatic = (level: number, message: string) => {
     if (level >= getSonificationLoggingLevel()) {
         console.log(message)
-    } //else console.log('debug message dumped')
+    } else console.log('debug message dumped')
 }

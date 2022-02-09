@@ -1,3 +1,5 @@
+import { Observable, Subject } from 'rxjs'
+import { DatumOutput } from '../output/DatumOutput'
 import { NoteSonify } from '../output/NoteSonify'
 import { ScaleHandler } from './ScaleHandler'
 /**
@@ -12,20 +14,17 @@ export class NoteHandler extends ScaleHandler {
      * @param volume How loudly to play the note.
      */
 
-    constructor(targetRange?: [number, number]) {
-        super(
-            (num: number, domain: [number, number], range: [number, number]): number => {
-                let positiveVal = ((num - domain[0]) * (range[1] - range[0])) / (domain[1] - domain[0]) + range[0]
-                let frequency = 700 * (Math.exp(positiveVal / 1127) - 1)
-                return frequency
-            },
-            undefined,
-            [80, 450],
-            new NoteSonify(),
-        )
+    constructor(domain?: [number, number]) {
+        super(NoteHandler.melConversion, domain, [80, 450], new NoteSonify())
     }
 
+    public static melConversion(num, domain, range): number {
+        let positiveVal = ((num - domain[0]) * (range[1] - range[0])) / (domain[1] - domain[0]) + range[0]
+        let frequency = 700 * (Math.exp(positiveVal / 1127) - 1)
+        if (frequency == NaN || frequency == undefined) frequency = range[1]
+        return frequency
+    }
     public toString(): string {
-        return `NoteHandler: Converting logarithmically from ${this.domain[0]}, ${this.domain[1]} to ${this.range[0]},${this.range[1]}`
+        return `NoteHandler: Converting using Mel from ${this.domain[0]}, ${this.domain[1]} to ${this.range[0]},${this.range[1]}`
     }
 }

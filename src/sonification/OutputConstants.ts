@@ -63,15 +63,3 @@ export function getSonificationLoggingLevel(): SonificationLoggingLevel {
 export function setSonificationsLoggingLevel(level: SonificationLoggingLevel) {
     sonificationLoggingLevel = level
 }
-
-// export const debug = (level: number, message: string) => (source: Observable<any>) =>
-//     source.pipe(
-//         tap((val) => {
-//             debugStatic(level, message + ': ' + val)
-//         }),
-//     )
-// export const debugStatic = (level: number, message: string) => {
-//     if (level >= sonificationLoggingLevel) {
-//         console.log(message)
-//     } //else console.log('debug message dumped')
-// }

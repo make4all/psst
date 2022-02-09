@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { Observable, tap } from 'rxjs'
+import { filter, Observable, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
 
@@ -47,29 +47,12 @@ export class Sonify extends DatumOutput {
         this._outputNode = value
     }
 
-    public setOutputState(value: OutputStateChange) {
-        switch (value) {
-            case OutputStateChange.Stop: {
-                this.stop()
-                break
-            }
-            case OutputStateChange.Play: {
-                this.start()
-                break
-            }
-            case OutputStateChange.Pause: {
-                this.pause()
-            }
-        }
-        super.setOutputState(value)
-    }
-
     /**
      * Stop all output. Stream has ended.
      */
     protected stop() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
-
+        this.playing = false
         this.outputNode?.disconnect()
     }
 
@@ -77,15 +60,15 @@ export class Sonify extends DatumOutput {
      * Connects the oscillator node so that playback will resume.
      */
     protected start() {
-        assert(
-            this.outputState == OutputStateChange.Play,
-            `This should never happen: asked to play while already playing ${this}`,
-        )
-        debugStatic(SonificationLoggingLevel.DEBUG, 'Playing. Was not previously playing')
-
-        Sonify.audioCtx.resume()
-        Sonify.gainNode.connect(Sonify.audioCtx.destination)
-        this.outputNode?.connect(Sonify.gainNode)
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Starting')
+        if (this.playing) return
+        else {
+            debugStatic(SonificationLoggingLevel.DEBUG, 'Playing. Was not previously playing')
+            Sonify.audioCtx.resume()
+            Sonify.gainNode.connect(Sonify.audioCtx.destination)
+            this.outputNode?.connect(Sonify.gainNode)
+        }
+        this.playing = true
     }
 
     /**
@@ -95,6 +78,7 @@ export class Sonify extends DatumOutput {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Pausing. Playback state is paused')
         Sonify.audioCtx.suspend()
         Sonify.gainNode.disconnect()
+        this.playing = false
     }
 
     /**
@@ -124,14 +108,27 @@ export class Sonify extends DatumOutput {
     }
 }
 
-const debug = (level: number, message: string) => (source: Observable<any>) =>
-    source.pipe(
-        tap((val) => {
-            debugStatic(level, message + ': ' + val)
-        }),
-    )
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
 const debugStatic = (level: number, message: string) => {
     if (level >= getSonificationLoggingLevel()) {
         console.log(message)
-    } //else console.log('debug message dumped')
+    } else console.log('debug message dumped')
 }

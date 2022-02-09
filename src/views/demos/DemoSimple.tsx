@@ -64,19 +64,30 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public onPlay = (data: Array<number>) => {
         debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${this.sink} ${data}`)
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
 
-        if (!this.sink) this.initializeSink()
+        this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
 
         let id = this.sink ? this.sink.id : 0
 
         let data$ = of(...data)
-        let timer$ = timer(0, 200).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
-        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num))
+        let timer$ = timer(0, 500).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
+            debug(SonificationLoggingLevel.DEBUG, 'point'),
+        )
 
         debugStatic(SonificationLoggingLevel.DEBUG, 'calling setStream')
         OutputEngine.getInstance().setStream(id, source$)
 
-        // SONIFICATION INITIALIZATION
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+        this.sink?.addDataHandler(
+            new NoteHandler([
+                data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
+                data.reduce((prev, curr) => (prev > curr ? prev : curr)),
+            ]),
+        ) // max
+        debugStatic(SonificationLoggingLevel.DEBUG, `success`)
+        // Change State
         OutputEngine.getInstance().next(OutputStateChange.Play)
     }
 
