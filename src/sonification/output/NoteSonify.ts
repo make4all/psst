@@ -1,8 +1,7 @@
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { Sonify } from './Sonify'
-import assert from 'assert'
-import { filter, Observable, Subject, tap } from 'rxjs'
+import { Observable, tap } from 'rxjs'
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -20,7 +19,6 @@ export class NoteSonify extends Sonify {
     protected stop() {
         let oscillator = this.outputNode as OscillatorNode
         oscillator?.stop()
-        this.outputNode = Sonify.audioCtx.createOscillator()
         super.stop()
     }
 
@@ -29,12 +27,18 @@ export class NoteSonify extends Sonify {
      */
     protected start() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'starting oscillator')
-        if (!this.playing) {
-            let oscillator = this.outputNode as OscillatorNode
-            oscillator?.start()
-            this.playing = true
-        }
+        let oscillator = this.outputNode as OscillatorNode
+        oscillator.start()
         super.start()
+    }
+
+    /**
+     * Pauses playback
+     */
+    protected pause() {
+        let oscillator = this.outputNode as OscillatorNode
+        oscillator?.stop()
+        //super.pause()
     }
 
     /**
@@ -75,8 +79,6 @@ export class NoteSonify extends Sonify {
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
-import { DataHandler } from '../handler/DataHandler'
-import { OutputEngine } from '../OutputEngine'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(

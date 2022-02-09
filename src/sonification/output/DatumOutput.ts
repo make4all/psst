@@ -33,13 +33,16 @@ export abstract class DatumOutput extends ReplaySubject<[OutputStateChange, Datu
                     switch (state) {
                         case OutputStateChange.Play:
                             if (!this.playing) this.start()
+                            this.playing = true
                             if (datum) this.output(datum)
                             break
                         case OutputStateChange.Stop:
                             this.stop()
+                            this.playing = false
                             break
                         default:
                             this.pause()
+                            this.playing = false
                             break
                     }
                 }),
