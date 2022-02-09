@@ -1,3 +1,4 @@
+import { domainToASCII } from 'url';
 import { Sonify } from './Sonify'
 
 const DEBUG = true
@@ -13,12 +14,16 @@ export class FileOutput extends Sonify {
     // pause() also not necessary
 
     private fileName = "./beep.wav"
+    private audio;
 
     /**
      * Start playing the current datum. This starts the oscillator again.
      */
     start() {
         super.start()
+        if (this.audio) {
+            this.audio.play()
+        }
     }
 
     /**
@@ -27,7 +32,11 @@ export class FileOutput extends Sonify {
      */
     public constructor() {
         super()
-        this.getFile(FileOutput.audioCtx, this.fileName)
+        this.audio = new Audio(this.fileName)
+        this.audio.type = 'audio/wav';
+        // document.children[0].children[1].appendChild(this.audio)
+        const output = FileOutput.audioCtx.createMediaElementSource(this.audio)
+        this._outputNode = output
     }
 
     public getFile(audioContext, filepath) {
