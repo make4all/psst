@@ -48,7 +48,7 @@ export class NoteSonify extends Sonify {
         debugStatic(SonificationLoggingLevel.DEBUG, 'outputing to oscillator')
         let oscillator = this.outputNode as OscillatorNode
         if (datum) {
-            oscillator.frequency.value = datum.adjustedValue
+            oscillator.frequency.value = datum.value
         }
     }
 
