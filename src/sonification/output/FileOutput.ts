@@ -38,7 +38,7 @@ export class FileOutput extends Sonify {
     public initialize() {
         if (this.buffer) {
             const source = FileOutput.audioCtx.createBufferSource()
-            FileOutput.audioCtx.decodeAudioData(this.buffer, (buffer) => source.buffer = buffer)
+            FileOutput.audioCtx.decodeAudioData(this.buffer.slice(0), (buffer) => source.buffer = buffer)
             this._outputNode = source
         }
     }
