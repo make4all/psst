@@ -13,11 +13,16 @@ export class FileOutput extends Sonify {
     // stop() not necessary atm?
     // pause() also not necessary
 
+    private buffer : ArrayBuffer | undefined;
+
     /**
      * Start playing the current datum.
      */
     start() {
+        this.initialize()
         super.start()
+        let output = this._outputNode as AudioBufferSourceNode
+        output?.start()
         if (DEBUG) console.log("file output playing specifically !!!!")
     }
 
@@ -25,11 +30,17 @@ export class FileOutput extends Sonify {
      * Generates a new file sonifier
      * @returns Returns an instance of specific subclass of SonificationType.
      */
-    public constructor(buffer? : ArrayBuffer) {
+     public constructor(buffer? : ArrayBuffer) {
         super()
-        const source = FileOutput.audioCtx.createBufferSource()
-        if (buffer) FileOutput.audioCtx.decodeAudioData(buffer, (buffer) => source.buffer = buffer)
-        this._outputNode = source
+       	if (buffer) this.buffer = buffer
+    }
+
+    public initialize() {
+        if (this.buffer) {
+            const source = FileOutput.audioCtx.createBufferSource()
+            FileOutput.audioCtx.decodeAudioData(this.buffer, (buffer) => source.buffer = buffer)
+            this._outputNode = source
+        }
     }
 
     /**
