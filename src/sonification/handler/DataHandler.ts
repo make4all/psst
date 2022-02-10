@@ -10,6 +10,7 @@ import {
 
 /**
  * A DataHandler class is used to decide how to output each data point.
+ * @todo: Do we need to keep track of our outputs? Or can we just subscribe them and be done?
  */
 export abstract class DataHandler extends Subject<[OutputStateChange, NullableDatum]> {
     /**

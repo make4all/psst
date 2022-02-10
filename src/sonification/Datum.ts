@@ -15,19 +15,17 @@ import * as d3 from 'd3'
 
 export class Datum {
     value: number
-    adjustedValue: number
     sinkId: number
     time: number
 
     constructor(sinkId: number, value: number, time?: number) {
         this.value = value
-        this.adjustedValue = value
         this.sinkId = sinkId
         if (time) this.time = time
         else this.time = d3.now()
     }
 
     public toString(): string {
-        return `(raw: ${this.value}; adjusted: ${this.adjustedValue}, ${this.time})`
+        return `(raw: ${this.value}, ${this.time})`
     }
 }

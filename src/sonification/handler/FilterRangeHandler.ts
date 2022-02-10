@@ -42,14 +42,14 @@ export class FilterRangeHandler extends DataHandler {
      *
      * @param sink The sink that is producing data for us
      */
-    public setupSubscription(sink$: DataSink) {
+    public setupSubscription(sink$: Observable<[OutputStateChange, Datum]>) {
         console.log(`setting up subscription for ${this} ${sink$}`)
         super.setupSubscription(
             sink$.pipe(
                 filter((state, num) => {
                     return this.insideDomain(num)
                 }),
-            ) as DataSink,
+            ),
         )
     }
 
@@ -63,6 +63,7 @@ export class FilterRangeHandler extends DataHandler {
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from '../Datum'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(
