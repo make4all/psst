@@ -3,35 +3,37 @@ import React from 'react'
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
 import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
-import { NoiseSonify } from '../../sonification/output/NoiseSonify'
+import { FileOutput } from '../../sonification/output/FileOutput'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
-import { FileOutput } from '../../sonification/output/FileOutput'
+import { Box, Button, Input } from '@mui/material'
 
-export interface DemoHighlightRegionState extends DemoSimpleState {
+const DEBUG = true
+
+export interface DemoFileOutputState extends DemoSimpleState {
     minValue: number
     maxValue: number
 }
-export interface DemoHighlightRegionProps extends DemoSimpleProps {
+export interface DemoFileOutputProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-// I don't know react well enough -- can this extend demosimple instead? Would be much simpler...
-// would still need to get the highlightRegionProps...
-// there is a lot of duplication between this and DemoSimple right now...
-export class DemoHighlightRegion
-    extends DemoSimple<DemoHighlightRegionProps, DemoHighlightRegionState>
+export class DemoFileOutput
+    extends DemoSimple<DemoFileOutputProps, DemoFileOutputState>
     implements IDemoView
 {
     filter: FilterRangeHandler | undefined
+    private _inputFile: React.RefObject<HTMLInputElement>
+    private _buffer: ArrayBuffer | undefined
 
-    constructor(props: DemoHighlightRegionProps) {
+    constructor(props: DemoFileOutputProps) {
         super(props)
         this.state = {
             minValue: this.props.dataSummary.min,
             maxValue: this.props.dataSummary.max,
         }
+        this._inputFile = React.createRef()
     }
 
     public render() {
@@ -39,6 +41,21 @@ export class DemoHighlightRegion
 
         return (
             <div>
+                <label htmlFor="input-upload-file" aria-label="Choose file">
+                    <Box component="div" sx={{ p: 2, border: '2px dashed #aaa' }}>
+                        <Button component="label">
+                            Upload
+                            <Input
+                                style={{ display: 'none' }}
+                                aria-hidden={true}
+                                ref={this._inputFile}
+                                type="file"
+                                id="input-upload-file"
+                                onChange={this._handleFileChange}
+                            />
+                        </Button>
+                    </Box>
+                </label>
                 <TextField
                     id="text-min-value"
                     aria-label="Enter minimum value"
@@ -62,11 +79,9 @@ export class DemoHighlightRegion
     }
 
     /**
-     * Something was updated in this class.
-     * Make sure that we are updating our filter to reflect the new min/max values
      * @param prevProps new min/max value
      */
-    public componentDidUpdate(prevProps: DemoHighlightRegionProps) {
+    public componentDidUpdate(prevProps: DemoFileOutputProps) {
         // When the data summary changes, update the min & max value
         if (
             this.props.dataSummary.min !== prevProps.dataSummary.min ||
@@ -76,7 +91,6 @@ export class DemoHighlightRegion
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
         }
-        // SONIFICATION
         if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
     }
 
@@ -91,14 +105,31 @@ export class DemoHighlightRegion
         }
     }
 
+    private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
+      if (DEBUG) console.log("file changed!")
+      let target: any = event.target
+      if (target && target.files && target.files.length === 1) {
+          console.log(event)
+          let file: File = target.files[0]
+          // process file
+          file.arrayBuffer().then((buffer) => {
+            // if (DEBUG) console.log(buffer.byteLength)
+            // byte length is not 0 from console.log statements
+            this._buffer = buffer
+            if (DEBUG) console.log("buffer updated!")
+          }).catch(console.error)
+      }
+    }
+
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
-        this.sink = OutputEngine.getInstance().addSink('HighlightRegionDemo')
-        /**
-         * @todo vpotluri to understand: where is the update datum method for this being called?
-         */
-        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.state.minValue, this.state.maxValue])
-        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
+        this.filter = new FilterRangeHandler(this.sink, new FileOutput(this._buffer), [
+            this.state.minValue,
+            this.state.maxValue,
+        ])
+        if (DEBUG) console.log("sink initialized")
+        // this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.filter)
         return this.sink
     }

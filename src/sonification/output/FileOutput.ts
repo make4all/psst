@@ -13,40 +13,23 @@ export class FileOutput extends Sonify {
     // stop() not necessary atm?
     // pause() also not necessary
 
-    private fileName = "./beep.wav"
-    private audio;
-
     /**
-     * Start playing the current datum. This starts the oscillator again.
+     * Start playing the current datum.
      */
     start() {
         super.start()
-        if (this.audio) {
-            this.audio.play()
-        }
+        if (DEBUG) console.log("file output playing specifically !!!!")
     }
 
     /**
      * Generates a new file sonifier
      * @returns Returns an instance of specific subclass of SonificationType.
      */
-    public constructor() {
+    public constructor(buffer? : ArrayBuffer) {
         super()
-        this.audio = new Audio(this.fileName)
-        this.audio.type = 'audio/wav';
-        // document.children[0].children[1].appendChild(this.audio)
-        const output = FileOutput.audioCtx.createMediaElementSource(this.audio)
-        this._outputNode = output
-    }
-
-    public getFile(audioContext, filepath) {
-        const source = FileOutput.audioCtx.createBufferSource();
-        fetch(filepath)
-            .then(response => response.arrayBuffer())
-            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-            .then(sample => source.buffer = sample)
-            .catch(console.error)
-        return source;
+        const source = FileOutput.audioCtx.createBufferSource()
+        if (buffer) FileOutput.audioCtx.decodeAudioData(buffer, (buffer) => source.buffer = buffer)
+        this._outputNode = source
     }
 
     /**
@@ -54,8 +37,8 @@ export class FileOutput extends Sonify {
      * @returns A string describing the current frequency being played.
      */
     public toString(): string {
-        let audioFile = this.outputNode as MediaElementAudioSourceNode
-        if (audioFile) return `FileOutput playing ${this.fileName}`
+        let audioFile = this.outputNode as AudioBufferSourceNode
+        if (audioFile) return `FileOutput playing`
         else return `FileOutput not currently playing`
     }
 }
