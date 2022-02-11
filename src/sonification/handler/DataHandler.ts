@@ -4,21 +4,14 @@ import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLeve
 
 /**
  * A DataHandler class is used to decide how to output each data point.
- * @todo: Do we need to keep track of our outputs? Or can we just subscribe them and be done?
  */
 export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
-    /**
-     * Store a DatumOutput if this DataHandler has one
-     */
-    public outputs: Array<DatumOutput>
-
     /**
      * Add an output and make sure it has the right subscriptions
      *
      * @param output The output to add
      */
     public addOutput(output: DatumOutput) {
-        this.outputs.push(output)
         this.setupOutputSubscription(output)
     }
 
@@ -38,27 +31,16 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      * @param output The output object
      */
     setupOutputSubscription(output: DatumOutput) {
-        let outputStream$ = this.pipe(
-            filter((val) => val != undefined),
-            tap((val) => {
-                if (!(val instanceof Datum)) this.state = val as OutputStateChange
-            }),
-        )
+        let outputStream$ = this.pipe(filter((val) => val != undefined))
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
         output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
     }
-
-    /**
-     * The last state
-     */
-    private state = OutputStateChange.Undefined
 
     /**
      * @param output An optional way to output the data
      */
     constructor(output?: DatumOutput) {
         super()
-        this.outputs = new Array<DatumOutput>()
         if (output) this.addOutput(output)
     }
 
@@ -74,7 +56,7 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
     if (watch) {
         return source.pipe(
             tap((val) => {
-                debugStatic(level, message + ': ' + val)
+                debugStatic(level, message + ': ' + (val instanceof Datum) ? val : OutputStateChange[val])
             }),
             tag(message),
         )

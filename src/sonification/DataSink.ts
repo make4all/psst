@@ -1,4 +1,4 @@
-import { Subject, map, Observable, tap } from 'rxjs'
+import { map, Observable, tap, Subject } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from './OutputConstants'
 import { DataHandler } from './handler/DataHandler'
 
@@ -18,11 +18,6 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
      */
     private _description: String
 
-    /**
-     * The last state
-     */
-    private state = OutputStateChange.Undefined
-
     //////////////////////////////// HANDLERS ///////////////////////////////////
     /**
      * A list of DataHandlers. DataHandlers are passed each new Datum when it arrives.
@@ -38,8 +33,6 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
         debugStatic(SonificationLoggingLevel.DEBUG, `${observable}`)
         dataHandler.setupSubscription(observable)
         this._dataHandlers.push(dataHandler)
-        debugStatic(SonificationLoggingLevel.DEBUG, `sending handler ${this.state}`)
-        dataHandler.next(this.state)
     }
 
     //////////////////////////////// CONSTRUCTOR ///////////////////////////////////
@@ -69,9 +62,6 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
                     if (val instanceof Datum) val.sinkId = this.id
 
                     return val
-                }),
-                tap((val) => {
-                    if (!(val instanceof Datum)) this.state = val
                 }),
                 debug(SonificationLoggingLevel.DEBUG, `dataSink`, true),
             )

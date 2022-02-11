@@ -192,7 +192,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handlePlaybackStateChanged = (e: OutputStateChange) => {
-        console.log('handlePlaybackStateChanged', e)
+        console.log('handlePlaybackStateChanged', OutputStateChange[e])
         let playbackLabel
         switch (e) {
             case OutputStateChange.Play:

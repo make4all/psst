@@ -1,7 +1,7 @@
 import { Datum } from './Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from './OutputConstants'
 import { DataSink } from './DataSink'
-import { BehaviorSubject, map, merge, Observable, tap } from 'rxjs'
+import { BehaviorSubject, distinctUntilChanged, map, merge, Observable, shareReplay, tap } from 'rxjs'
 import assert from 'assert'
 import { create } from 'rxjs-spy'
 
@@ -77,10 +77,10 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
      * @param sinkId Data sink to remove.
      */
     public deleteSink(sink?: DataSink, sinkId?: number) {
-        if (sink) sinkId = sink.id
-        if (sinkId) {
-            this.sinks.get(sinkId)?.sink.complete()
-            this.sinks.delete(sinkId)
+        sink = sinkId ? this.sinks.get(sinkId)?.sink : sink
+        sink?.complete()
+        if (sink) {
+            this.sinks.delete(sink.id)
         }
 
         if (!sink && !sinkId) throw Error('Must specify sink or ID')
@@ -124,10 +124,10 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
             complete: () => {
                 this.next(OutputStateChange.Stop)
                 sink.complete()
+                this.deleteSink(sink)
             },
         })
 
-        //data$ = data$.pipe(debug(SonificationLoggingLevel.DEBUG, 'data'))
         let filteredState$ = this.pipe(
             map((state) => {
                 switch (state) {
@@ -140,12 +140,13 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
                         }
                         return state
                     default:
-                        debugStatic(SonificationLoggingLevel.DEBUG, `state changed to ${state}`)
+                        debugStatic(SonificationLoggingLevel.DEBUG, `state changed to ${OutputStateChange[state]}`)
                         return state
                 }
             }),
+            distinctUntilChanged(),
+            shareReplay(1),
         )
-        //let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
         let combined$ = merge(filteredState$, data$)
 
         sink.setupSubscription(combined$)
@@ -165,7 +166,6 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     private constructor() {
         super(OutputStateChange.Undefined)
         this.sinks = new Map()
-        //this.pipe(share()) /// makes this "hot"
         this.spy.show()
         this.spy.log()
     }

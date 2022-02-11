@@ -1,4 +1,4 @@
-import { lastValueFrom, Observable, ReplaySubject, tap } from 'rxjs'
+import { lastValueFrom, Observable, Subject, tap } from 'rxjs'
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
@@ -6,17 +6,11 @@ import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLeve
  * Base class for outputing information about a single datum. Must be subclassed to be fully defined
  * @field datum The raw data used to generate this sonification type
  */
-export abstract class DatumOutput extends ReplaySubject<OutputStateChange | Datum> {
+export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
     /**
      * Are we playing right now?
      */
-    private _playing = false
-    public get playing() {
-        return this._playing
-    }
-    public set playing(value) {
-        this._playing = value
-    }
+    private state = OutputStateChange.Undefined
 
     /**
      * Subscribe to the handler (override to modify or filter the stream in some way)
@@ -28,33 +22,37 @@ export abstract class DatumOutput extends ReplaySubject<OutputStateChange | Datu
         stream$
             .pipe(
                 tap((val) => {
-                    debugStatic(SonificationLoggingLevel.DEBUG, `val is  ${val}`)
                     if (val instanceof Datum) {
                         debugStatic(SonificationLoggingLevel.DEBUG, `datum is  ${val}`)
-                        if (this.playing) {
+                        if (this.state == OutputStateChange.Play) {
                             this.output(val)
-                            return
                         }
-                    }
-                    debugStatic(SonificationLoggingLevel.DEBUG, `setting up state`)
-                    switch (val) {
-                        case OutputStateChange.Play:
-                            if (!this.playing) this.start()
-                            this.playing = true
-                            break
-                        case OutputStateChange.Stop:
-                            this.stop()
-                            this.playing = false
-                            break
-                        case OutputStateChange.Pause:
-                            this.pause()
-                            this.playing = false
-                            break
-                        case OutputStateChange.Undefined:
-                            break
-                        case OutputStateChange.Swap:
-                            Error('this should not happen -- OutputEngine should handle swaps and never send them on')
-                            break
+                    } else {
+                        debugStatic(
+                            SonificationLoggingLevel.DEBUG,
+                            `setting up state ${OutputStateChange[val]}: was ${OutputStateChange[this.state]}`,
+                        )
+                        switch (val as OutputStateChange) {
+                            case OutputStateChange.Play:
+                                if (this.state == OutputStateChange.Stop || this.state == OutputStateChange.Undefined)
+                                    this.start()
+                                else if (this.state == OutputStateChange.Pause) this.resume()
+                                break
+                            case OutputStateChange.Stop:
+                                this.stop()
+                                break
+                            case OutputStateChange.Pause:
+                                this.pause()
+                                break
+                            case OutputStateChange.Undefined:
+                                break
+                            case OutputStateChange.Swap:
+                                Error(
+                                    'this should not happen -- OutputEngine should handle swaps and never send them on',
+                                )
+                                break
+                        }
+                        this.state = val
                     }
                 }),
                 debug(SonificationLoggingLevel.DEBUG, `output`, true),
@@ -64,6 +62,13 @@ export abstract class DatumOutput extends ReplaySubject<OutputStateChange | Datu
 
     /**
      * Stop all output. Stream has ended.
+     */
+    complete(): void {
+        this.stop()
+    }
+
+    /**
+     * Stop all output.
      */
     protected stop() {}
     /**
@@ -77,6 +82,11 @@ export abstract class DatumOutput extends ReplaySubject<OutputStateChange | Datu
      * Pause any output
      */
     protected pause() {}
+
+    /**
+     * Resume any output
+     */
+    protected resume() {}
 
     /**
      * Show the output

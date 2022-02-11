@@ -97,10 +97,7 @@ export class ScaleHandler extends DataHandler {
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>): void {
         super.setupSubscription(
             sink$.pipe(
-                //debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
-                debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
                 map((val) => {
-                    console.log('setting up new datum')
                     if (val instanceof Datum) {
                         let datum = new Datum(
                             val.sinkId,
@@ -111,7 +108,6 @@ export class ScaleHandler extends DataHandler {
                             ),
                             val.time,
                         )
-                        console.log('set up new datum')
                         return datum
                     } else return val
                 }),

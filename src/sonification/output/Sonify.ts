@@ -52,8 +52,8 @@ export class Sonify extends DatumOutput {
      */
     protected stop() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
-        this.playing = false
         this.outputNode?.disconnect()
+        super.stop()
     }
 
     /**
@@ -64,6 +64,7 @@ export class Sonify extends DatumOutput {
         Sonify.audioCtx.resume()
         Sonify.gainNode.connect(Sonify.audioCtx.destination)
         this.outputNode?.connect(Sonify.gainNode)
+        super.start()
     }
 
     /**
@@ -73,6 +74,18 @@ export class Sonify extends DatumOutput {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Pausing. Playback state is paused')
         Sonify.audioCtx.suspend()
         Sonify.gainNode.disconnect()
+        super.pause()
+    }
+
+    /**
+     * Resumes playback
+     */
+    protected resume() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Resuming. Playback state is resumed')
+        Sonify.audioCtx.resume()
+        Sonify.gainNode.connect(Sonify.audioCtx.destination)
+        this.outputNode?.connect(Sonify.gainNode)
+        super.resume()
     }
 
     /**

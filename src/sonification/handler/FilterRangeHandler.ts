@@ -1,5 +1,4 @@
 import { filter, Observable, tap } from 'rxjs'
-import { DataSink } from '../DataSink'
 import { DatumOutput } from '../output/DatumOutput'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'

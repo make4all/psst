@@ -10,6 +10,7 @@ import {
     OutputStateChange,
     SonificationLoggingLevel,
 } from '../../sonification/OutputConstants'
+import { Demo } from '../../pages/Demo'
 
 export interface DemoSimpleState {}
 
@@ -66,15 +67,23 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${this.sink} ${data}`)
         debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
 
-        this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
+        if (this.sink == undefined) this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
 
         let id = this.sink ? this.sink.id : 0
 
-        let data$ = of(...data.slice(0, 3))
+        let data$ = of(...data) //.slice(0, 8))
         let timer$ = timer(0, 500).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
         let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'point'),
         )
+
+        /// Make sure to delete the sink when the source is
+        source$.subscribe({
+            complete: () => {
+                this.sink = undefined
+                //Demo.setState({ playbackLabel: "Play" })
+            },
+        })
 
         debugStatic(SonificationLoggingLevel.DEBUG, 'calling setStream')
         OutputEngine.getInstance().setStream(id, source$)

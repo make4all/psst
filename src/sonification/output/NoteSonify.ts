@@ -17,6 +17,7 @@ export class NoteSonify extends Sonify {
      * Stop all notes. This tells the oscillator to stop playing.
      */
     protected stop() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
         let oscillator = this.outputNode as OscillatorNode
         oscillator?.stop()
         super.stop()
@@ -33,23 +34,12 @@ export class NoteSonify extends Sonify {
     }
 
     /**
-     * Pauses playback
-     */
-    protected pause() {
-        let oscillator = this.outputNode as OscillatorNode
-        oscillator?.stop()
-        //super.pause()
-    }
-
-    /**
      * Show the output
      */
     protected output(datum: Datum) {
-        debugStatic(SonificationLoggingLevel.DEBUG, 'outputing to oscillator')
+        debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
-        if (datum) {
-            oscillator.frequency.value = datum.value
-        }
+        oscillator.frequency.value = datum.value
     }
 
     /**
