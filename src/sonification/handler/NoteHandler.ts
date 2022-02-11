@@ -1,5 +1,3 @@
-import { Observable, Subject } from 'rxjs'
-import { DatumOutput } from '../output/DatumOutput'
 import { NoteSonify } from '../output/NoteSonify'
 import { ScaleHandler } from './ScaleHandler'
 /**

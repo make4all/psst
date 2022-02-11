@@ -70,7 +70,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         let id = this.sink ? this.sink.id : 0
 
-        let data$ = of(...data)
+        let data$ = of(...data.slice(0, 3))
         let timer$ = timer(0, 500).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
         let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'point'),
@@ -87,6 +87,8 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
             ]),
         ) // max
         debugStatic(SonificationLoggingLevel.DEBUG, `success`)
+
+        console.log('sending play')
         // Change State
         OutputEngine.getInstance().next(OutputStateChange.Play)
     }

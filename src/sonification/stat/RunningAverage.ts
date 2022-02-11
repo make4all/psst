@@ -1,5 +1,6 @@
 import { bufferCount, map, Observable, Subscription } from 'rxjs'
-import { NullableDatum, OutputStateChange } from '../OutputConstants'
+import { Datum } from '../Datum'
+import { OutputStateChange } from '../OutputConstants'
 import { Statistic } from './Statistic'
 
 /**
@@ -16,7 +17,7 @@ class RunningAverage extends Statistic {
      * @param stream$ The stream of data over which to calculate the statistic
      * @param len The number of data points to calculate the running average over
      */
-    constructor(len: number, stream$: Observable<[OutputStateChange, NullableDatum]>) {
+    constructor(len: number, stream$: Observable<OutputStateChange | Datum>) {
         super(0, stream$)
         this.buffer = len ? len : this.buffer
     }

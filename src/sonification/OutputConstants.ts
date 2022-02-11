@@ -33,11 +33,6 @@ export enum OutputStateChange {
 }
 
 /**
- * An alias for Datum that can be undefined
- */
-export type NullableDatum = Datum | undefined
-
-/**
  * Used by statistics keeping track of a value with regard to the data domain
  */
 export enum GrowthDirection {

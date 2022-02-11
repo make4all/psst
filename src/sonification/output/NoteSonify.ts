@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
+import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../OutputConstants'
 import { Sonify } from './Sonify'
 import { Observable, tap } from 'rxjs'
 

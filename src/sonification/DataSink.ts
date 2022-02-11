@@ -1,17 +1,13 @@
-import { map, Observable, Subject, tap } from 'rxjs'
-import {
-    getSonificationLoggingLevel,
-    NullableDatum,
-    OutputStateChange,
-    SonificationLoggingLevel,
-} from './OutputConstants'
+import { Subject, map, Observable, tap } from 'rxjs'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from './OutputConstants'
 import { DataHandler } from './handler/DataHandler'
 
 /**
  * The DataSink for a stream of data
  */
-export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
+export class DataSink extends Subject<OutputStateChange | Datum> {
     //////////////////////////////// FIELDS ///////////////////////////////////
+
     /**
      * A unique id for this DataSink
      */
@@ -22,6 +18,11 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
      */
     private _description: String
 
+    /**
+     * The last state
+     */
+    private state = OutputStateChange.Undefined
+
     //////////////////////////////// HANDLERS ///////////////////////////////////
     /**
      * A list of DataHandlers. DataHandlers are passed each new Datum when it arrives.
@@ -31,12 +32,14 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
         this._dataHandlers = this._dataHandlers.filter((dataHandler) => dataHandler !== dataHandler)
     }
     public addDataHandler(dataHandler: DataHandler) {
-        let observable = this as Observable<[OutputStateChange, Datum]>
+        let observable = this as Observable<OutputStateChange | Datum>
         if (this._dataHandlers.length > 0)
-            observable = this._dataHandlers[this._dataHandlers.length - 1] as Observable<[OutputStateChange, Datum]>
+            observable = this._dataHandlers[this._dataHandlers.length - 1] as Observable<OutputStateChange | Datum>
         debugStatic(SonificationLoggingLevel.DEBUG, `${observable}`)
         dataHandler.setupSubscription(observable)
         this._dataHandlers.push(dataHandler)
+        debugStatic(SonificationLoggingLevel.DEBUG, `sending handler ${this.state}`)
+        dataHandler.next(this.state)
     }
 
     //////////////////////////////// CONSTRUCTOR ///////////////////////////////////
@@ -59,12 +62,16 @@ export class DataSink extends Subject<[OutputStateChange, NullableDatum]> {
      *
      * @param engine$ An Output's stream of Datum comes from a DataHandlar
      */
-    public setupSubscription(statedatum$: Observable<[OutputStateChange, NullableDatum]>) {
+    public setupSubscription(statedatum$: Observable<OutputStateChange | Datum>) {
         statedatum$
             .pipe(
-                map(([state, datum]) => {
-                    if (datum) datum.sinkId = this.id
-                    return [state, datum]
+                map((val) => {
+                    if (val instanceof Datum) val.sinkId = this.id
+
+                    return val
+                }),
+                tap((val) => {
+                    if (!(val instanceof Datum)) this.state = val
                 }),
                 debug(SonificationLoggingLevel.DEBUG, `dataSink`, true),
             )

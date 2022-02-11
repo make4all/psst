@@ -1,8 +1,7 @@
-import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DataHandler } from './DataHandler'
 import { DatumOutput } from '../output/DatumOutput'
-import { map, combineLatest, Observable, tap, filter, Subject } from 'rxjs'
+import { map, Observable, tap, filter } from 'rxjs'
 import { Statistic } from '../stat/Statistic'
 import {
     getSonificationLoggingLevel,
@@ -95,25 +94,26 @@ export class ScaleHandler extends DataHandler {
      *
      * @param sink$ The data comes from here
      */
-    public setupSubscription(sink$: Observable<[OutputStateChange, Datum]>): void {
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>): void {
         super.setupSubscription(
             sink$.pipe(
-                debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
-                filter(([state, datum]) => datum != undefined),
                 //debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
-                map(([state, datum]) => {
+                debug(SonificationLoggingLevel.DEBUG, 'scaling', false),
+                map((val) => {
                     console.log('setting up new datum')
-                    datum = new Datum(
-                        datum.sinkId,
-                        this.conversionFunction(
-                            datum.value,
-                            [this.domain[0].value, this.domain[1].value],
-                            [this.range[0].value, this.range[1].value],
-                        ),
-                        datum.time,
-                    )
-                    console.log('set up new datum')
-                    return [state, datum]
+                    if (val instanceof Datum) {
+                        let datum = new Datum(
+                            val.sinkId,
+                            this.conversionFunction(
+                                val.value,
+                                [this.domain[0].value, this.domain[1].value],
+                                [this.range[0].value, this.range[1].value],
+                            ),
+                            val.time,
+                        )
+                        console.log('set up new datum')
+                        return datum
+                    } else return val
                 }),
                 debug(SonificationLoggingLevel.DEBUG, 'scaled', false),
             ),

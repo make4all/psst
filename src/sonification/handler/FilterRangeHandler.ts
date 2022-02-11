@@ -42,12 +42,13 @@ export class FilterRangeHandler extends DataHandler {
      *
      * @param sink The sink that is producing data for us
      */
-    public setupSubscription(sink$: Observable<[OutputStateChange, Datum]>) {
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         console.log(`setting up subscription for ${this} ${sink$}`)
         super.setupSubscription(
             sink$.pipe(
-                filter((state, num) => {
-                    return this.insideDomain(num)
+                filter((val) => {
+                    if (val instanceof Datum) return this.insideDomain(val.value)
+                    else return true
                 }),
             ),
         )

@@ -1,23 +1,7 @@
 import { Datum } from './Datum'
-import {
-    getSonificationLoggingLevel,
-    NullableDatum,
-    OutputStateChange,
-    SonificationLoggingLevel,
-} from './OutputConstants'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from './OutputConstants'
 import { DataSink } from './DataSink'
-import {
-    BehaviorSubject,
-    combineLatest,
-    distinctUntilChanged,
-    filter,
-    lastValueFrom,
-    map,
-    Observable,
-    share,
-    tap,
-    zip,
-} from 'rxjs'
+import { BehaviorSubject, map, merge, Observable, tap } from 'rxjs'
 import assert from 'assert'
 import { create } from 'rxjs-spy'
 
@@ -42,7 +26,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         number,
         {
             sink: DataSink
-            stream$: Observable<[OutputStateChange, NullableDatum]> | undefined
+            stream$: Observable<OutputStateChange | Datum> | undefined
         }
     >
 
@@ -114,9 +98,7 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
      */
     pushPoint(x: number, sinkId: number) {
         let sink = this.getSink(sinkId)
-        lastValueFrom(this).then((state) => {
-            sink.next([state, new Datum(sinkId, x)])
-        })
+        sink.next(new Datum(sinkId, x))
     }
 
     /////////////////// STREAM SUPPORT /////////////////////////////////
@@ -138,6 +120,13 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         if (res.stream$) res?.sink?.complete()
         let sink = res.sink
 
+        data$.subscribe({
+            complete: () => {
+                this.next(OutputStateChange.Stop)
+                sink.complete()
+            },
+        })
+
         //data$ = data$.pipe(debug(SonificationLoggingLevel.DEBUG, 'data'))
         let filteredState$ = this.pipe(
             map((state) => {
@@ -155,15 +144,9 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
                         return state
                 }
             }),
-            distinctUntilChanged(),
         )
         //let combined$ = zip(filteredState$, data$) as Observable<[OutputStateChange, Datum]>
-        // TODO: This may cause a small error in data calculations. Specifically,
-        // when the state changes (e.g. from Play to Pause and back), combineLatest will
-        // include the latest datum in the resulting tuple, even if it was previously provided
-        // when that datum arrived. I think this is a bug that could cause statistics to be
-        // calculated wrong...
-        let combined$ = combineLatest([filteredState$, data$])
+        let combined$ = merge(filteredState$, data$)
 
         sink.setupSubscription(combined$)
 

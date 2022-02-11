@@ -1,18 +1,12 @@
-import { DataSink } from '../DataSink'
 import { DatumOutput } from '../output/DatumOutput'
-import { BehaviorSubject, distinctUntilChanged, filter, map, Observable, Observer, Subject, tap } from 'rxjs'
-import {
-    getSonificationLoggingLevel,
-    NullableDatum,
-    OutputStateChange,
-    SonificationLoggingLevel,
-} from '../OutputConstants'
+import { filter, Observable, Subject, tap } from 'rxjs'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
 /**
  * A DataHandler class is used to decide how to output each data point.
  * @todo: Do we need to keep track of our outputs? Or can we just subscribe them and be done?
  */
-export abstract class DataHandler extends Subject<[OutputStateChange, NullableDatum]> {
+export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
     /**
      * Store a DatumOutput if this DataHandler has one
      */
@@ -34,7 +28,7 @@ export abstract class DataHandler extends Subject<[OutputStateChange, NullableDa
      *
      * @param sink The sink that is producing data for us
      */
-    public setupSubscription(sink$: Observable<[OutputStateChange, Datum]>) {
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', true)).subscribe(this)
     }
 
@@ -44,10 +38,20 @@ export abstract class DataHandler extends Subject<[OutputStateChange, NullableDa
      * @param output The output object
      */
     setupOutputSubscription(output: DatumOutput) {
-        let outputStream$ = this.pipe(filter(([state, datum]) => datum != undefined))
+        let outputStream$ = this.pipe(
+            filter((val) => val != undefined),
+            tap((val) => {
+                if (!(val instanceof Datum)) this.state = val as OutputStateChange
+            }),
+        )
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
-        output.setupSubscription(outputStream$ as Observable<[OutputStateChange, Datum]>)
+        output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
     }
+
+    /**
+     * The last state
+     */
+    private state = OutputStateChange.Undefined
 
     /**
      * @param output An optional way to output the data

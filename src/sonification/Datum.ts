@@ -1,4 +1,3 @@
-import { DatumOutput } from './output/DatumOutput'
 import * as d3 from 'd3'
 
 /**
