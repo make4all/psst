@@ -13,12 +13,13 @@ export class FilterRangeHandler extends DataHandler {
      */
     private _domain: [number, number]
     public get domain(): [number, number] {
-        return this.domain
+        return this._domain
     }
     public set domain(value: [number, number]) {
-        this.domain = value
+        this._domain = value
     }
     public insideDomain(num: number): boolean {
+        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${num} is inside ${this.domain}`)
         return num >= this.domain[0] && num <= this.domain[1]
     }
 
@@ -31,7 +32,11 @@ export class FilterRangeHandler extends DataHandler {
      */
     constructor(output?: DatumOutput, domain?: [number, number]) {
         super(output)
-        if (domain) this._domain = domain
+        debugStatic(SonificationLoggingLevel.DEBUG, "setting up filter range handeler")
+        if (domain){
+            debugStatic(SonificationLoggingLevel.DEBUG, `setting up filter range handeler with domain ${domain}`)
+            this._domain = domain
+        } 
         else this._domain = [0, 0]
     }
 
@@ -42,11 +47,14 @@ export class FilterRangeHandler extends DataHandler {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
-        console.log(`setting up subscription for ${this} ${sink$}`)
+        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
         super.setupSubscription(
             sink$.pipe(
                 filter((val) => {
-                    if (val instanceof Datum) return this.insideDomain(val.value)
+                    if (val instanceof Datum){
+                        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${val} is inside ${this.domain}`)
+                        return this.insideDomain(val.value)
+                    }
                     else return true
                 }),
             ),

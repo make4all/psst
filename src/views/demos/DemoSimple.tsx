@@ -67,11 +67,11 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${this.sink} ${data}`)
         debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
 
-        if (this.sink == undefined) this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
+        if (this.sink == undefined) this.sink = this.initializeSink()
 
         let id = this.sink ? this.sink.id : 0
 
-        let data$ = of(...data) //.slice(0, 8))
+        let data$ = of(...data.slice(0,3)) //.slice(0, 8))
         let timer$ = timer(0, 500).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
         let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'point'),
@@ -132,11 +132,11 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
 
-        debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+        // debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
 
-        this.sink?.addDataHandler(new NoteHandler())
+        // this.sink?.addDataHandler(new NoteHandler())
 
-        debugStatic(SonificationLoggingLevel.DEBUG, `success`)
+        debugStatic(SonificationLoggingLevel.DEBUG, `success initializing sink ${this.sink}`)
 
         return this.sink
     }

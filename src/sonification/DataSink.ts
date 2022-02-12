@@ -27,10 +27,11 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
         this._dataHandlers = this._dataHandlers.filter((dataHandler) => dataHandler !== dataHandler)
     }
     public addDataHandler(dataHandler: DataHandler) {
+        debugStatic(SonificationLoggingLevel.DEBUG,`Adding data handeler: ${dataHandler}. length of _handelers of sink is ${this._dataHandlers.length}`)
         let observable = this as Observable<OutputStateChange | Datum>
         if (this._dataHandlers.length > 0)
             observable = this._dataHandlers[this._dataHandlers.length - 1] as Observable<OutputStateChange | Datum>
-        debugStatic(SonificationLoggingLevel.DEBUG, `${observable}`)
+        debugStatic(SonificationLoggingLevel.DEBUG, `printing ${observable}`)
         dataHandler.setupSubscription(observable)
         this._dataHandlers.push(dataHandler)
     }

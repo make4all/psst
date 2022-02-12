@@ -22,6 +22,7 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic (SonificationLoggingLevel.DEBUG,"setting up subscription for sink")
         sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', true)).subscribe(this)
     }
 
