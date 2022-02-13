@@ -12,8 +12,8 @@ export class NoteHandler extends ScaleHandler {
      * @param volume How loudly to play the note.
      */
 
-    constructor(domain?: [number, number]) {
-        super(NoteHandler.melConversion, domain, [80, 450], new NoteSonify())
+    constructor(domain?: [number, number],pan:number=0) {
+        super(NoteHandler.melConversion, domain, [80, 450], new NoteSonify(pan))
     }
 
     public static melConversion(num, domain, range): number {

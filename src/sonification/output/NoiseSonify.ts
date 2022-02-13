@@ -42,7 +42,7 @@ export class NoiseSonify extends SonifyFixedDuration {
         this.filter = NoiseSonify.audioCtx.createBiquadFilter()
         this.filter.type = 'bandpass'
         this.filter.frequency.value = 440
-        this.filter.connect(NoiseSonify.gainNode)
+        this.filter.connect(this.gainNode)
 
         outputNode.buffer = this.fillBuffer(this.duration)
         outputNode.connect(this.filter)

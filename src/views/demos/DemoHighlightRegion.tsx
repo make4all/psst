@@ -96,7 +96,7 @@ export class DemoHighlightRegion
         /**
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
-        this.filter = new FilterRangeHandler(new NoiseSonify(), [this.state.minValue, this.state.maxValue])
+        this.filter = new FilterRangeHandler(new NoiseSonify(undefined,undefined,-1), [this.state.minValue, this.state.maxValue])
         
         
         this.sink.addDataHandler(this.filter)

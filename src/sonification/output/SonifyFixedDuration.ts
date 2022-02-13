@@ -20,8 +20,8 @@ export abstract class SonifyFixedDuration extends Sonify {
      * @param audioNode An audio node to connect up to make sounds
      * @param duration How long the node should play for
      */
-    constructor(audioNode?: AudioScheduledSourceNode, duration?: number) {
-        super(audioNode)
+    constructor(audioNode?: AudioScheduledSourceNode, duration?: number,pan:number=0) {
+        super(audioNode,pan)
         if (duration) this.duration = duration
     }
 

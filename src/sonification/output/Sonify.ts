@@ -15,15 +15,22 @@ export class Sonify extends DatumOutput {
      * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
      */
     private static _audioCtx = new AudioContext()
+    private _sterioPannerNode: StereoPannerNode
+    protected get sterioPannerNode(): StereoPannerNode {
+        return this._sterioPannerNode
+    }
+    protected set sterioPannerNode(value: StereoPannerNode) {
+        this._sterioPannerNode = value
+    }
     public static get audioCtx(): AudioContext {
         return Sonify._audioCtx
     }
-    private static _gainNode: GainNode
-    public static get gainNode(): GainNode {
-        return Sonify._gainNode
+    private  _gainNode: GainNode
+    public  get gainNode(): GainNode {
+        return this._gainNode
     }
-    public static set gainNode(value: GainNode) {
-        Sonify._gainNode = value
+    public set gainNode(value: GainNode) {
+        this._gainNode = value
     }
     /**
      * The volume a sound will be played at
@@ -69,8 +76,9 @@ export class Sonify extends DatumOutput {
     protected start() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Starting')
         Sonify.audioCtx.resume()
-        Sonify.gainNode.connect(Sonify.audioCtx.destination)
-        this.outputNode?.connect(Sonify.gainNode)
+        this.gainNode.connect(Sonify.audioCtx.destination)
+        this.sterioPannerNode.connect(this.gainNode)
+        this.outputNode?.connect(this.sterioPannerNode)
         super.start()
     }
 
@@ -90,8 +98,8 @@ export class Sonify extends DatumOutput {
     protected resume() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Resuming. Playback state is resumed')
         Sonify.audioCtx.resume()
-        Sonify.gainNode.connect(Sonify.audioCtx.destination)
-        this.outputNode?.connect(Sonify.gainNode)
+        this.gainNode.connect(Sonify.audioCtx.destination)
+        this.outputNode?.connect(this.gainNode)
         super.resume()
     }
 
@@ -102,11 +110,13 @@ export class Sonify extends DatumOutput {
      * @param optionally include an audio node that can be played
      * @returns Returns an instance of specific subclass of SonificationType.
      */
-    constructor(audioNode?: AudioScheduledSourceNode) {
+    constructor(audioNode?: AudioScheduledSourceNode,pan:number = 0) {
         super()
 
         if (!this.outputNode) this.outputNode = audioNode
-        if (!Sonify.gainNode) Sonify.gainNode = Sonify._audioCtx.createGain()
+        if (!this.gainNode) this.gainNode = Sonify._audioCtx.createGain()
+        if(!this.sterioPannerNode) this.sterioPannerNode = Sonify._audioCtx.createStereoPanner()
+        this.sterioPannerNode.pan.value = pan
         this.isAudioPlaying = false
     }
     /// TODO: Possible additional values

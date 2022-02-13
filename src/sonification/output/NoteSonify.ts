@@ -48,8 +48,8 @@ export class NoteSonify extends Sonify {
     /**
      * Generates a new note sonifier
      */
-    public constructor() {
-        super(Sonify.audioCtx.createOscillator())
+    public constructor(pan:number=0) {
+        super(Sonify.audioCtx.createOscillator(),pan)
 
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
