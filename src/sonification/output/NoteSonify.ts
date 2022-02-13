@@ -29,7 +29,7 @@ export class NoteSonify extends Sonify {
     protected start() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'starting oscillator')
         let oscillator = this.outputNode as OscillatorNode
-        oscillator.start()
+        // oscillator.start()
         super.start()
     }
 
@@ -39,9 +39,12 @@ export class NoteSonify extends Sonify {
     protected output(datum: Datum) {
         debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
-        oscillator.frequency.value = datum.value
+        if(!this.isAudioPlaying) {
+        oscillator.start()
+        this.isAudioPlaying = true
     }
-
+    oscillator.frequency.value = datum.value
+}
     /**
      * Generates a new note sonifier
      */

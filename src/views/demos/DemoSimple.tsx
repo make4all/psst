@@ -1,5 +1,5 @@
 import React from 'react'
-import { Observable, of, tap, timer, zip } from 'rxjs'
+import { Observable, of, tap, timer, zip, delay } from 'rxjs'
 import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
@@ -11,6 +11,7 @@ import {
     SonificationLoggingLevel,
 } from '../../sonification/OutputConstants'
 import { Demo } from '../../pages/Demo'
+
 
 export interface DemoSimpleState {}
 
@@ -73,7 +74,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         let data$ = of(...data.slice(0,3)) //.slice(0, 8))
         let timer$ = timer(0, 500).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
-        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
+        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(delay(2000)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'point'),
         )
 

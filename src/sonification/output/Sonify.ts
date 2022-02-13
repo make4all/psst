@@ -48,11 +48,18 @@ export class Sonify extends DatumOutput {
     }
 
     /**
+     * a boolean to keep track whether the oscillator node is playing.
+     * We need this to start the oscillator only when it sees the first datum.
+     */
+    protected isAudioPlaying: boolean
+
+    /**
      * Stop all output. Stream has ended.
      */
     protected stop() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
         this.outputNode?.disconnect()
+        this.isAudioPlaying = false;
         super.stop()
     }
 
@@ -73,7 +80,7 @@ export class Sonify extends DatumOutput {
     protected pause() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Pausing. Playback state is paused')
         Sonify.audioCtx.suspend()
-        Sonify.gainNode.disconnect()
+        // Sonify.gainNode.disconnect()
         super.pause()
     }
 
@@ -100,6 +107,7 @@ export class Sonify extends DatumOutput {
 
         if (!this.outputNode) this.outputNode = audioNode
         if (!Sonify.gainNode) Sonify.gainNode = Sonify._audioCtx.createGain()
+        this.isAudioPlaying = false
     }
     /// TODO: Possible additional values
     /// @param duration The length of time over which to change to the new pitch. Defaults to 10 ms
