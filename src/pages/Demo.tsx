@@ -170,7 +170,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         const outputEngineInstance = OutputEngine.getInstance()
 
         if (outputEngineInstance) {
-            console.log('Output Engine instance is present. Output state', outputEngineInstance.outputState)
+            //console.log('Output Engine instance is present. Output state', outputEngineInstance.outputState)
             outputEngineInstance.onOutputStateChanged = this._handlePlaybackStateChanged
             if (outputEngineInstance.outputState == OutputState.Paused) {
                 outputEngineInstance.onPlay()
@@ -179,7 +179,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 outputEngineInstance.onPause()
             } else {
                 let table = DataManager.getInstance().table
-                console.log('table: ' + table)
+                //console.log('table: ' + table)
                 if (table) {
                     // Hardcode getting the "Value" column from each data table, this will need to be set by user later
                     let data = table.columns()[this.state.columnSelected].data
@@ -195,7 +195,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handlePlaybackStateChanged = (e: OutputState) => {
-        console.log('handlePlaybackStateChanged', e)
+        //console.log('handlePlaybackStateChanged', e)
         let playbackLabel
         switch (e) {
             case OutputState.Outputting:
@@ -210,7 +210,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         }
         this.setState({ playbackLabel })
 
-        console.log('returning. play button label', playbackLabel)
+        //console.log('returning. play button label', playbackLabel)
     }
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -219,7 +219,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handleColumnSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        console.log('change column selected', event.target.value)
+        //console.log('change column selected', event.target.value)
         const columnSelected = event.target.value
 
         let table = DataManager.getInstance().table
