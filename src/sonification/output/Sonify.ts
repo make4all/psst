@@ -15,12 +15,12 @@ export class Sonify extends DatumOutput {
      * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
      */
     private static _audioCtx = new AudioContext()
-    private _sterioPannerNode: StereoPannerNode
-    protected get sterioPannerNode(): StereoPannerNode {
-        return this._sterioPannerNode
+    private _stereoPannerNode: StereoPannerNode
+    public get stereoPannerNode(): StereoPannerNode {
+        return this._stereoPannerNode
     }
-    protected set sterioPannerNode(value: StereoPannerNode) {
-        this._sterioPannerNode = value
+    public  set stereoPannerNode(value: StereoPannerNode) {
+        this._stereoPannerNode = value
     }
     public static get audioCtx(): AudioContext {
         return Sonify._audioCtx
@@ -78,8 +78,8 @@ export class Sonify extends DatumOutput {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Starting')
         Sonify.audioCtx.resume()
         this.gainNode.connect(Sonify.audioCtx.destination)
-        this.sterioPannerNode.connect(this.gainNode)
-        this.outputNode?.connect(this.sterioPannerNode)
+        this.stereoPannerNode.connect(this.gainNode)
+        this.outputNode?.connect(this.stereoPannerNode)
         super.start()
     }
 
@@ -115,9 +115,9 @@ export class Sonify extends DatumOutput {
         super()
 
         if (!this.outputNode) this.outputNode = audioNode
-        if (!this.gainNode) this._gainNode = Sonify._audioCtx.createGain()
-        if(!this.sterioPannerNode) this._sterioPannerNode = Sonify._audioCtx.createStereoPanner()
-        this.sterioPannerNode.pan.value = pan
+         this._gainNode = Sonify._audioCtx.createGain()
+         this._stereoPannerNode = Sonify._audioCtx.createStereoPanner()
+        this.stereoPannerNode.pan.value = pan
         this.isAudioPlaying = false
     }
     /// TODO: Possible additional values
