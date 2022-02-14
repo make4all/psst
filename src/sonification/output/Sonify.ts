@@ -1,7 +1,7 @@
 import { Datum } from '../Datum'
 import { OutputState } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
-let DEBUG: boolean = true
+let DEBUG: boolean = false
 
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
