@@ -1,22 +1,26 @@
 import { Datum } from "../Datum";
 import { SonifyFixedDuration } from "./SonifyFixedDuration";
 
+/**
+ * Class for sonifying a data point using an array buffer.
+ * @extends SonifyFixedDuration
+ */
 export class FileOutput extends SonifyFixedDuration {
 
   private buffer : ArrayBuffer | undefined;
 
   constructor(buffer? : ArrayBuffer) {
     super()
-    if (buffer) { // for sure going into this branch in demo when constructed
+    if (buffer) {
       this.buffer = buffer
     }
   }
+
   protected create(datum: Datum): AudioScheduledSourceNode {
     const source = FileOutput.audioCtx.createBufferSource()
-    if (this.buffer) { // a buffer for sure exists each time create is called
+    if (this.buffer) {
       FileOutput.audioCtx.decodeAudioData(this.buffer.slice(0), (buffer) => source.buffer = buffer)
       this.outputNode = source
-      // ADDED FOLLOWING LINE
       this.outputNode.connect(FileOutput.gainNode)
       source.start()
     }

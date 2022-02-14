@@ -5,6 +5,8 @@ import * as d3 from 'd3'
 import { HourglassDisabledSharp } from '@mui/icons-material'
 import { DatumOutput } from '../output/DatumOutput'
 
+const DEBUG = false
+
 export enum ExceedDomainResponse {
     Expand,
     Ignore,
@@ -90,7 +92,7 @@ export class ScaleHandler extends DataHandler {
         let sinkMax = this.domain[0]
         let sinkMin = this.domain[1]
         if (this.sink) {
-            console.log('getting max and min')
+            if (DEBUG) console.log('getting max and min')
             sinkMax = this.sink.getStat('max')
             sinkMin = this.sink.getStat('min')
         }

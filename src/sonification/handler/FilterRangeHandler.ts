@@ -3,6 +3,8 @@ import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
 
+const DEBUG = false
+
 /**
  * A DataHandler that filters out things which are not betwen min and max (inclusive)
  * @todo change this to take a function that decides how to filter?
@@ -41,10 +43,10 @@ export class FilterRangeHandler extends DataHandler {
         if (!datum) return false
 
         if (this.range[0] <= datum.value && datum.value <= this.range[1]) {
-            console.log('in range. ')
+            if (DEBUG) console.log('in range. ')
             return super.handleDatum(datum)
         }
-        console.log('not in range. ')
+        if (DEBUG) console.log('not in range. ')
         return false
     }
 

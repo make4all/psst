@@ -21,7 +21,7 @@ const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
     speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange},
-    fileOutput: {value: 'fileOutput', label: 'Signal points with uploaded audio', component: DemoFileOutput}
+    fileOutput: {value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput}
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()

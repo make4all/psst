@@ -12,8 +12,7 @@ import { Box, Button, Input } from '@mui/material'
 const DEBUG = true
 
 export interface DemoFileOutputState extends DemoSimpleState {
-    minValue: number
-    maxValue: number
+    targetValue : number
 }
 export interface DemoFileOutputProps extends DemoSimpleProps {
     dataSummary: any
@@ -30,19 +29,19 @@ export class DemoFileOutput
     constructor(props: DemoFileOutputProps) {
         super(props)
         this.state = {
-            minValue: this.props.dataSummary.min,
-            maxValue: this.props.dataSummary.max,
+            // currently just chooses max as the default
+            targetValue: this.props.dataSummary.max,
         }
         this._inputFile = React.createRef()
     }
 
     public render() {
-        const { minValue, maxValue } = this.state
+        const { targetValue } = this.state
 
         return (
             <div>
                 <label htmlFor="input-upload-file" aria-label="Choose file">
-                    <Box component="div" sx={{ p: 2, border: '2px dashed #aaa' }}>
+                    <Box component="div" sx={{ p: 2, border: '2px dashed #aaa', mb: 2 }}>
                         <Button component="label">
                             Upload
                             <Input
@@ -57,22 +56,13 @@ export class DemoFileOutput
                     </Box>
                 </label>
                 <TextField
-                    id="text-min-value"
-                    aria-label="Enter minimum value"
-                    label="Min"
+                    id="text-value"
+                    aria-label="Enter the target value"
+                    label="Target"
                     variant="outlined"
                     type="number"
-                    value={isNaN(minValue) ? '' : minValue}
-                    onChange={(e) => this._handleValueChange(parseFloat(e.target.value), 'min')}
-                />
-                <TextField
-                    id="text-max-value"
-                    aria-label="Enter maximum value"
-                    label="Max"
-                    variant="outlined"
-                    type="number"
-                    value={isNaN(maxValue) ? '' : maxValue}
-                    onChange={(e) => this._handleValueChange(parseFloat(e.target.value), 'max')}
+                    value={isNaN(targetValue) ? '' : targetValue}
+                    onChange={(e) => this._handleValueChange(parseFloat(e.target.value))}
                 />
             </div>
         )
@@ -87,22 +77,14 @@ export class DemoFileOutput
             this.props.dataSummary.min !== prevProps.dataSummary.min ||
             this.props.dataSummary.max !== prevProps.dataSummary.max
         ) {
-            let minValue = this.props.dataSummary.min,
-                maxValue = this.props.dataSummary.max
-            this.setState({ minValue, maxValue })
+            let targetValue = this.props.dataSummary.max
+            this.setState({ targetValue })
         }
-        if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
+        if (this.filter) this.filter.range = [this.state.targetValue, this.state.targetValue]
     }
 
-    private _handleValueChange = (value: number, which: string) => {
-        switch (which) {
-            case 'min':
-                this.setState({ minValue: value })
-                break
-            case 'max':
-                this.setState({ maxValue: value })
-                break
-        }
+    private _handleValueChange = (value: number) => {
+        this.setState({ targetValue: value})
     }
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
@@ -125,11 +107,10 @@ export class DemoFileOutput
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
         this.filter = new FilterRangeHandler(this.sink, new FileOutput(this._buffer), [
-            this.state.minValue,
-            this.state.maxValue,
+            this.state.targetValue, this.state.targetValue
         ])
         if (DEBUG) console.log("sink initialized")
-        // this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.filter)
         return this.sink
     }
