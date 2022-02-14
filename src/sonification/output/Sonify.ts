@@ -25,13 +25,14 @@ export class Sonify extends DatumOutput {
     public static get audioCtx(): AudioContext {
         return Sonify._audioCtx
     }
-    private  _gainNode: GainNode
-    public  get gainNode(): GainNode {
+    private _gainNode: GainNode
+    public get gainNode(): GainNode {
         return this._gainNode
     }
     public set gainNode(value: GainNode) {
         this._gainNode = value
     }
+    
     /**
      * The volume a sound will be played at
      */
@@ -114,8 +115,8 @@ export class Sonify extends DatumOutput {
         super()
 
         if (!this.outputNode) this.outputNode = audioNode
-        if (!this.gainNode) this.gainNode = Sonify._audioCtx.createGain()
-        if(!this.sterioPannerNode) this.sterioPannerNode = Sonify._audioCtx.createStereoPanner()
+        if (!this.gainNode) this._gainNode = Sonify._audioCtx.createGain()
+        if(!this.sterioPannerNode) this._sterioPannerNode = Sonify._audioCtx.createStereoPanner()
         this.sterioPannerNode.pan.value = pan
         this.isAudioPlaying = false
     }
