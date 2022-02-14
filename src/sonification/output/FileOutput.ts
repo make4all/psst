@@ -1,55 +1,30 @@
-import { domainToASCII } from 'url';
-import { Sonify } from './Sonify'
+import { Datum } from "../Datum";
+import { SonifyFixedDuration } from "./SonifyFixedDuration";
 
-const DEBUG = true
+export class FileOutput extends SonifyFixedDuration {
 
-/**
- * Class for sonifying a point using an uploaded file.
- * @extends Sonify
- */
-export class FileOutput extends Sonify {
+  private buffer : ArrayBuffer | undefined;
 
-    // is update() even necessary??
-    // stop() not necessary atm?
-    // pause() also not necessary
-
-    private buffer : ArrayBuffer | undefined;
-
-    /**
-     * Start playing the current datum.
-     */
-    start() {
-        this.initialize()
-        super.start()
-        let output = this._outputNode as AudioBufferSourceNode
-        output?.start()
-        if (DEBUG) console.log("file output playing specifically !!!!")
+  constructor(buffer? : ArrayBuffer) {
+    super()
+    if (buffer) { // for sure going into this branch in demo when constructed
+      this.buffer = buffer
     }
-
-    /**
-     * Generates a new file sonifier
-     * @returns Returns an instance of specific subclass of SonificationType.
-     */
-     public constructor(buffer? : ArrayBuffer) {
-        super()
-       	if (buffer) this.buffer = buffer
+  }
+  protected create(datum: Datum): AudioScheduledSourceNode {
+    const source = FileOutput.audioCtx.createBufferSource()
+    if (this.buffer) { // a buffer for sure exists each time create is called
+      FileOutput.audioCtx.decodeAudioData(this.buffer.slice(0), (buffer) => source.buffer = buffer)
+      this.outputNode = source
+      // ADDED FOLLOWING LINE
+      this.outputNode.connect(FileOutput.gainNode)
+      source.start()
     }
+    if (source.buffer) this.duration = source.buffer.duration
+    return source
+  }
 
-    public initialize() {
-        if (this.buffer) {
-            const source = FileOutput.audioCtx.createBufferSource()
-            FileOutput.audioCtx.decodeAudioData(this.buffer.slice(0), (buffer) => source.buffer = buffer)
-            this._outputNode = source
-        }
-    }
-
-    /**
-     *
-     * @returns A string describing the current frequency being played.
-     */
-    public toString(): string {
-        let audioFile = this.outputNode as AudioBufferSourceNode
-        if (audioFile) return `FileOutput playing`
-        else return `FileOutput not currently playing`
-    }
+  protected extend(timeAdd: number) {
+    throw new Error("Method not implemented.");
+  }
 }
