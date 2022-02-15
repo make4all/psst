@@ -32,7 +32,7 @@ export class DemoHighlightRegion
             maxValue: this.props.dataSummary.max,
         }
     }
-
+    
     public render() {
         const { minValue, maxValue } = this.state
 

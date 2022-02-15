@@ -25,6 +25,7 @@ const DEMO_VIEW_MAP = {
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
+let chartViewRef: React.RefObject<ChartView> = React.createRef()
 export interface DemoState {
     dataSummary: any
     columnList: string[]
@@ -66,7 +67,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 </div>
 
                 <div>
-                    <ChartView />
+                    <ChartView ref={chartViewRef}/>
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
@@ -195,6 +196,11 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                     }
                 }
             }
+            // Need to to create one handler for visual
+            const sinks = outputEngineInstance.getSinks();
+            sinks.forEach(sink => {
+                if (chartViewRef.current) chartViewRef.current.handleSinkUpdate(sink);
+            })
         }
     }
 
