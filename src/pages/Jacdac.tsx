@@ -36,8 +36,10 @@ function ConnectButton() {
     const [streaming, setStreaming] = useState(false)
     const [xSink, setXSink] = useState<DataSink>()
     const [ySink, setYSink] = useState<DataSink>()
+    const [zSink, setZSink] = useState<DataSink>()
     const [xAxisStream, setXAxisStream] = useState<Subject<Datum>>()
     const [yAxisStream, setYAxisStream] = useState<Subject<Datum>>()
+    const [zAxisStream, setZAxisStream] = useState<Subject<Datum>>()
 
     useEffect(() => {
         if (!inIFrame() && window.location.hash === '#dbg') startDevTools()
@@ -53,11 +55,12 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !xSink || !ySink    ) return
+                if (!streaming || !xSink || !ySink || !zSink  ) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
                 if(xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id,x))
                 if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
+                // if(zSink && zAxisStream) zAxisStream.next(new Datum(zSink.id,z))
                 // OutputEngine.getInstance().pushPoint(x, sink.id)
             }, TONE_THROTTLE),
         )
@@ -80,8 +83,10 @@ function ConnectButton() {
         console.log("entering handel stream")
         let xSinkID:number = 0;
         let ySinkID:number = 1;
+        let zSinkID:number = 2;
         let srcX = xSink;
         let srcY = ySink;
+        let srcZ = zSink;
         if (!streaming) {
             console.log("streaming was false")
             /**
@@ -99,7 +104,7 @@ function ConnectButton() {
             }
 
             /**
-             * check if a sink exists to stream X axis data to. else create one.
+             * check if a sink exists to stream Y axis data to. else create one.
              */
              if (!srcY) {
                 srcY = OutputEngine.getInstance().addSink('jacdac accelerometer Y axis')
@@ -111,9 +116,33 @@ function ConnectButton() {
                 setYSink(srcY)
             }
 
-            
+            /**
+             * check if a sink exists to stream Z axis data to. else create one.
+             */
+             if (!srcZ) {
+                srcZ = OutputEngine.getInstance().addSink('jacdac accelerometer Z axis')
+                console.log(`added sink to stream z axis data ${zSink}`)
+                srcZ.addDataHandler(new NoteHandler([-1,1],0.6))
+                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                // dummy stats. Do we know the min and max for accelerometer?
+                zSinkID = srcZ.id;
+                setZSink(srcZ)
+            }
+/**
+ * check if a observable exists for each of the axes.
+ * If not, create an RXJS Subject, filter out null values and change it to be typed as observable<datum>, and then set this as a stream for the source.
+ */
 
-            let sourceY = yAxisStream;
+ let sourceX = xAxisStream;
+ if(!sourceX)
+ {
+     sourceX = new Subject<Datum>();
+     setXAxisStream(sourceX)
+     OutputEngine.getInstance().setStream(xSinkID,sourceX.pipe(filterNullish()))
+
+ }
+            
+ let sourceY = yAxisStream;
             if(!sourceY)
             {
                 sourceY = new Subject<Datum>();
@@ -122,14 +151,14 @@ function ConnectButton() {
 
             }
 
-            let sourceX = xAxisStream;
-            if(!sourceX)
+            let sourceZ = zAxisStream;
+            if(!sourceZ)
             {
-                sourceX = new Subject<Datum>();
-                setXAxisStream(sourceX)
-                OutputEngine.getInstance().setStream(xSinkID,sourceX.pipe(filterNullish()))
+                sourceZ = new Subject<Datum>();
+                setZAxisStream(sourceZ)
+                OutputEngine.getInstance().setStream(zSinkID,sourceZ.pipe(filterNullish()))
 
-            }
+            }            
 
             OutputEngine.getInstance().next(OutputStateChange.Play)
         } else {
