@@ -2,7 +2,7 @@ import React from 'react'
 
 import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
+import { NotificationHandler } from '../../sonification/handler/NotificationHandler'
 import { FileOutput } from '../../sonification/output/FileOutput'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
@@ -12,7 +12,7 @@ import { Box, Button, Input } from '@mui/material'
 const DEBUG = true
 
 export interface DemoFileOutputState extends DemoSimpleState {
-    targetValue : number
+    targetValues : number[]
 }
 export interface DemoFileOutputProps extends DemoSimpleProps {
     dataSummary: any
@@ -22,7 +22,7 @@ export class DemoFileOutput
     extends DemoSimple<DemoFileOutputProps, DemoFileOutputState>
     implements IDemoView
 {
-    filter: FilterRangeHandler | undefined
+    filter: NotificationHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _buffer: ArrayBuffer | undefined
 
@@ -30,13 +30,13 @@ export class DemoFileOutput
         super(props)
         this.state = {
             // currently just chooses max as the default
-            targetValue: this.props.dataSummary.max,
+            targetValues: [this.props.dataSummary.max]
         }
         this._inputFile = React.createRef()
     }
 
     public render() {
-        const { targetValue } = this.state
+        const { targetValues } = this.state
 
         return (
             <div>
@@ -56,13 +56,11 @@ export class DemoFileOutput
                     </Box>
                 </label>
                 <TextField
-                    id="text-value"
+                    id="text-values"
                     aria-label="Enter the target value"
-                    label="Target"
+                    label="Points of interest"
                     variant="outlined"
-                    type="number"
-                    value={isNaN(targetValue) ? '' : targetValue}
-                    onChange={(e) => this._handleValueChange(parseFloat(e.target.value))}
+                    onChange={(e) => this._handleValueChange(e.target.value)}
                 />
             </div>
         )
@@ -77,14 +75,22 @@ export class DemoFileOutput
             this.props.dataSummary.min !== prevProps.dataSummary.min ||
             this.props.dataSummary.max !== prevProps.dataSummary.max
         ) {
-            let targetValue = this.props.dataSummary.max
-            this.setState({ targetValue })
+            let targetValues = [this.props.dataSummary.max]
+            this.setState({ targetValues })
         }
-        if (this.filter) this.filter.range = [this.state.targetValue, this.state.targetValue]
+        if (this.filter) this.filter.interestPoints = this.state.targetValues
     }
 
-    private _handleValueChange = (value: number) => {
-        this.setState({ targetValue: value})
+    private _handleValueChange = (value: string) => {
+        let values = value.split(',')
+        let targets : number[] = []
+        for (let val of values) {
+            let numb = parseFloat(val)
+            if (!isNaN(numb)) {
+                targets.push(numb)
+            }
+        }
+        this.setState({ targetValues: targets})
     }
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
@@ -106,9 +112,7 @@ export class DemoFileOutput
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
-        this.filter = new FilterRangeHandler(this.sink, new FileOutput(this._buffer), [
-            this.state.targetValue, this.state.targetValue
-        ])
+        this.filter = new NotificationHandler(this.sink, new FileOutput(this._buffer), this.state.targetValues)
         if (DEBUG) console.log("sink initialized")
         this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.filter)
