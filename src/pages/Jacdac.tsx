@@ -34,7 +34,8 @@ function ConnectButton() {
     const connected = useChange(bus, (_) => _.connected)
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
     const [streaming, setStreaming] = useState(false)
-    const [sink, setSink] = useState<DataSink>()
+    const [xSink, setXSink] = useState<DataSink>()
+    const [ySink, setYSink] = useState<DataSink>()
     const [xAxisStream, setXAxisStream] = useState<Subject<Datum>>()
     const [yAxisStream, setYAxisStream] = useState<Subject<Datum>>()
 
@@ -52,10 +53,11 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !sink) return
+                if (!streaming || !xSink || !ySink    ) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
-                if(sink && xAxisStream) xAxisStream.next(new Datum(sink.id,x))
+                if(xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id,x))
+                if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
                 // OutputEngine.getInstance().pushPoint(x, sink.id)
             }, TONE_THROTTLE),
         )
@@ -75,17 +77,48 @@ function ConnectButton() {
     }
 
     const handleStartStreaming = () => {
-        let sinkID:number = 0;
-        let src = sink
+        console.log("entering handel stream")
+        let xSinkID:number = 0;
+        let ySinkID:number = 1;
+        let srcX = xSink;
+        let srcY = ySink;
         if (!streaming) {
-            if (!src) {
-                src = OutputEngine.getInstance().addSink('jacdac demo')
-                src.addDataHandler(new NoteHandler([-1,1],-1))
+            console.log("streaming was false")
+            /**
+             * check if a sink exists to stream X axis data to. else create one.
+             */
+            if (!srcX) {
+                
+                srcX = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
+                console.log(`added sink to stream x axis data ${xSink}`)
+                srcX.addDataHandler(new NoteHandler([-1,1],-1))
                 // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
-                sinkID = src.id;
-                setSink(src)
+                xSinkID = srcX.id;
+                setXSink(srcX)
+            }
 
+            /**
+             * check if a sink exists to stream X axis data to. else create one.
+             */
+             if (!srcY) {
+                srcY = OutputEngine.getInstance().addSink('jacdac accelerometer Y axis')
+                console.log(`added sink to stream y axis data ${ySink}`)
+                srcY.addDataHandler(new NoteHandler([-1,1],1))
+                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                // dummy stats. Do we know the min and max for accelerometer?
+                ySinkID = srcY.id;
+                setYSink(srcY)
+            }
+
+            
+
+            let sourceY = yAxisStream;
+            if(!sourceY)
+            {
+                sourceY = new Subject<Datum>();
+                setYAxisStream(sourceY)
+                OutputEngine.getInstance().setStream(ySinkID,sourceY.pipe(filterNullish()))
 
             }
 
@@ -94,7 +127,7 @@ function ConnectButton() {
             {
                 sourceX = new Subject<Datum>();
                 setXAxisStream(sourceX)
-                OutputEngine.getInstance().setStream(sinkID,sourceX.pipe(filterNullish()))
+                OutputEngine.getInstance().setStream(xSinkID,sourceX.pipe(filterNullish()))
 
             }
 
