@@ -12,9 +12,8 @@ export class SpeechHandler extends DataHandler {
      * Sets up a default target range that is audible. Uses the Mel Scale (https://www.wikiwand.com/en/Mel_scale)
      * @param volume How loudly to play the note.
      */
-    constructor(source?: DataSink, volume?: number) {
-        super(source, new Speech())
-        if(DEBUG) console.log("in speech template for source ",source)
+    constructor(volume?: number) {
+        super(new Speech())
     }
 
     public toString(): string {

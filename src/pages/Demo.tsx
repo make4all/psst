@@ -2,7 +2,7 @@ import { OutputEngine } from '../sonification/OutputEngine'
 
 import React, { ChangeEvent } from 'react'
 
-import { OutputState } from '../sonification/OutputConstants'
+import { OutputStateChange } from '../sonification/OutputConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
 
@@ -16,6 +16,7 @@ import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { DemoSpeakRange } from '../views/demos/DemoSpeakRange'
 import { DemoFileOutput } from '../views/demos/DemoFileOutput'
 import { op } from 'arquero'
+import Table from 'arquero/dist/types/table/table'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
@@ -27,6 +28,7 @@ const DEMO_VIEW_MAP = {
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
 export interface DemoState {
     dataSummary: any
+    data: any
     columnList: string[]
     columnSelected: string
     demoViewValue: string
@@ -40,6 +42,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         super(props)
         this.state = {
             dataSummary: { min: 300, max: 500, median: 400, mean: 400, count: 200 },
+            data: undefined,
             demoViewValue: 'simple',
             playbackLabel: 'play',
             columnSelected: 'Value',
@@ -47,6 +50,7 @@ export class Demo extends React.Component<DemoProps, DemoState> {
         }
 
         DataManager.getInstance().addListener(this._handleDataChange)
+        OutputEngine.getInstance().subscribe(this._handlePlaybackStateChanged)
     }
 
     public render() {
@@ -59,10 +63,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 <h1> basic sonification demo</h1>
                 <div>
                     <ImportView />
-                </div>
-
-                <div>
-                    <DataView />
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
@@ -87,12 +87,6 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                                 </NativeSelect>
                             </FormControl>
                         </Grid>
-                    </Grid>
-                </div>
-                <div style={{ marginTop: '20px' }}>
-                    {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
-                    {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
-                    <Grid container spacing={2}>
                         <Grid item xs={8} sm={4} md={4}>
                             <FormControl>
                                 <InputLabel variant="standard" htmlFor="demo-view-select" id="demo-view-label">
@@ -112,6 +106,12 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                                 </NativeSelect>
                             </FormControl>
                         </Grid>
+                    </Grid>
+                </div>
+                <div style={{ marginTop: '20px' }}>
+                    {/* <textarea value={editorText}onChange={handleEditorChange}/>  */}
+                    {/* <Editor height="90vh" defaultLanguage="javascript" defaultValue={editorText} onChange={handleEditorChange} /> */}
+                    <Grid container spacing={2}>
                         <Grid item xs={12} sm={8} md={8}>
                             {<DemoComponent ref={demoViewRef} dataSummary={dataSummary} />}
                         </Grid>
@@ -122,6 +122,10 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                         Press the interrupt with random data button when a tone is playing to override what is playing
                         with random data.
                     </p>
+                </div>
+
+                <div>
+                    <DataView />
                 </div>
             </div>
         )
@@ -140,7 +144,12 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                 const columnSelected = columnList[0]
                 let dataSummary = this._computeDataSummary(data, columnSelected)
 
-                this.setState({ dataSummary, columnList, columnSelected })
+                this.setState({
+                    dataSummary: dataSummary,
+                    data: data,
+                    columnList: columnList,
+                    columnSelected: columnSelected,
+                })
             }
         }
     }
@@ -159,75 +168,67 @@ export class Demo extends React.Component<DemoProps, DemoState> {
     }
 
     private _handlePlayButton = () => {
-        // This is old code for getting the data values from a TextEdit HTML element
-        // var data: number[] = []
-        // var dataText: string[] = editorText.split(',')
-        // console.log("sonificationOption when play button handeler is entered",sonificationOption)
-
-        // for (let i = 0; i < dataText.length; i++) {
-        //     data.push(parseInt(dataText[i]))
-        // }
         const outputEngineInstance = OutputEngine.getInstance()
 
-        if (outputEngineInstance) {
-            //console.log('Output Engine instance is present. Output state', outputEngineInstance.outputState)
-            outputEngineInstance.onOutputStateChanged = this._handlePlaybackStateChanged
-            if (outputEngineInstance.outputState == OutputState.Paused) {
-                outputEngineInstance.onPlay()
-            } else if (outputEngineInstance.outputState == OutputState.Outputting) {
-                console.log('pausing output.')
-                outputEngineInstance.onPause()
-            } else {
-                let table = DataManager.getInstance().table
-                //console.log('table: ' + table)
-                if (table) {
-                    // Hardcode getting the "Value" column from each data table, this will need to be set by user later
-                    let data = table.columns()[this.state.columnSelected].data
+        let outputState = outputEngineInstance.value
+        console.log('Output Engine instance is present. Output state', outputState)
 
-                    if (demoViewRef.current) {
-                        let demoView: IDemoView = demoViewRef.current
-                        console.log("calling demo's onPlay()")
-                        demoView.onPlay(data)
-                    }
+        if (outputState == OutputStateChange.Pause) {
+            outputEngineInstance.next(OutputStateChange.Play)
+        } else if (outputState == OutputStateChange.Play) {
+            console.log('pausing output.')
+            outputEngineInstance.next(OutputStateChange.Pause)
+        } else {
+            let table = this.state.data as Table
+            console.log(`table: ${this.state.columnSelected} ${table} ${table.columnNames}`)
+
+            if (table) {
+                let column = table.array(this.state.columnSelected)
+                //console.log(`column ${column}`)
+
+                if (demoViewRef.current) {
+                    let demoView: IDemoView = demoViewRef.current
+                    console.log("calling demo's onPlay()")
+                    demoView.onPlay(column)
                 }
             }
         }
     }
 
-    private _handlePlaybackStateChanged = (e: OutputState) => {
-        //console.log('handlePlaybackStateChanged', e)
+    private _handlePlaybackStateChanged = (e: OutputStateChange) => {
+        console.log('handlePlaybackStateChanged', OutputStateChange[e])
         let playbackLabel
         switch (e) {
-            case OutputState.Outputting:
+            case OutputStateChange.Play:
                 playbackLabel = 'pause'
                 break
-            case OutputState.Paused:
+            case OutputStateChange.Pause:
                 playbackLabel = 'resume'
                 break
             default:
                 playbackLabel = 'play'
                 break
         }
-        this.setState({ playbackLabel })
+        this.setState({ playbackLabel: playbackLabel })
 
         //console.log('returning. play button label', playbackLabel)
     }
 
     private _handleDemoViewValueChange = (event: ChangeEvent<HTMLSelectElement>) => {
         let demoViewValue = event.target.value
-        this.setState({ demoViewValue })
+        this.setState({ demoViewValue: demoViewValue })
     }
 
     private _handleColumnSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
         //console.log('change column selected', event.target.value)
         const columnSelected = event.target.value
 
-        let table = DataManager.getInstance().table
+        let table = this.state.data
 
         if (table) {
             // Hardcode getting the "Value" column from each data table, this will need to be set by user later
             const dataSummary = this._computeDataSummary(table, columnSelected)
-            this.setState({ columnSelected, dataSummary })
+            this.setState({ columnSelected: columnSelected, dataSummary: dataSummary })
         }
     }
 }

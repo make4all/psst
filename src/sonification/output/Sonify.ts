@@ -1,7 +1,9 @@
-import { Datum } from '../Datum'
-import { OutputState } from '../OutputConstants'
+import assert from 'assert'
+import { filter, Observable, tap } from 'rxjs'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
-let DEBUG: boolean = false
+
+const DEBUG =  false
 
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
@@ -15,16 +17,24 @@ export class Sonify extends DatumOutput {
      * Sonify will keep control of that audio context and ensure that only 1 audio context exists.
      */
     private static _audioCtx = new AudioContext()
+    private _stereoPannerNode: StereoPannerNode
+    public get stereoPannerNode(): StereoPannerNode {
+        return this._stereoPannerNode
+    }
+    public  set stereoPannerNode(value: StereoPannerNode) {
+        this._stereoPannerNode = value
+    }
     public static get audioCtx(): AudioContext {
         return Sonify._audioCtx
     }
-    private static _gainNode: GainNode
-    public static get gainNode(): GainNode {
-        return Sonify._gainNode
+    private _gainNode: GainNode
+    public get gainNode(): GainNode {
+        return this._gainNode
     }
-    public static set gainNode(value: GainNode) {
-        Sonify._gainNode = value
+    public set gainNode(value: GainNode) {
+        this._gainNode = value
     }
+
     /**
      * The volume a sound will be played at
      */
@@ -48,49 +58,52 @@ export class Sonify extends DatumOutput {
     }
 
     /**
-     * Stores relevant information when a new datum arrives. Value is derived from datum.scaledValue.
-     * @param datum The raw data
-     * @param audioNode The audio node whose configuration will fully specify this sound
-     * @param volume The volume the sound should play at
-     * @param duration The length of time the sound should play for
+     * a boolean to keep track whether the oscillator node is playing.
+     * We need this to start the oscillator only when it sees the first datum.
      */
-    update(datum?: Datum) {
-        super.update(datum)
-    }
+    protected isAudioPlaying: boolean
 
     /**
      * Stop all output. Stream has ended.
      */
-    stop() {
-        super.stop()
+    protected stop() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
         this.outputNode?.disconnect()
+        this.isAudioPlaying = false;
+        super.stop()
     }
 
     /**
      * Connects the oscillator node so that playback will resume.
      */
-    public start() {
-        if (this.outputState == OutputState.Outputting&& Sonify.audioCtx.state == 'running') {
-            if (DEBUG) console.log('playing')
-        } else {
-            if (DEBUG) console.log('setting up for playing')
-            Sonify.audioCtx.resume()
-            Sonify.gainNode.connect(Sonify.audioCtx.destination)
-            this.outputNode?.connect(Sonify.gainNode)
-            this.outputState = OutputState.Outputting
-        }
+    protected start() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Starting')
+        Sonify.audioCtx.resume()
+        this.gainNode.connect(Sonify.audioCtx.destination)
+        this.stereoPannerNode.connect(this.gainNode)
+        this.outputNode?.connect(this.stereoPannerNode)
         super.start()
     }
 
     /**
-     * Pause suspends current playing of audio and disconnects the oscillator node.
-     * Not currently working.
+     * Pauses playback
      */
-    public pause(): void {
-        if (DEBUG) console.log('Pausing. Playback state is paused')
+    protected pause() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Pausing. Playback state is paused')
         Sonify.audioCtx.suspend()
-        Sonify.gainNode.disconnect()
+        // Sonify.gainNode.disconnect()
         super.pause()
+    }
+
+    /**
+     * Resumes playback
+     */
+    protected resume() {
+        debugStatic(SonificationLoggingLevel.DEBUG, 'Resuming. Playback state is resumed')
+        Sonify.audioCtx.resume()
+        this.gainNode.connect(Sonify.audioCtx.destination)
+        this.outputNode?.connect(this.gainNode)
+        super.resume()
     }
 
     /**
@@ -100,17 +113,19 @@ export class Sonify extends DatumOutput {
      * @param optionally include an audio node that can be played
      * @returns Returns an instance of specific subclass of SonificationType.
      */
-    constructor(volume?: number, audioNode?: AudioScheduledSourceNode) {
+    constructor(audioNode?: AudioScheduledSourceNode,pan:number = 0) {
         super()
 
         if (!this.outputNode) this.outputNode = audioNode
-
-        this.outputState = OutputState.Stopped
-        Sonify._audioCtx.resume()
-        Sonify.gainNode = Sonify._audioCtx.createGain()
-        if (volume) this.volume = volume
-        if (audioNode) audioNode.connect(Sonify.gainNode)
+         this._gainNode = Sonify._audioCtx.createGain()
+         this._stereoPannerNode = Sonify._audioCtx.createStereoPanner()
+        this.stereoPannerNode.pan.value = pan
+        this.isAudioPlaying = false
     }
+    /// TODO: Possible additional values
+    /// @param duration The length of time over which to change to the new pitch. Defaults to 10 ms
+    /// @param volume The volume to play the note at. Can be overriden globally
+    /// @param smooth Whether to connect the notes in the sequence being played. If undefined, defaults to true.
 
     /**
      *
@@ -118,5 +133,32 @@ export class Sonify extends DatumOutput {
      */
     public toString(): string {
         return `Sonify`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

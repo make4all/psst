@@ -17,11 +17,12 @@ export class FileOutput extends SonifyFixedDuration {
   }
 
   protected create(datum: Datum): AudioScheduledSourceNode {
+    console.log("playing for datum", datum.value)
     const source = FileOutput.audioCtx.createBufferSource()
     if (this.buffer) {
       FileOutput.audioCtx.decodeAudioData(this.buffer.slice(0), (buffer) => source.buffer = buffer)
       this.outputNode = source
-      this.outputNode.connect(FileOutput.gainNode)
+      this.outputNode.connect(this.gainNode)
       source.start()
     }
     if (source.buffer) this.duration = source.buffer.duration

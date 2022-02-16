@@ -112,9 +112,9 @@ export class DemoFileOutput
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
-        this.filter = new NotificationHandler(this.sink, new FileOutput(this._buffer), this.state.targetValues)
+        this.filter = new NotificationHandler(new FileOutput(this._buffer), this.state.targetValues)
         if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(new NoteHandler(this.sink))
+        //this.sink.addDataHandler(new NoteHandler())
         this.sink.addDataHandler(this.filter)
         return this.sink
     }
