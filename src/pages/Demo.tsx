@@ -5,10 +5,12 @@ import React, { ChangeEvent } from 'react'
 import { OutputState } from '../sonification/OutputConstants'
 import { ImportView } from '../views/ImportView'
 import { DataView } from '../views/DataView'
+import { ChartView } from '../views/ChartView'
 
 import { FormControl, InputLabel, Grid, NativeSelect } from '@mui/material'
 
 import { DataManager } from '../DataManager'
+
 
 import { IDemoView } from '../views/demos/IDemoView'
 import { DemoSimple } from '../views/demos/DemoSimple'
@@ -23,6 +25,7 @@ const DEMO_VIEW_MAP = {
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
+let chartViewRef: React.RefObject<ChartView> = React.createRef()
 export interface DemoState {
     dataSummary: any
     columnList: string[]
@@ -61,6 +64,10 @@ export class Demo extends React.Component<DemoProps, DemoState> {
 
                 <div>
                     <DataView />
+                </div>
+
+                <div>
+                    <ChartView ref={chartViewRef}/>
                 </div>
 
                 <div style={{ marginTop: '20px' }}>
@@ -189,6 +196,11 @@ export class Demo extends React.Component<DemoProps, DemoState> {
                     }
                 }
             }
+            // Need to to create one handler for visual
+            const sinks = outputEngineInstance.getSinks();
+            sinks.forEach(sink => {
+                if (chartViewRef.current) chartViewRef.current.handleSinkUpdate(sink);
+            })
         }
     }
 

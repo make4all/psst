@@ -254,6 +254,12 @@ export class ImportView extends React.Component<ImportViewProps, ImportViewState
         }
     }
 
+    public componentDidMount() {
+        // Update data based on first example
+        let url = `./data/${EXAMPLE_LIST[0].fileName}`
+        DataManager.getInstance().loadDataFromUrl(url)
+    }
+
     // https://raw.githubusercontent.com/vega/vega-datasets/next/data/stocks.csv
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {

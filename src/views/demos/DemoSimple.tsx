@@ -80,7 +80,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         let id = this.sink ? this.sink.id : 0
         let source = timer(0, 200).pipe(
-            map((val) => new Datum(id, data[val])),
+            map((val) => new Datum(id, data[val], val)),
             take(data.length),
         )
         console.log('setStream in demo')

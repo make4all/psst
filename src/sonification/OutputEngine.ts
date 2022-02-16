@@ -68,6 +68,14 @@ export class OutputEngine {
     }
 
     /**
+     * 
+     * @returns Array of active DataSinks
+     */
+     public getSinks(): DataSink[] {
+        return [...this.sinks.values()]
+    }
+
+    /**
      * Get a sink given an Id. Throws an error of sinkId doesn't exist.
      * @param sinkId
      * @returns Returns the DataSink associated with sinkId.
@@ -205,7 +213,7 @@ export class OutputEngine {
         let sink = this.sinks.get(sinkId)
         if (!sink) throw new Error(`no sink associated with ${sinkId}`)
         if (DEBUG) console.log(`Sink ${sink}`)
-        let datum = new Datum(sinkId, point)
+        let datum = new Datum(sinkId, point, point)
         switch (this.outputState) {
             case OutputState.Stopped: // ignore the point
                 if (DEBUG) console.log(`playback: Stopped`)
