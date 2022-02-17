@@ -3,18 +3,24 @@ import { Link } from 'react-router-dom'
 
 import { Demo } from './Demo'
 import Jacdac from './Jacdac'
+import { Dashboard } from './Dashboard'
 
 const Index: FC = (props) => {
     const opts = [
         { name: 'Basic', url: '/basic', el: <Demo /> },
         { name: 'Jacdac', url: '/jacdac', el: <Jacdac /> },
+        { name: 'Dashboard', url: '/dashboard', el: <Dashboard /> },
     ]
 
     return (
         <>
-            {opts.map((opt) => (
-                <Link to={opt.url}>{opt.name}</Link>
-            ))}
+            <ul>
+                {opts.map((opt) => (
+                    <li>
+                        <Link to={opt.url}>{opt.name}</Link>
+                    </li>
+                ))}
+            </ul>
         </>
     )
 }
