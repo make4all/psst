@@ -16,12 +16,14 @@ import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { DemoSpeakRange } from '../views/demos/DemoSpeakRange'
 import { DemoFileOutput } from '../views/demos/DemoFileOutput'
 import { op } from 'arquero'
+import { DemoSlopeParity } from '../views/demos/DemoSlopeParity'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
     speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange},
-    fileOutput: {value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput}
+    fileOutput: {value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput},
+    slopeParity: {value: 'slopeParity', label: 'Slope parity notification', component: DemoSlopeParity}
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
