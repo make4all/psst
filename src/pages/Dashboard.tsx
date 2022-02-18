@@ -5,10 +5,7 @@ import React, { ChangeEvent } from 'react'
 import '../styles/dashboard.css'
 
 import {
-    FormControl,
-    InputLabel,
     Grid,
-    NativeSelect,
     AppBar,
     Typography,
     Toolbar,
@@ -32,44 +29,52 @@ const serviceList = [
     {
         name: 'Accelerometer',
         values: [
-            { name: 'x', units: 'g', dataHandlers: [] },
-            { name: 'y', units: 'g', dataHandlers: [] },
-            { name: 'z', units: 'g', dataHandlers: [] },
+            {
+                name: 'x',
+                units: 'g',
+                value: 0.8999343,
+                dataHandlers: [
+                    { name: 'Note Handler', description: 'Describe the note handler', active: true },
+                    { name: 'Filter Range Handler', description: 'Description of filter range handler', active: true },
+                ],
+            },
+            { name: 'y', units: 'g', value: 0.12222323, dataHandlers: [] },
+            { name: 'z', units: 'g', value: 0.5699, dataHandlers: [] },
         ],
     },
     {
         name: 'Gyroscope',
         values: [
-            { name: 'x', units: 'm/s', dataHandlers: [] },
-            { name: 'y', units: 'm/s', dataHandlers: [] },
-            { name: 'z', units: 'm/s', dataHandlers: [] },
+            { name: 'x', units: 'm/s', value: 140.02323, dataHandlers: [] },
+            { name: 'y', units: 'm/s', value: 9.780899, dataHandlers: [] },
+            { name: 'z', units: 'm/s', value: -9.82323, dataHandlers: [] },
         ],
     },
     {
         name: 'Button',
-        values: [{ name: 'value', units: '', dataHandlers: [] }],
+        values: [{ name: '', units: '', value: 0, dataHandlers: [] }],
     },
     {
         name: 'Light Level',
-        values: [{ name: 'value', units: '', dataHandlers: [] }],
+        values: [{ name: '', units: '', value: 78.023, dataHandlers: [] }],
     },
     {
         name: 'Temperature',
-        values: [{ name: 'value', units: 'C', dataHandlers: [] }],
+        values: [{ name: '', units: 'C', value: 23.34, dataHandlers: [] }],
     },
     {
         name: 'Humidity',
-        values: [{ name: 'value', units: 'mH', dataHandlers: [] }],
+        values: [{ name: '', units: 'mH', value: 29.89, dataHandlers: [] }],
     },
 ]
 
 const dataHandlerList = [
-    { name: 'Note Handler', description: 'Description of note handler' },
-    { name: 'Filter Range Handler', description: 'Description of filter range handler' },
-    { name: 'Extrema Handler', description: 'Description of extrema handler' },
-    { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
-    { name: 'Slope Handler', description: 'Description of slope handler' },
-    { name: 'Slope Change Handler', description: 'Description of slope change handler' },
+    { name: 'Note Handler', description: 'Description of note handler', active: false },
+    { name: 'Filter Range Handler', description: 'Description of filter range handler', active: false },
+    { name: 'Extrema Handler', description: 'Description of extrema handler', active: false },
+    { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler', active: false },
+    { name: 'Slope Handler', description: 'Description of slope handler', active: false },
+    { name: 'Slope Change Handler', description: 'Description of slope change handler', active: false },
 ]
 
 export interface DemoProps {}
@@ -119,7 +124,7 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                         </Typography>
                         <Grid container spacing={2} sx={{ my: 1 }}>
                             {dataHandlerList.map((dh) => (
-                                <DataHandlerItem name={dh.name} description={dh.description} />
+                                <DataHandlerItem name={dh.name} description={dh.description} active={dh.active} />
                             ))}
                         </Grid>
                     </Box>

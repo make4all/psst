@@ -1,11 +1,7 @@
-import { Box, Button, Card, CardContent, CardHeader, Grid, Paper, Typography } from '@mui/material'
+import { Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
 
-import { grey, blueGrey } from '@mui/material/colors'
-import { NoiseSonify } from '../../sonification/output/NoiseSonify'
-import { NoteSonify } from '../../sonification/output/NoteSonify'
-import { SonifyFixedDuration } from '../../sonification/output/SonifyFixedDuration'
-import { Speech } from '../../sonification/output/Speech'
-import DataOutputList from './DataOutputList'
+import { blueGrey } from '@mui/material/colors'
+import JDValueItem from './JDValueItem'
 
 export interface JDServiceItemProps {
     name: string
@@ -31,8 +27,12 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                         </Typography>
                     }
                 />
-                <CardContent sx={{ minHeight: 140 }}>
-                    <Grid container spacing={1}></Grid>
+                <CardContent>
+                    <Grid container spacing={2}>
+                        {props.values.map((value) => (
+                            <JDValueItem name={value.name} value={value.value} dataHandlers={value.dataHandlers} />
+                        ))}
+                    </Grid>
                 </CardContent>
             </Card>
         </Grid>

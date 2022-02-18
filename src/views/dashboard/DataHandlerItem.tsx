@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, CardHeader, Grid, Paper, Typography } from '@mui/material'
+import { Button, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
 
 import { grey } from '@mui/material/colors'
 import { NoiseSonify } from '../../sonification/output/NoiseSonify'
@@ -10,6 +10,7 @@ import DataOutputList from './DataOutputList'
 export interface DataHandlerItemProps {
     name: string
     description: string
+    active: boolean
 }
 
 export default function DataHandlerItem(props: React.Attributes & DataHandlerItemProps): JSX.Element {
@@ -20,9 +21,17 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
         { name: 'Speech', class: Speech },
     ]
 
+    const { active } = props
+
     return (
         <Grid item md={6} sm={12} xs={12}>
-            <Card>
+            <Card
+                elevation={active ? 0 : 1}
+                sx={{
+                    border: '2px solid',
+                    borderColor: grey[200],
+                }}
+            >
                 <CardHeader
                     sx={{ bgcolor: grey[200] }}
                     title={
@@ -30,7 +39,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             {props.name}
                         </Typography>
                     }
-                    action={<Button variant="outlined">Add</Button>}
+                    action={<Button variant="outlined">{active ? 'Remove' : 'Add'}</Button>}
                 />
                 <CardContent sx={{ minHeight: 140 }}>
                     <Grid container spacing={1}>
