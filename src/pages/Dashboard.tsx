@@ -12,6 +12,9 @@ import {
     Box,
     Container,
     Button,
+    Input,
+    InputAdornment,
+    FormControl,
 } from '@mui/material'
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
@@ -93,7 +96,7 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                 <Box sx={{ flexGrow: 1 }}>
                     <AppBar position="static">
                         <Toolbar>
-                            <Typography variant="h5" color="inherit" component="h1">
+                            <Typography variant="h4" color="inherit" component="h1">
                                 PSST
                             </Typography>
                         </Toolbar>
@@ -101,7 +104,7 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                 </Box>
                 <Container>
                     <Box sx={{ my: 2 }}>
-                        <Typography variant="subtitle1" component="h2">
+                        <Typography variant="h5" component="h2">
                             Connect your device
                         </Typography>
                         <Box sx={{ my: 2 }}>
@@ -109,7 +112,7 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                         </Box>
                     </Box>
                     <Box sx={{ mb: 2, mt: 4 }}>
-                        <Typography variant="subtitle1" component="h2">
+                        <Typography variant="h5" component="h2">
                             Sonify your sensor data
                         </Typography>
                         <Grid container spacing={2} sx={{ my: 1 }}>
@@ -119,7 +122,30 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                         </Grid>
                     </Box>
                     <Box sx={{ mb: 2, mt: 4 }}>
-                        <Typography variant="subtitle1" component="h2">
+                        <Typography variant="h5" component="h2">
+                            Play your data sonification
+                        </Typography>
+                        <Box sx={{ my: 2 }}>
+                            <Button variant="contained" size="large" sx={{ mr: 2 }}>
+                                Play
+                            </Button>
+                            <Button variant="contained" size="large" sx={{ mx: 2 }}>
+                                Go Back
+                            </Button>
+                            <Input
+                                id="input-number-go-back-time"
+                                sx={{ width: '15ch' }}
+                                defaultValue={5}
+                                endAdornment={<InputAdornment position="end">seconds</InputAdornment>}
+                                inputProps={{
+                                    'aria-label': 'go back time',
+                                    type: 'number',
+                                }}
+                            />
+                        </Box>
+                    </Box>
+                    <Box sx={{ mb: 2, mt: 4 }}>
+                        <Typography variant="h5" component="h2">
                             Configure and add sonifiers
                         </Typography>
                         <Grid container spacing={2} sx={{ my: 1 }}>
