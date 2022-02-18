@@ -32,6 +32,14 @@ export class SlopeParityHandler extends DataHandler {
         this._prevPoint = value
     }
 
+    private _direction: number
+    public get direction(): number {
+        return this._direction
+    }
+    public set direction(value: number) {
+        this._direction = value
+    }
+
     /**
      * Constructor
      *
@@ -39,10 +47,15 @@ export class SlopeParityHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param range [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(sink?: DataSink, output?: DatumOutput) {
+    constructor(sink?: DataSink, output?: DatumOutput, direction?: number) {
         super(sink, output)
         this._prevPoint = 0
         this._prevSlope = 0
+        if (direction) {
+            this._direction = direction
+        } else {
+            this._direction = 0
+        }
     }
 
     /**
@@ -54,12 +67,21 @@ export class SlopeParityHandler extends DataHandler {
         if (!datum) return false
         let slope = datum.value - this.prevPoint
         this.prevPoint = datum.value // no matter what, we'll need the prev point to calculate the slope
-        if (Math.sign(slope) != Math.sign(this.prevSlope)) {
-            if (DEBUG) console.log('direction of slope changed')
-            this.prevSlope = slope
-            return super.handleDatum(datum)
+        if (this.direction == 0) {
+            console.log("direction 0")
+            if (Math.sign(slope) != Math.sign(this.prevSlope)) {
+                if (DEBUG) console.log('direction of slope changed')
+                this.prevSlope = slope
+                return super.handleDatum(datum)
+            }
+            return false
+        } else {
+            if (Math.sign(slope) == this.direction) {
+                if (DEBUG) console.log("slope matching direction", this.direction)
+                return super.handleDatum(datum)
+            }
+            return false
         }
-        return false
     }
 
     /**
