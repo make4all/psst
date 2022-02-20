@@ -33,12 +33,7 @@
 </a>
 <p>Data sinks are holders for a specific data sink. For the most part, our current implementation assumes each <code>DataSink</code> class will handle only a single sink of timestamped streaming numbers (specifically, streams containing the <a href="https://make4all.github.io/sonification/classes/sonification_Datum.Datum.html"><code>Datum</code></a> class.  As described above, streaming data can either be provided as an <a href="https://rxjs.dev/">Rxjs</a> <code>Observable</code> or through a call to <code>OutputEngine.pushPoint()</code>.</p>
 <p>Data sinks have a list of <a href="https://make4all.github.io/sonification/modules/sonification_handler_DataHandler.DataHandler.html"><code>Handler</code></a> classes which handle incoming data. Handlers are described more in depth below, but they may filter data, calculate an adjusted value for data, and/or cause data to be outputed. They can be thought of as dispatch handlers for data. </p>
-<p>The primary role of a <code>DataSink</code> is to handle incoming data. When the sink is not stopped, Data is handled as followed</p>
-<ul>
-<li>First the <code>DataSink</code> walks through each calculated statistic and updates it</li>
-<li>Next, the <code>Datasink</code> walks through each <code>DataHandler</code>, calling <a href="https://make4all.github.io/sonification/classes/sonification_handler_DataHandler.DataHandler.html#handleDatum"><code>DataHandler.handleDatum(Datum) : boolean</code></a>. If a call to <code>DataHandler.handleDatum()</code> returns false, dispatch stops, otherwise dispatch continues until the end of the list of handlers.</li>
-</ul>
-<p>Finally, each <code>DataSink</code> can <code>start()</code> <code>stop()</code> and <code>pause()</code> the output of data. When these methods are called, the <code>DataSink</code> updates its own state, and that of all of its handlers. </p>
+<p>The primary role of a <code>DataSink</code> is to handle incoming data. This is all done through data streaming at the time that DataHandlers are registered with the DataSink. Incoming data and information about the state of the sink (started, stopped, or paused) are both streamed to all handlers.</p>
 
 <a href="#datum" id="datum" style="color: inherit; text-decoration: none;">
   <h1>Datum</h1>
@@ -48,13 +43,12 @@
 <a href="#handlers" id="handlers" style="color: inherit; text-decoration: none;">
   <h1>Handlers</h1>
 </a>
-<p>A Handler is an abstract class that is designed to handle streaming data. This happens when <a href="https://make4all.github.io/sonification/classes/sonification_handler_DataHandler.DataHandler.html#handleDatum"><code>DataHandler.handleDatum(): boolean</code></a> is called. </p>
 <p>A <code>DataHandler</code> should behave in the following ways</p>
 <ul>
-<li>It should handle data apporpriately based on its mode, whether paused, playing or stopped</li>
-<li>It needs to decide whether data handling is done (in which case it returns false from <code>handleDatum()</code> or whether it is ok for the (unknown) next <code>DataHandler</code> class in the disptach order to receive the <code>Datum</code></li>
+<li>It should handle data appropriately based on its mode, whether paused, playing or stopped</li>
+<li>Possibly filter data, stopping it from reaching the next DataHandler in the chain, or the DataHandler's \textit{Output} display. </li>
 <li>If relevant, it should output the <code>Datum</code>.
-A handler may have one or more <a href="https://make4all.github.io/sonification/classes/sonification_output_DatumOutput.DatumOutput.html"><code>DatumOutput</code></a> classes which are used to render the <code>Datum</code>. The handler will loop through each, if they exist, and call <code>DatumOutput.update(Datum)</code>.</li>
+A handler may have one or more <a href="https://make4all.github.io/sonification/classes/sonification_output_DatumOutput.DatumOutput.html"><code>DatumOutput</code></a> classes which are used to render the <code>Datum</code>. As with everything else, these receive information through Rxjs, i.e. because they are subscribed to a stream (in this case the stream coming from the DataHandler). 
 </ul>
 <p>In addition, <code>Handlers</code> handle basic features such as adding and removing <code>DatumOutput</code> classes and <code>start()</code>, <code>stop()</code> and <code>pause()</code>.</p>
 <p>Some examples may help to clarify how <code>Handler</code> classes work. </p>
