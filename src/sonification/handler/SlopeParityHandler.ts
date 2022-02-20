@@ -45,7 +45,7 @@ export class SlopeParityHandler extends DataHandler {
      *
      * @param sink. DataSink that is providing data to this Handler.
      * @param output. Optional output for this data
-     * @param range [min, max]. Defaults to 0, 0 if not provided
+     * @param direction. -1 for decreasing, 1 for increasing. Defaults to 0 if not provided.
      */
     constructor(sink?: DataSink, output?: DatumOutput, direction?: number) {
         super(sink, output)
