@@ -12,7 +12,10 @@ import {
 import { RangeEndExpander } from '../stat/RangeEndExpander'
 import assert from 'assert'
 
+
 const DEBUG = false
+
+
 
 /**
  * A DataHandler that scales the given value based on a specified min and max
@@ -113,7 +116,9 @@ export class ScaleHandler extends DataHandler {
                         return datum
                     } else return val
                 }),
+
                 debug(SonificationLoggingLevel.DEBUG, 'scaled', DEBUG),
+
             ),
         )
     }
@@ -143,9 +148,11 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
+
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        } //else console.log('debug message dumped')
     }
+
 }

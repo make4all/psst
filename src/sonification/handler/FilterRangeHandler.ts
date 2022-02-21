@@ -16,10 +16,12 @@ export class FilterRangeHandler extends DataHandler {
     private _domain: [number, number]
     public get domain(): [number, number] {
         return this._domain
+
     }
     public set domain(value: [number, number]) {
         this._domain = value
     }
+
     public insideDomain(num: number): boolean {
         debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${num} is inside ${this.domain}`)
         return num >= this.domain[0] && num <= this.domain[1]
@@ -38,7 +40,9 @@ export class FilterRangeHandler extends DataHandler {
         if (domain){
             debugStatic(SonificationLoggingLevel.DEBUG, `setting up filter range handeler with domain ${domain}`)
             this._domain = domain
-        }
+
+        } 
+
         else this._domain = [0, 0]
     }
 
@@ -88,6 +92,7 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
                 debugStatic(level, message + ': ' + val)
             }),
         )
+
     }
 }
 
@@ -95,6 +100,9 @@ const debugStatic = (level: number, message: string) => {
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        }// else console.log('debug message dumped')
+
     }
 }
+
+

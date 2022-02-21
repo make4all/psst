@@ -3,7 +3,9 @@ import { filter, Observable, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
 
+
 const DEBUG =  false
+
 
 /**
  * Base class for sonifying a datum. Abstract -- must be subclassed to be fully defined
@@ -101,8 +103,10 @@ export class Sonify extends DatumOutput {
     protected resume() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Resuming. Playback state is resumed')
         Sonify.audioCtx.resume()
+
         // this.gainNode.connect(Sonify.audioCtx.destination)
         // this.outputNode?.connect(this.gainNode)
+
         super.resume()
     }
 
@@ -156,9 +160,11 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
+
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        } //else console.log('debug message dumped')
     }
+
 }

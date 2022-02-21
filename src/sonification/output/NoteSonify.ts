@@ -3,7 +3,9 @@ import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../Output
 import { Sonify } from './Sonify'
 import { Observable, tap } from 'rxjs'
 
+
 const DEBUG = false
+
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -92,9 +94,11 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
+
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        } //else console.log('debug message dumped')
     }
+
 }

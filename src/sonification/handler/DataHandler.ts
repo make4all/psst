@@ -2,12 +2,18 @@ import { DatumOutput } from '../output/DatumOutput'
 import { filter, Observable, Subject, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
+
 const DEBUG = false
+
 
 /**
  * A DataHandler class is used to decide how to output each data point.
  */
 export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
+
+
+
+
     /**
      * Add an output and make sure it has the right subscriptions
      *
@@ -25,7 +31,7 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         debugStatic (SonificationLoggingLevel.DEBUG,"setting up subscription for sink")
-        sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', DEBUG)).subscribe(this)
+        sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', debug)).subscribe(this)
     }
 
     /**
@@ -37,7 +43,13 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
         let outputStream$ = this.pipe(filter((val) => val != undefined))
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
         output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
+
     }
+    public toString(): string {
+        return `DataHandler ${this}`
+}
+
+
 
     /**
      * @param output An optional way to output the data
@@ -45,12 +57,11 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
     constructor(output?: DatumOutput) {
         super()
         if (output) this.addOutput(output)
-    }
 
-    public toString(): string {
-        return `DataHandler ${this}`
     }
 }
+
+
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
@@ -73,9 +84,7 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-    if (DEBUG) {
-        if (level >= getSonificationLoggingLevel()) {
-            console.log(message)
-        } else console.log('debug message dumped')
-    }
+    if (level >= getSonificationLoggingLevel()) {
+        console.log(message)
+    } else console.log('debug message dumped')
 }
