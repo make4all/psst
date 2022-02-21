@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { OutputStateChange } from '../OutputConstants';
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants';
 import { DatumOutput } from './DatumOutput'
 const DEBUG = true;
 export class Speech extends DatumOutput {
@@ -21,14 +21,13 @@ export class Speech extends DatumOutput {
             this._utterance.voice = this._speechSynthesis.getVoices()[0];
         }
         this.playing = false;
-        if(DEBUG) console.log("initialized")
+         debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
     }
 
     /**
      * Show the output
      */
      protected output(datum: Datum) {
-        console.log("output called")
         if (!this.playing) return
         super.output(datum)
  this._utterance.text = datum.value.toString()
@@ -78,5 +77,34 @@ this._speechSynthesis.resume();}
 
     public toString() : string {
         return `Speech`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Observable, tap } from 'rxjs';
+
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

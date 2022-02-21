@@ -3,7 +3,7 @@ import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
 import { filter, Observable, tap } from 'rxjs'
-import { OutputStateChange } from '../OutputConstants'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLevel, SonificationLoggingLevel } from '../OutputConstants'
 
 const DEBUG = true
 
@@ -30,7 +30,7 @@ export class NotificationHandler extends DataHandler {
     public isInterestPoint(num: number) {
         // return true
         
-        console.log("checking if " + num + " is in " + this.interestPoints.toString())
+        debugStatic(SonificationLoggingLevel.DEBUG,"checking if " + num + " is in " + this.interestPoints.toString())
         return this.interestPoints.includes(num)
         
     }
@@ -72,5 +72,33 @@ export class NotificationHandler extends DataHandler {
      */
     public toString(): string {
         return `NotificationHandler: notifying only if points are  in ${this.interestPoints}`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

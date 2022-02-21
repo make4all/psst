@@ -3,7 +3,7 @@ import { DatumOutput } from '../output/DatumOutput'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
 
-const DEBUG = true
+const DEBUG = false
 
 /**
  * A DataHandler that filters out things which are not betwen min and max (inclusive)
