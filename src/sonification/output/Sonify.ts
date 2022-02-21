@@ -101,8 +101,8 @@ export class Sonify extends DatumOutput {
     protected resume() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Resuming. Playback state is resumed')
         Sonify.audioCtx.resume()
-        this.gainNode.connect(Sonify.audioCtx.destination)
-        this.outputNode?.connect(this.gainNode)
+        // this.gainNode.connect(Sonify.audioCtx.destination)
+        // this.outputNode?.connect(this.gainNode)
         super.resume()
     }
 

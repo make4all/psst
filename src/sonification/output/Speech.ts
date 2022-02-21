@@ -31,9 +31,13 @@ export class Speech extends DatumOutput {
         console.log("output called")
         if (!this.playing) return
         super.output(datum)
-        if (datum) this._utterance.text = datum.value.toString()
-        this.start()
-    }
+ this._utterance.text = datum.value.toString()
+ if(this._speechSynthesis.pending || this._speechSynthesis.speaking)
+ this._speechSynthesis.cancel()
+ this._speechSynthesis.speak(this._utterance)
+     }
+        
+    
 
     // start speaking
     public start(): void {
@@ -45,8 +49,8 @@ export class Speech extends DatumOutput {
         }
         // start current utterance
         this.playing = true
-        this._speechSynthesis.speak(this._utterance)
-        if(DEBUG) console.log("speaking utterance ", this._utterance)
+        
+        
         this._utterance.onend = () => { this._utterance.text = ""} // natural end
         super.start();
     }
@@ -60,6 +64,11 @@ export class Speech extends DatumOutput {
     }
 
     // resume the speech if it was paused
+    public resume(): void {
+     this.playing = true
+     this._utterance.volume = this._volume;
+this._speechSynthesis.resume();}
+
     public stop(): void {
         if (this._speechSynthesis.pending) {
             this._speechSynthesis.cancel();
