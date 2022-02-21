@@ -4,22 +4,15 @@ import React, { ChangeEvent } from 'react'
 
 import '../styles/dashboard.css'
 
-import {
-    Grid,
-    AppBar,
-    Typography,
-    Toolbar,
-    Box,
-    Container,
-    Button,
-    Input,
-    InputAdornment,
-    FormControl,
-} from '@mui/material'
+import { Grid, AppBar, Typography, Toolbar, Box, Container, Button, Input, InputAdornment } from '@mui/material'
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
+import { JDService } from 'jacdac-ts'
+import { DataHandler } from '../sonification/handler/DataHandler'
+import { NoteHandler } from '../sonification/handler/NoteHandler'
+import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
+import { DatumOutput } from '../sonification/output/DatumOutput'
 
-// let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()
 export interface DashboardState {}
 
 // Service
@@ -28,50 +21,120 @@ export interface DashboardState {}
 //                      Data Handler Parameters
 //                      Data Outputs
 
-const serviceList = [
-    {
-        name: 'Accelerometer',
-        values: [
-            {
-                name: 'x',
-                units: 'g',
-                value: 0.8999343,
-                dataHandlers: [
-                    { name: 'Note Handler', description: 'Describe the note handler', active: true },
-                    { name: 'Filter Range Handler', description: 'Description of filter range handler', active: true },
-                ],
-            },
-            { name: 'y', units: 'g', value: 0.12222323, dataHandlers: [] },
-            { name: 'z', units: 'g', value: 0.5699, dataHandlers: [] },
-        ],
-    },
-    {
-        name: 'Gyroscope',
-        values: [
-            { name: 'x', units: 'm/s', value: 140.02323, dataHandlers: [] },
-            { name: 'y', units: 'm/s', value: 9.780899, dataHandlers: [] },
-            { name: 'z', units: 'm/s', value: -9.82323, dataHandlers: [] },
-        ],
-    },
-    {
-        name: 'Button',
-        values: [{ name: '', units: '', value: 0, dataHandlers: [] }],
-    },
-    {
-        name: 'Light Level',
-        values: [{ name: '', units: '', value: 78.023, dataHandlers: [] }],
-    },
-    {
-        name: 'Temperature',
-        values: [{ name: '', units: 'C', value: 23.34, dataHandlers: [] }],
-    },
-    {
-        name: 'Humidity',
-        values: [{ name: '', units: 'mH', value: 29.89, dataHandlers: [] }],
-    },
-]
+export interface JDServiceWrapper {
+    name: string
+    serviceObject?: JDService
+    values: JDValueWrapper[]
+}
 
-const dataHandlerList = [
+export interface JDValueWrapper {
+    name: string
+    unit: string
+    currentValue: number
+    format: (value: number) => string
+    dataHandlers: DataHandlerWrapper[]
+}
+
+export interface DataHandlerWrapper {
+    name: string
+    description: string
+    active: boolean
+    handlerObject?: DataHandler
+    createHandler: () => DataHandler
+    dataOutputs: DataOutputWrapper[]
+}
+export interface DataOutputWrapper {
+    name: string
+    outputObject?: DatumOutput
+}
+
+const serviceList: JDServiceWrapper[] = []
+
+const formatMap = {
+    accelerometer: (v: number) => v.toFixed(2),
+}
+
+const unitMap = {
+    accelerometer: 'g',
+}
+
+serviceList.push({
+    name: 'Accelerometer',
+    serviceObject: undefined,
+    values: [
+        {
+            name: 'x',
+            unit: 'g',
+            currentValue: 0.8999343,
+            format: formatMap.accelerometer,
+            dataHandlers: [
+                {
+                    name: 'Note Handler',
+                    description: 'Describe the note handler',
+                    active: true,
+                    createHandler: () => new NoteHandler(),
+                    handlerObject: undefined,
+                    dataOutputs: [],
+                },
+                {
+                    name: 'Filter Range Handler',
+                    description: 'Describe the filter range handler',
+                    active: true,
+                    createHandler: () => new FilterRangeHandler(),
+                    handlerObject: undefined,
+                    dataOutputs: [],
+                },
+            ],
+        },
+        { name: 'y', unit: 'g', format: formatMap.accelerometer, currentValue: 0.12222323, dataHandlers: [] },
+        { name: 'z', unit: 'g', format: formatMap.accelerometer, currentValue: 0.5699, dataHandlers: [] },
+    ],
+})
+
+// const serviceList = [
+//     {
+//         name: 'Accelerometer',
+//         values: [
+//             {
+//                 name: 'x',
+//                 units: 'g',
+//                 value: 0.8999343,
+//                 dataHandlers: [
+//                     { name: 'Note Handler', description: 'Describe the note handler', active: true },
+//                     { name: 'Filter Range Handler', description: 'Description of filter range handler', active: true },
+//                 ],
+//             },
+//             { name: 'y', units: 'g', value: 0.12222323, dataHandlers: [] },
+//             { name: 'z', units: 'g', value: 0.5699, dataHandlers: [] },
+//         ],
+//     },
+//     {
+//         name: 'Gyroscope',
+//         values: [
+//             { name: 'x', units: 'm/s', value: 140.02323, dataHandlers: [] },
+//             { name: 'y', units: 'm/s', value: 9.780899, dataHandlers: [] },
+//             { name: 'z', units: 'm/s', value: -9.82323, dataHandlers: [] },
+//         ],
+//     },
+//     {
+//         name: 'Button',
+//         values: [{ name: '', units: '', value: 0, dataHandlers: [] }],
+//     },
+//     {
+//         name: 'Light Level',
+//         values: [{ name: '', units: '', value: 78.023, dataHandlers: [] }],
+//     },
+//     {
+//         name: 'Temperature',
+//         values: [{ name: '', units: 'C', value: 23.34, dataHandlers: [] }],
+//     },
+//     {
+//         name: 'Humidity',
+//         values: [{ name: '', units: 'mH', value: 29.89, dataHandlers: [] }],
+//     },
+// ]
+
+const AVAILABLE_DATA_HANDLER_LIST = [
     { name: 'Note Handler', description: 'Description of note handler', active: false },
     { name: 'Filter Range Handler', description: 'Description of filter range handler', active: false },
     { name: 'Extrema Handler', description: 'Description of extrema handler', active: false },
@@ -149,13 +212,17 @@ export class Dashboard extends React.Component<DemoProps, DashboardState> {
                             Configure and add sonifiers
                         </Typography>
                         <Grid container spacing={2} sx={{ my: 1 }}>
-                            {dataHandlerList.map((dh) => (
-                                <DataHandlerItem name={dh.name} description={dh.description} active={dh.active} />
+                            {AVAILABLE_DATA_HANDLER_LIST.map((dataHandler) => (
+                                <DataHandlerItem {...dataHandler} currentServices={serviceList}/>
                             ))}
                         </Grid>
                     </Box>
                 </Container>
             </>
         )
+    }
+
+    public onAddDataHandlerToStream = () => {
+
     }
 }

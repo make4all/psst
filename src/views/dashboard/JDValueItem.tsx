@@ -4,7 +4,7 @@ import DataHandlerItem from './DataHandlerItem'
 
 export interface JDValueItemProps {
     name: string
-    value: number
+    currentValue: number
     dataHandlers: any[]
 }
 
@@ -22,16 +22,16 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                     }
                     subheader={
                         <Typography variant="h5" component="span">
-                            {props.value}
+                            {props.currentValue}
                         </Typography>
                     }
-                    action={<Button variant="contained">Sonify</Button>}
+                    action={<Button variant="contained">Add Handler</Button>}
                 />
                 {props.dataHandlers.length === 0 ? undefined : (
                     <CardContent>
                         <Grid container spacing={1}>
-                            {props.dataHandlers.map((dh) => (
-                                <DataHandlerItem name={dh.name} description={dh.description} active={dh.active} />
+                            {props.dataHandlers.map((dataHandler) => (
+                                <DataHandlerItem {...dataHandler} />
                             ))}
                         </Grid>
                     </CardContent>

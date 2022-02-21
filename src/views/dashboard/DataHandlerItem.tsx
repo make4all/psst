@@ -1,6 +1,10 @@
-import { Button, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
+import { useState, useEffect } from 'react'
+
+import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typography } from '@mui/material'
+import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
+import { JDServiceWrapper } from '../../pages/Dashboard'
 import { NoiseSonify } from '../../sonification/output/NoiseSonify'
 import { NoteSonify } from '../../sonification/output/NoteSonify'
 import { SonifyFixedDuration } from '../../sonification/output/SonifyFixedDuration'
@@ -11,6 +15,7 @@ export interface DataHandlerItemProps {
     name: string
     description: string
     active: boolean
+    currentServices?: JDServiceWrapper[]
 }
 
 export default function DataHandlerItem(props: React.Attributes & DataHandlerItemProps): JSX.Element {
@@ -21,7 +26,17 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
         { name: 'Speech', class: Speech },
     ]
 
-    const { active } = props
+    const [addButtonAnchor, setAddButtonAnchor] = useState<null | HTMLElement>(null)
+    const menuOpen = Boolean(addButtonAnchor)
+
+    const handleAddButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAddButtonAnchor(event.currentTarget)
+    }
+    const handleMenuClose = () => {
+        setAddButtonAnchor(null)
+    }
+
+    const { active, currentServices } = props
 
     return (
         <Grid item md={6} sm={12} xs={12}>
@@ -39,7 +54,39 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             {props.name}
                         </Typography>
                     }
-                    action={<Button variant="outlined">{active ? 'Remove' : 'Add'}</Button>}
+                    action={
+                        !active && currentServices ? (
+                            <Box>
+                                <Button
+                                    id="btn-data-handler-add-to-stream"
+                                    aria-controls={menuOpen ? 'menu-data-handler-stream-list' : undefined}
+                                    aria-haspopup="true"
+                                    aria-expanded={menuOpen ? 'true' : undefined}
+                                    variant="contained"
+                                    onClick={handleAddButtonClick}
+                                    endIcon={<ArrowDropDown />}
+                                >
+                                    Add to Stream
+                                </Button>
+                                <Menu
+                                    open={menuOpen}
+                                    onClose={handleMenuClose}
+                                    anchorEl={addButtonAnchor}
+                                    id="menu-data-handler-stream-list"
+                                >
+                                    {currentServices.map((service) =>
+                                        service.values.map((value) => (
+                                            <MenuItem onClick={handleMenuClose}>
+                                                {(service.values.length > 1 ? `${value.name} - ` : '') + service.name}
+                                            </MenuItem>
+                                        )),
+                                    )}
+                                </Menu>
+                            </Box>
+                        ) : (
+                            <Button variant="outlined">Remove</Button>
+                        )
+                    }
                 />
                 <CardContent sx={{ minHeight: 140 }}>
                     <Grid container spacing={1}>
@@ -55,4 +102,29 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
             </Card>
         </Grid>
     )
+}
+
+{
+    /* <Button
+    id="basic-button"
+    aria-controls={open ? 'basic-menu' : undefined}
+    aria-haspopup="true"
+    aria-expanded={open ? 'true' : undefined}
+    onClick={handleClick}
+    >
+    Dashboard
+    </Button>
+    <Menu
+    id="basic-menu"
+    anchorEl={anchorEl}
+    open={open}
+    onClose={handleClose}
+    MenuListProps={{
+        'aria-labelledby': 'basic-button',
+    }}
+    >
+    <MenuItem onClick={handleClose}>Profile</MenuItem>
+    <MenuItem onClick={handleClose}>My account</MenuItem>
+    <MenuItem onClick={handleClose}>Logout</MenuItem>
+    </Menu> */
 }

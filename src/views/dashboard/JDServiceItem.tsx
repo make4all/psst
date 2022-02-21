@@ -30,7 +30,7 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                 <CardContent>
                     <Grid container spacing={2}>
                         {props.values.map((value) => (
-                            <JDValueItem name={value.name} value={value.value} dataHandlers={value.dataHandlers} />
+                            <JDValueItem {...value}  />
                         ))}
                     </Grid>
                 </CardContent>
