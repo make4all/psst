@@ -1,6 +1,6 @@
 import { OutputEngine } from '../sonification/OutputEngine'
 
-import React, { ChangeEvent } from 'react'
+import React, { useState } from 'react'
 
 import '../styles/dashboard.css'
 
@@ -12,8 +12,6 @@ import { DataHandler } from '../sonification/handler/DataHandler'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
 import { DatumOutput } from '../sonification/output/DatumOutput'
-
-export interface DashboardState {}
 
 // Service
 //      Stream Value
@@ -30,25 +28,26 @@ export interface JDServiceWrapper {
 export interface JDValueWrapper {
     name: string
     unit: string
-    currentValue: number
     format: (value: number) => string
     dataHandlers: DataHandlerWrapper[]
+}
+
+export interface DataHandlerTemplate {
+    name: string
+    description: string
+    createHandler?: () => DataHandler
 }
 
 export interface DataHandlerWrapper {
     name: string
     description: string
-    active: boolean
     handlerObject?: DataHandler
-    createHandler: () => DataHandler
     dataOutputs: DataOutputWrapper[]
 }
 export interface DataOutputWrapper {
     name: string
     outputObject?: DatumOutput
 }
-
-const serviceList: JDServiceWrapper[] = []
 
 const formatMap = {
     accelerometer: (v: number) => v.toFixed(2),
@@ -58,38 +57,20 @@ const unitMap = {
     accelerometer: 'g',
 }
 
-serviceList.push({
-    name: 'Accelerometer',
-    serviceObject: undefined,
-    values: [
-        {
-            name: 'x',
-            unit: 'g',
-            currentValue: 0.8999343,
-            format: formatMap.accelerometer,
-            dataHandlers: [
-                {
-                    name: 'Note Handler',
-                    description: 'Describe the note handler',
-                    active: true,
-                    createHandler: () => new NoteHandler(),
-                    handlerObject: undefined,
-                    dataOutputs: [],
-                },
-                {
-                    name: 'Filter Range Handler',
-                    description: 'Describe the filter range handler',
-                    active: true,
-                    createHandler: () => new FilterRangeHandler(),
-                    handlerObject: undefined,
-                    dataOutputs: [],
-                },
-            ],
-        },
-        { name: 'y', unit: 'g', format: formatMap.accelerometer, currentValue: 0.12222323, dataHandlers: [] },
-        { name: 'z', unit: 'g', format: formatMap.accelerometer, currentValue: 0.5699, dataHandlers: [] },
-    ],
-})
+const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
+    {
+        name: 'Accelerometer',
+        values: [
+            { name: 'x', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+            { name: 'y', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+            { name: 'z', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+        ],
+    },
+    {
+        name: 'Button',
+        values: [{ name: '', unit: '', format: formatMap.accelerometer, dataHandlers: [] }],
+    },
+]
 
 // const serviceList = [
 //     {
@@ -134,95 +115,139 @@ serviceList.push({
 //     },
 // ]
 
-const AVAILABLE_DATA_HANDLER_LIST = [
-    { name: 'Note Handler', description: 'Description of note handler', active: false },
-    { name: 'Filter Range Handler', description: 'Description of filter range handler', active: false },
-    { name: 'Extrema Handler', description: 'Description of extrema handler', active: false },
-    { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler', active: false },
-    { name: 'Slope Handler', description: 'Description of slope handler', active: false },
-    { name: 'Slope Change Handler', description: 'Description of slope change handler', active: false },
+const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
+    { name: 'Note Handler', description: 'Description of note handler' },
+    { name: 'Filter Range Handler', description: 'Description of filter range handler' },
+    { name: 'Extrema Handler', description: 'Description of extrema handler' },
+    { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
+    { name: 'Slope Handler', description: 'Description of slope handler' },
+    { name: 'Slope Change Handler', description: 'Description of slope change handler' },
 ]
 
-export interface DemoProps {}
 
-export class Dashboard extends React.Component<DemoProps, DashboardState> {
-    constructor(props: DemoProps) {
-        super(props)
-        this.state = {}
+export default function Dashboard() {
+    const [services, setServices] = useState<JDServiceWrapper[]>(DEFAULT_SERVICE_LIST)
+    const [connected, setConnected] = useState(false)
+
+    const handleRemoveDataHandlerFromService = (serviceName: string, valueName: string, handlerName: string) => {
+        console.log(handlerName)
+        const servicesCopy = services.map((service) => {
+            if (serviceName === service.name) {
+                const values = service.values.map((value) => {
+                    if (valueName === value.name) {
+                        const dataHandlers = value.dataHandlers.filter((dataHandler) => dataHandler.name != handlerName)
+                        console.log(dataHandlers)
+                        return { ...value, dataHandlers }
+                    }
+                    return value
+                })
+                return { ...service, values }
+            }
+            return service
+        })
+        setServices(servicesCopy)
     }
 
-    public render() {
-        // const { demoViewValue, dataSummary, playbackLabel, columnSelected, columnList } = this.state
+    const handleAddDataHandlerToService = (serviceName: string, valueName: string, template: DataHandlerTemplate) => {
+        console.log(template)
+        const servicesCopy = services.map((service) => {
+            if (serviceName === service.name) {
+                service.values.map((value) => {
+                    if (valueName === value.name) {
+                        value.dataHandlers.push({ ...template, dataOutputs: [] })
+                        return { ...value }
+                    }
+                    return value
+                })
+                return { ...service }
+            }
+            return service
+        })
+        setServices(servicesCopy)
+    }
 
-        return (
-            <>
-                <Box sx={{ flexGrow: 1 }}>
-                    <AppBar position="static">
-                        <Toolbar>
-                            <Typography variant="h4" color="inherit" component="h1">
-                                PSST
-                            </Typography>
-                        </Toolbar>
-                    </AppBar>
-                </Box>
-                <Container>
+    return (
+        <>
+            <Box sx={{ flexGrow: 1 }}>
+                <AppBar position="static">
+                    <Toolbar>
+                        <Typography variant="h4" color="inherit" component="h1">
+                            PSST
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+            </Box>
+            <Container>
+                <Box sx={{ my: 2 }}>
+                    <Typography variant="h5" component="h2">
+                        Connect your device
+                    </Typography>
                     <Box sx={{ my: 2 }}>
-                        <Typography variant="h5" component="h2">
-                            Connect your device
-                        </Typography>
-                        <Box sx={{ my: 2 }}>
-                            <Button variant="contained">Connect</Button>
+                        <Button variant="contained">{connected ? 'Disconnect' : 'Connect'}</Button>
+                    </Box>
+                </Box>
+                {services.length === 0 ? undefined : (
+                    <Box>
+                        <Box sx={{ mb: 2, mt: 4 }}>
+                            <Typography variant="h5" component="h2">
+                                Sonify your sensor data
+                            </Typography>
+                            <Grid container spacing={2} sx={{ my: 1 }}>
+                                {services.map((s, i) => (
+                                    <JDServiceItem
+                                        name={s.name}
+                                        key={i}
+                                        values={s.values}
+                                        currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
+                                        onAddDataHandler={handleAddDataHandlerToService}
+                                        onRemoveDataHandler={handleRemoveDataHandlerFromService}
+                                    />
+                                ))}
+                            </Grid>
+                        </Box>
+                        <Box sx={{ mb: 2, mt: 4 }}>
+                            <Typography variant="h5" component="h2">
+                                Play your data sonification
+                            </Typography>
+                            <Box sx={{ my: 2 }}>
+                                <Button variant="contained" size="large" sx={{ mr: 2 }}>
+                                    Play
+                                </Button>
+                                <Button variant="contained" size="large" sx={{ mx: 2 }}>
+                                    Go Back
+                                </Button>
+                                <Input
+                                    id="input-number-go-back-time"
+                                    sx={{ width: '15ch' }}
+                                    defaultValue={5}
+                                    endAdornment={<InputAdornment position="end">seconds</InputAdornment>}
+                                    inputProps={{
+                                        'aria-label': 'go back time',
+                                        type: 'number',
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                        <Box sx={{ mb: 2, mt: 4 }}>
+                            <Typography variant="h5" component="h2">
+                                Configure and add sonifiers
+                            </Typography>
+                            <Grid container spacing={2} sx={{ my: 1 }}>
+                                {AVAILABLE_DATA_HANDLER_TEMPLATES.map((dataHandler, index) => (
+                                    <DataHandlerItem
+                                        {...dataHandler}
+                                        active={false}
+                                        key={index}
+                                        index={index}
+                                        currentServices={services}
+                                        onAddToService={handleAddDataHandlerToService}
+                                    />
+                                ))}
+                            </Grid>
                         </Box>
                     </Box>
-                    <Box sx={{ mb: 2, mt: 4 }}>
-                        <Typography variant="h5" component="h2">
-                            Sonify your sensor data
-                        </Typography>
-                        <Grid container spacing={2} sx={{ my: 1 }}>
-                            {serviceList.map((s) => (
-                                <JDServiceItem name={s.name} values={s.values} />
-                            ))}
-                        </Grid>
-                    </Box>
-                    <Box sx={{ mb: 2, mt: 4 }}>
-                        <Typography variant="h5" component="h2">
-                            Play your data sonification
-                        </Typography>
-                        <Box sx={{ my: 2 }}>
-                            <Button variant="contained" size="large" sx={{ mr: 2 }}>
-                                Play
-                            </Button>
-                            <Button variant="contained" size="large" sx={{ mx: 2 }}>
-                                Go Back
-                            </Button>
-                            <Input
-                                id="input-number-go-back-time"
-                                sx={{ width: '15ch' }}
-                                defaultValue={5}
-                                endAdornment={<InputAdornment position="end">seconds</InputAdornment>}
-                                inputProps={{
-                                    'aria-label': 'go back time',
-                                    type: 'number',
-                                }}
-                            />
-                        </Box>
-                    </Box>
-                    <Box sx={{ mb: 2, mt: 4 }}>
-                        <Typography variant="h5" component="h2">
-                            Configure and add sonifiers
-                        </Typography>
-                        <Grid container spacing={2} sx={{ my: 1 }}>
-                            {AVAILABLE_DATA_HANDLER_LIST.map((dataHandler) => (
-                                <DataHandlerItem {...dataHandler} currentServices={serviceList}/>
-                            ))}
-                        </Grid>
-                    </Box>
-                </Container>
-            </>
-        )
-    }
-
-    public onAddDataHandlerToStream = () => {
-
-    }
+                )}
+            </Container>
+        </>
+    )
 }

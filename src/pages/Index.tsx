@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { Demo } from './Demo'
 import Jacdac from './Jacdac'
-import { Dashboard } from './Dashboard'
+import Dashboard from './Dashboard'
 
 const Index: FC = (props) => {
     const opts = [

@@ -4,17 +4,23 @@ import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typog
 import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
-import { JDServiceWrapper } from '../../pages/Dashboard'
+import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper } from '../../pages/Dashboard'
 import { NoiseSonify } from '../../sonification/output/NoiseSonify'
 import { NoteSonify } from '../../sonification/output/NoteSonify'
 import { SonifyFixedDuration } from '../../sonification/output/SonifyFixedDuration'
 import { Speech } from '../../sonification/output/Speech'
 import DataOutputList from './DataOutputList'
 
+import { DataHandler } from '../../sonification/handler/DataHandler'
+
 export interface DataHandlerItemProps {
     name: string
     description: string
     active: boolean
+    index: number
+    onRemove?: () => void
+    onAddToService?: (serviceName: string, valueName: string, dataHandler: DataHandlerWrapper) => void
+    handlerObject?: DataHandler
     currentServices?: JDServiceWrapper[]
 }
 
@@ -36,7 +42,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
         setAddButtonAnchor(null)
     }
 
-    const { active, currentServices } = props
+    const { active, currentServices, onAddToService } = props
 
     return (
         <Grid item md={6} sm={12} xs={12}>
@@ -76,7 +82,19 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                 >
                                     {currentServices.map((service) =>
                                         service.values.map((value) => (
-                                            <MenuItem onClick={handleMenuClose}>
+                                            <MenuItem
+                                                onClick={() => {
+                                                    if (onAddToService) {
+                                                        onAddToService(service.name, value.name, {
+                                                            name: props.name,
+                                                            description: props.description,
+                                                            dataOutputs: [],
+                                                        })
+                                                    }
+                                                    console.log(value.dataHandlers)
+                                                    handleMenuClose()
+                                                }}
+                                            >
                                                 {(service.values.length > 1 ? `${value.name} - ` : '') + service.name}
                                             </MenuItem>
                                         )),
@@ -84,7 +102,14 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                 </Menu>
                             </Box>
                         ) : (
-                            <Button variant="outlined">Remove</Button>
+                            <Button
+                                variant="outlined"
+                                onClick={() => {
+                                    if (props.onRemove) props.onRemove()
+                                }}
+                            >
+                                Remove
+                            </Button>
                         )
                     }
                 />
@@ -102,29 +127,4 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
             </Card>
         </Grid>
     )
-}
-
-{
-    /* <Button
-    id="basic-button"
-    aria-controls={open ? 'basic-menu' : undefined}
-    aria-haspopup="true"
-    aria-expanded={open ? 'true' : undefined}
-    onClick={handleClick}
-    >
-    Dashboard
-    </Button>
-    <Menu
-    id="basic-menu"
-    anchorEl={anchorEl}
-    open={open}
-    onClose={handleClose}
-    MenuListProps={{
-        'aria-labelledby': 'basic-button',
-    }}
-    >
-    <MenuItem onClick={handleClose}>Profile</MenuItem>
-    <MenuItem onClick={handleClose}>My account</MenuItem>
-    <MenuItem onClick={handleClose}>Logout</MenuItem>
-    </Menu> */
 }
