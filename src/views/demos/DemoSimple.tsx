@@ -1,12 +1,20 @@
 import React from 'react'
-import { map, take, timer } from 'rxjs'
+import { Observable, of, tap, timer, zip, delay } from 'rxjs'
 import { DataSink } from '../../sonification/DataSink'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { IDemoView } from './IDemoView'
+import {
+    getSonificationLoggingLevel,
+    OutputStateChange,
+    SonificationLoggingLevel,
+} from '../../sonification/OutputConstants'
+import { Demo } from '../../pages/Demo'
 
-const DEBUG = false
+
+const DEBUG = true
+
 
 export interface DemoSimpleState {}
 
@@ -18,10 +26,6 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     extends React.Component<DemoSimpleProps, DemoSimpleState>
     implements IDemoView
 {
-    /**
-     * Are we streaming data right now?
-     */
-    protected isStreamInProgress = false
     /**
      * @todo implement pausing
      * The index into our data set that we were at when we were paused
@@ -43,12 +47,34 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     }
 
     /**
+     * Holder for the current DataSink object that starts after a delay
+     */
+     protected delaySink: DataSink | undefined
+     public getDelaySink() {
+        if(this.delaySink) return this.delaySink
+        else return this.initializeDelaySink()
+         }
+    initializeDelaySink() {
+        // SONIFICATION
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
+
+        this.delaySink = OutputEngine.getInstance().addSink('SimpleDemoDelaySink')
+
+        // debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+
+        // this.sink?.addDataHandler(new NoteHandler())
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `success initializing sink ${this.sink}`)
+
+        return this.delaySink
+    }
+
+    /**
      * @todo fix comments and debug
      * @param data Not sure what this is -- someone else wrote ti
      */
     public onPause = (data: any) => {
-        this.isStreamInProgress = false
-        OutputEngine.getInstance().onPause()
+        OutputEngine.getInstance().next(OutputStateChange.Pause)
     }
 
     /**
@@ -64,27 +90,83 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      *
      * @param data The data set to be played
      */
-    public onPlay = (data: any) => {
-        console.log(`in onPlay ${this.sink}`)
-        this.isStreamInProgress = true
+    public onPlay = (data: Array<number>) => {
+        debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${this.sink}, ${this.delaySink} `)
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
 
-        if (!this.sink) this.initializeSink()
+        if (this.sink == undefined) this.sink = this.initializeSink()
 
-        // SONIFICATION
-        this.getSink().setStat('max', Math.max(...data))
-        this.getSink().setStat('min', Math.min(...data))
-        console.log(`setting max and min to ${this.getSink()}`)
-
-        // SONIFICATION INITIALIZATION
-        OutputEngine.getInstance().onPlay()
+        //if(this.delaySink == undefined) this.delaySink = this.initializeDelaySink()
 
         let id = this.sink ? this.sink.id : 0
-        let source = timer(0, 200).pipe(
-            map((val) => new Datum(id, data[val])),
-            take(data.length),
+
+        //let delayID = this.delaySink ? this.delaySink.id : 1
+
+        let dataCopy = Object.assign([],data)
+        let data$ = of(...data) //.slice(0, 8))
+        let delayData$ = of(...dataCopy) //.slice(0, 8))
+
+
+        let timer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+
+        let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
+            debug(SonificationLoggingLevel.DEBUG, 'point'),
         )
-        console.log('setStream in demo')
-        this.getSink().setStream(source)
+
+        /// Make sure to delete the sink when the source is
+        source$.subscribe({
+            complete: () => {
+                this.sink = undefined
+                //Demo.setState({ playbackLabel: "Play" })
+            },
+        })
+
+        debugStatic(SonificationLoggingLevel.DEBUG, 'calling setStream')
+        OutputEngine.getInstance().setStream(id, source$)
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+        this.sink?.addDataHandler(
+            new NoteHandler([
+                data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
+                data.reduce((prev, curr) => (prev > curr ? prev : curr)),
+            ],-1),
+        ) // max
+        debugStatic(SonificationLoggingLevel.DEBUG, `success`)
+
+
+        /*let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+
+        let delaySource$ = zip(delayData$, delayTimer$, (num, time) => new Datum(delayID, num)).pipe(delay(1000)).pipe(
+            debug(SonificationLoggingLevel.DEBUG, 'delayPoint'),
+        )
+        OutputEngine.getInstance().setStream(delayID, delaySource$)
+
+        */
+        /// Make sure to delete the sink when the source is
+        /*delaySource$.subscribe({
+
+
+        /// Make sure to delete the sink when the source is
+            complete: () => {
+                this.delaySink = undefined
+                //Demo.setState({ playbackLabel: "Play" })
+            },
+        })
+
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler to ${this.delaySink}`)
+        this.delaySink?.addDataHandler(
+            new NoteHandler([
+                data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
+                data.reduce((prev, curr) => (prev > curr ? prev : curr)),
+            ],1),
+
+        )*/ // max
+
+
+        console.log('sending play')
+        // Change State
+        OutputEngine.getInstance().next(OutputStateChange.Play)
     }
 
     public render() {
@@ -99,8 +181,8 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
+        OutputEngine.getInstance().next(OutputStateChange.Stop)
         if (this.sink) {
-            this.sink.handleEndStream()
             OutputEngine.getInstance().deleteSink(this.sink)
         }
     }
@@ -113,12 +195,32 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
      */
     public initializeSink() {
         // SONIFICATION
-        this.sink = OutputEngine.getInstance().addSink('SimpleDemo')
-        let handler = new NoteHandler(this.sink)
-        console.log(`adding handler ${handler}`)
-        this.sink.addDataHandler(handler)
-        // this.sink.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [4, 10]))
+        debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
+
+        this.sink = OutputEngine.getInstance().addSink('SimpleDemoSink')
+
+        // debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
+
+        // this.sink?.addDataHandler(new NoteHandler())
+
+        debugStatic(SonificationLoggingLevel.DEBUG, `success initializing sink ${this.sink}`)
 
         return this.sink
     }
+}
+
+const debug = (level: number, message: string) => (source: Observable<any>) =>
+    source.pipe(
+        tap((val) => {
+            debugStatic(level, message + ': ' + val)
+        }),
+    )
+const debugStatic = (level: number, message: string) => {
+
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } //else console.log('debug message dumped')
+    }
+
 }

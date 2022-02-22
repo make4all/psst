@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
 import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
 import { NoiseSonify } from '../../sonification/output/NoiseSonify'
@@ -9,8 +8,8 @@ import { DataSink } from '../../sonification/DataSink'
 import { map, take, timer } from 'rxjs'
 import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
-
-const DEBUG = false
+import { OutputStateChange } from '../../sonification/OutputConstants'
+import { TextField } from '@mui/material'
 
 export interface ExperimentalDemoHighlightRegionState {
     // dataSummary: any
@@ -26,11 +25,6 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
     extends React.Component<ExperimentalDemoHighlightRegionProps, ExperimentalDemoHighlightRegionState>
     implements IDemoView
 {
-    /**
-     * Are we streaming data right now?
-     */
-    protected isStreamInProgress = false
-
     /**
      * @todo implement pausing
      * The index into our data set that we were at when we were paused
@@ -97,37 +91,36 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
      * @param data The data set to be played
      */
     public onPlay = (data: any) => {
-        this.isStreamInProgress = true
-        if (this.sink) this.getSink().handleEndStream()
-        else this.initializeSink()
+        console.log(`in onPlay ${this.sink}`)
 
-        // SONIFICATION
-        this.getSink().setStat('max', Math.max(...data))
-        this.getSink().setStat('min', Math.min(...data))
+        if (!this.sink) this.initializeSink()
 
         // SONIFICATION INITIALIZATION
-        OutputEngine.getInstance().onPlay()
+        OutputEngine.getInstance().next(OutputStateChange.Play)
+
+        // SONIFICATION INITIALIZATION
+        OutputEngine.getInstance().next(OutputStateChange.Play)
 
         let id = this.sink ? this.sink.id : 0
-        let sink = timer(0, 200).pipe(
+        let source = timer(0, 200).pipe(
             map((val) => new Datum(id, data[val])),
             take(data.length),
         )
+
         console.log('setStream in demo')
-        this.getSink().setStream(sink)
+        OutputEngine.getInstance().setStream(id, source)
     }
 
     public onPause = (data: any) => {
-        this.isStreamInProgress = false
-        OutputEngine.getInstance().onPause()
+        OutputEngine.getInstance().next(OutputStateChange.Pause)
     }
 
     /**
      * Garbage collect our data stream.
      */
     public componentWillUnmount() {
+        OutputEngine.getInstance().next(OutputStateChange.Stop)
         if (this.sink) {
-            this.sink.handleEndStream()
             OutputEngine.getInstance().deleteSink(this.sink)
         }
     }
@@ -168,7 +161,7 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
                 this.max = value
                 break
         }
-        if (this.filter) this.filter.range = [this.min, this.max]
+        if (this.filter) this.filter.domain = [this.min, this.max]
     }
 
     ////////// HELPER METHODS ///////////////
@@ -178,8 +171,8 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
 
-        this.sink.addDataHandler(new NoteHandler(this.sink))
-        this.filter = new FilterRangeHandler(this.sink, new NoiseSonify(), [this.min, this.max])
+        this.sink.addDataHandler(new NoteHandler())
+        this.filter = new FilterRangeHandler(new NoiseSonify(), [this.min, this.max])
         this.sink.addDataHandler(this.filter)
         return this.sink
     }
