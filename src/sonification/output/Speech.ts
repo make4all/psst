@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { OutputStateChange } from '../OutputConstants';
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants';
 import { DatumOutput } from './DatumOutput'
 const DEBUG = true;
 export class Speech extends DatumOutput {
@@ -21,19 +21,22 @@ export class Speech extends DatumOutput {
             this._utterance.voice = this._speechSynthesis.getVoices()[0];
         }
         this.playing = false;
-        if(DEBUG) console.log("initialized")
+         debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
     }
 
     /**
      * Show the output
      */
      protected output(datum: Datum) {
-        console.log("output called")
         if (!this.playing) return
         super.output(datum)
-        if (datum) this._utterance.text = datum.value.toString()
-        this.start()
-    }
+ this._utterance.text = datum.value.toString()
+ if(this._speechSynthesis.pending || this._speechSynthesis.speaking)
+ this._speechSynthesis.cancel()
+ this._speechSynthesis.speak(this._utterance)
+     }
+        
+    
 
     // start speaking
     public start(): void {
@@ -45,8 +48,8 @@ export class Speech extends DatumOutput {
         }
         // start current utterance
         this.playing = true
-        this._speechSynthesis.speak(this._utterance)
-        if(DEBUG) console.log("speaking utterance ", this._utterance)
+        
+        
         this._utterance.onend = () => { this._utterance.text = ""} // natural end
         super.start();
     }
@@ -60,6 +63,11 @@ export class Speech extends DatumOutput {
     }
 
     // resume the speech if it was paused
+    public resume(): void {
+     this.playing = true
+     this._utterance.volume = this._volume;
+this._speechSynthesis.resume();}
+
     public stop(): void {
         if (this._speechSynthesis.pending) {
             this._speechSynthesis.cancel();
@@ -69,5 +77,34 @@ export class Speech extends DatumOutput {
 
     public toString() : string {
         return `Speech`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Observable, tap } from 'rxjs';
+
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

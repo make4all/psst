@@ -3,9 +3,7 @@ import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../OutputConstants'
 import { Sonify } from './Sonify'
 import { SonifyFixedDuration } from './SonifyFixedDuration'
-
 const DEBUG = false
-
 /**
  * Class for sonifying a data point as a pitch.
  * @extends Sonify
@@ -32,7 +30,7 @@ export class NoiseSonify extends SonifyFixedDuration {
         let noiseBufferSize = sampleRate * length
         let buffer = NoiseSonify.audioCtx.createBuffer(1, noiseBufferSize, NoiseSonify.audioCtx.sampleRate)
         let bufferData = buffer.getChannelData(0)
-        console.log('filling in buffer data')
+        debugStatic(SonificationLoggingLevel.DEBUG, 'filling in buffer data')
         for (let i = 0; i < noiseBufferSize; i++) {
             bufferData[i] = Math.random() * 2 - 1
         }
@@ -78,9 +76,10 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
+
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        } //else console.log('debug message dumped')
     }
 }

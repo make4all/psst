@@ -12,7 +12,9 @@ import {
 } from '../../sonification/OutputConstants'
 import { Demo } from '../../pages/Demo'
 
+
 const DEBUG = true
+
 
 export interface DemoSimpleState {}
 
@@ -93,16 +95,20 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
 
         if (this.sink == undefined) this.sink = this.initializeSink()
+
         //if(this.delaySink == undefined) this.delaySink = this.initializeDelaySink()
 
         let id = this.sink ? this.sink.id : 0
 
         //let delayID = this.delaySink ? this.delaySink.id : 1
+
         let dataCopy = Object.assign([],data)
         let data$ = of(...data) //.slice(0, 8))
         let delayData$ = of(...dataCopy) //.slice(0, 8))
 
+
         let timer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+
         let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'point'),
         )
@@ -127,14 +133,20 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         ) // max
         debugStatic(SonificationLoggingLevel.DEBUG, `success`)
 
+
         /*let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+
         let delaySource$ = zip(delayData$, delayTimer$, (num, time) => new Datum(delayID, num)).pipe(delay(1000)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'delayPoint'),
         )
         OutputEngine.getInstance().setStream(delayID, delaySource$)
+
         */
         /// Make sure to delete the sink when the source is
         /*delaySource$.subscribe({
+
+
+        /// Make sure to delete the sink when the source is
             complete: () => {
                 this.delaySink = undefined
                 //Demo.setState({ playbackLabel: "Play" })
@@ -148,7 +160,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
                 data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
                 data.reduce((prev, curr) => (prev > curr ? prev : curr)),
             ],1),
+
         )*/ // max
+
 
         console.log('sending play')
         // Change State
@@ -202,9 +216,11 @@ const debug = (level: number, message: string) => (source: Observable<any>) =>
         }),
     )
 const debugStatic = (level: number, message: string) => {
+
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
-        } else console.log('debug message dumped')
+        } //else console.log('debug message dumped')
     }
+
 }
