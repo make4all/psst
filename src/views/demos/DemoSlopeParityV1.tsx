@@ -11,55 +11,46 @@ import { Box, Button, Input } from '@mui/material'
 
 const DEBUG = true
 
-export interface DemoSlopeParityProps extends DemoSimpleProps {
+export interface DemoSlopeParityV1State extends DemoSimpleState {
+    targetValues : number[]
+}
+export interface DemoSlopeParityV1Props extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoSlopeParity
-    extends DemoSimple<DemoSlopeParityProps, DemoSimpleState>
+export class DemoSlopeParityV1
+    extends DemoSimple<DemoSlopeParityV1Props, DemoSlopeParityV1State>
     implements IDemoView
 {
-    increasingFilter: SlopeParityHandler | undefined
-    decreasingFilter: SlopeParityHandler | undefined
+    filter: SlopeParityHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
-    private _increasingBuffer: ArrayBuffer | undefined
-    private _decreasingBuffer: ArrayBuffer | undefined
+    private _buffer: ArrayBuffer | undefined
 
-    constructor(props: DemoSlopeParityProps) {
+    constructor(props: DemoSlopeParityV1Props) {
         super(props)
+        this.state = {
+            // currently just chooses max as the default
+            targetValues: [this.props.dataSummary.max]
+        }
         this._inputFile = React.createRef()
     }
 
     public render() {
+        const { targetValues } = this.state
 
         return (
             <div>
                 <label htmlFor="input-upload-file" aria-label="Choose file">
                     <Box component="div" sx={{ p: 2, border: '2px dashed #aaa', mb: 2 }}>
                         <Button component="label">
-                            Upload notification for increasing
+                            Upload
                             <Input
                                 style={{ display: 'none' }}
                                 aria-hidden={true}
                                 ref={this._inputFile}
                                 type="file"
                                 id="input-upload-file"
-                                onChange={(e) => this._handleFileChange(e, 1)}
-                            />
-                        </Button>
-                    </Box>
-                </label>
-                <label htmlFor="input-upload-file" aria-label="Choose file">
-                    <Box component="div" sx={{ p: 2, border: '2px dashed #aaa', mb: 2 }}>
-                        <Button component="label">
-                            Upload notification for decreasing
-                            <Input
-                                style={{ display: 'none' }}
-                                aria-hidden={true}
-                                ref={this._inputFile}
-                                type="file"
-                                id="input-upload-file"
-                                onChange={(e) => this._handleFileChange(e, -1)}
+                                onChange={this._handleFileChange}
                             />
                         </Button>
                     </Box>
@@ -68,7 +59,7 @@ export class DemoSlopeParity
         )
     }
 
-    private _handleFileChange = (event: React.FormEvent<HTMLElement>, direction: number) => {
+    private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
       if (DEBUG) console.log("file changed!")
       let target: any = event.target
       if (target && target.files && target.files.length === 1) {
@@ -78,25 +69,19 @@ export class DemoSlopeParity
           file.arrayBuffer().then((buffer) => {
             // if (DEBUG) console.log(buffer.byteLength)
             // byte length is not 0 from console.log statements
-            if (direction == 1) {
-              this._increasingBuffer = buffer
-            } else {
-              this._decreasingBuffer = buffer
-            }
-            if (DEBUG) console.log("updated buffer for", direction)
+            this._buffer = buffer
+            if (DEBUG) console.log("buffer updated!")
           }).catch(console.error)
       }
     }
 
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
-        this.sink = OutputEngine.getInstance().addSink('DemoSlopeParity')
-        this.increasingFilter = new SlopeParityHandler(new FileOutput(this._increasingBuffer), 1)
-        this.decreasingFilter = new SlopeParityHandler(new FileOutput(this._decreasingBuffer), -1)
+        this.sink = OutputEngine.getInstance().addSink('DemoSlopeParityV1')
+        this.filter = new SlopeParityHandler(new FileOutput(this._buffer))
         if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(this.increasingFilter)
-        this.sink.addDataHandler(this.decreasingFilter)
         this.sink.addDataHandler(new NoteHandler())
+        this.sink.addDataHandler(this.filter)
         return this.sink
     }
 }

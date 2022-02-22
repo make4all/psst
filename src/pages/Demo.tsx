@@ -16,7 +16,8 @@ import { DemoHighlightRegion } from '../views/demos/DemoHighlightRegion'
 import { DemoSpeakRange } from '../views/demos/DemoSpeakRange'
 import { DemoFileOutput } from '../views/demos/DemoFileOutput'
 import { op } from 'arquero'
-import { DemoSlopeParity } from '../views/demos/DemoSlopeParity'
+import { DemoSlopeParityV1 } from '../views/demos/DemoSlopeParityV1'
+import { DemoSlopeParityV2 } from '../views/demos/DemoSlopeParityV2'
 import { DemoRunningExtrema } from '../views/demos/DemoRunningExtrema'
 import Table from 'arquero/dist/types/table/table'
 
@@ -25,7 +26,8 @@ const DEMO_VIEW_MAP = {
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
     speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange},
     fileOutput: {value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput},
-    slopeParity: {value: 'slopeParity', label: 'Slope parity notification', component: DemoSlopeParity},
+    slopeParityV1: {value: 'slopeParityV1', label: 'Slope direction change notification', component: DemoSlopeParityV1},
+    slopeParityV2: {value: 'slopeParityV2', label: 'Slope parity notification', component: DemoSlopeParityV2},
     runningExtrema: {value: 'runningExtrema', label: 'Running extrema notification', component: DemoRunningExtrema}
 }
 
