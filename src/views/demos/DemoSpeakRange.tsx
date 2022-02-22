@@ -7,6 +7,7 @@ import { Speech } from '../../sonification/output/Speech'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
+import { SpeechHandler } from '../../sonification/handler/SpeechHandler'
 
 export interface DemoSpeakRangeState extends DemoSimpleState {
     minValue: number
@@ -20,7 +21,7 @@ export class DemoSpeakRange
     extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRangeState>
     implements IDemoView
 {
-    filter: FilterRangeHandler | undefined
+    filter: SpeechHandler | undefined // FilterRangeHandler | undefined
 
     constructor(props: DemoSpeakRangeProps) {
         super(props)
@@ -70,7 +71,7 @@ export class DemoSpeakRange
                 maxValue = this.props.dataSummary.max
             this.setState({ minValue, maxValue })
         }
-        if (this.filter) this.filter.range = [this.state.minValue, this.state.maxValue]
+        // if (this.filter) this.filter.domain = [this.state.minValue, this.state.maxValue]
     }
 
     private _handleValueChange = (value: number, which: string) => {
@@ -87,11 +88,13 @@ export class DemoSpeakRange
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('SpeakRangeDemo')
-        this.filter = new FilterRangeHandler(this.sink, new Speech(), [
+        /*
+        this.filter = new FilterRangeHandler(new Speech(), [
             this.state.minValue,
             this.state.maxValue,
         ])
-        this.sink.addDataHandler(new NoteHandler(this.sink))
+        this.sink.addDataHandler(new NoteHandler())*/
+        this.filter = new SpeechHandler()
         this.sink.addDataHandler(this.filter)
         return this.sink
     }

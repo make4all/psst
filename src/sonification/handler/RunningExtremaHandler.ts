@@ -1,6 +1,6 @@
-import { DataSink } from '../DataSink'
-import { Datum } from '../Datum'
+import { filter, Observable, tap } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
 
 const DEBUG = true
@@ -39,8 +39,8 @@ export class RunningExtremaHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param direction. -1 for minimum, 1 for maximum. Default to maximum if not provided.
      */
-    constructor(sink?: DataSink, output?: DatumOutput, direction?: number) {
-        super(sink, output)
+    constructor(output?: DatumOutput, direction?: number) {
+        super(output)
         if (direction) {
             this._direction = direction
         } else {
@@ -54,27 +54,38 @@ export class RunningExtremaHandler extends DataHandler {
     }
 
     /**
-     * Update if datapoint is an extrema.
-     * @param datum The datum to handle
-     * @returns
+     * Set up a subscription so we are notified about events
+     * Override this if the data needs to be modified in some way
+     *
+     * @param sink The sink that is producing data for us
      */
-    handleDatum(datum?: Datum): boolean {
-        if (!datum) return false
-        if (this._direction == 1) {
-            if (datum.value > this._extrema) {
-                if (DEBUG) console.log("new maximum", datum.value)
-                this._extrema = datum.value
-                return super.handleDatum(datum)
-            }
-            return false
-        } else {
-            if (datum.value < this._extrema) {
-                if (DEBUG) console.log("new minimum", datum.value)
-                this._extrema = datum.value
-                return super.handleDatum(datum)
-            }
-            return false
-        }
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        super.setupSubscription(
+            sink$.pipe(
+                filter((val) => {
+                    if (val instanceof Datum){
+                        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${val} is new extrema`)
+                        if (this._direction == 1) {
+                            if (val.value > this._extrema) {
+                                if (DEBUG) console.log("new maximum", val.value)
+                                this._extrema = val.value
+                                return true
+                            }
+                            return false
+                        } else {
+                            if (val.value < this._extrema) {
+                                if (DEBUG) console.log("new minimum", val.value)
+                                this._extrema = val.value
+                                return true
+                            }
+                            return false
+                        }
+                    }
+                    else return true
+                }),
+            ),
+        )
     }
 
     /**
@@ -82,5 +93,33 @@ export class RunningExtremaHandler extends DataHandler {
      */
     public toString(): string {
         return `RunningExtremaHandler`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from '../Datum'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

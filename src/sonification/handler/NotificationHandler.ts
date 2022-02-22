@@ -2,6 +2,8 @@ import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
+import { filter, Observable, tap } from 'rxjs'
+import { OutputStateChange } from '../OutputConstants'
 
 const DEBUG = true
 
@@ -21,6 +23,14 @@ export class NotificationHandler extends DataHandler {
         this._interestPoints = value
     }
 
+    public insideDomain(num: number) {
+        return true
+        /*
+        console.log("checking if " + num + " is in " + this.interestPoints.toString())
+        return this.interestPoints.includes(num)
+        */
+    }
+
     /**
      * Constructor
      *
@@ -28,26 +38,29 @@ export class NotificationHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param range [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(sink?: DataSink, output?: DatumOutput, range?: number[]) {
-        super(sink, output)
+    constructor(output?: DatumOutput, range?: number[]) {
+        super(output)
         if (range) this._interestPoints = range
         else this._interestPoints = [0]
     }
 
     /**
-     * Handle the next datum by filtering if it is not inside the range (inclusive)
-     * @param datum The datum to handle
-     * @returns
+     * Set up a subscription so we are notified about events
+     * Override this if the data needs to be modified in some way
+     *
+     * @param sink The sink that is producing data for us
      */
-    handleDatum(datum?: Datum): boolean {
-        if (!datum) return false
-
-        if (this.interestPoints.includes(datum.value)) {
-            if (DEBUG) console.log('of interest. ', datum.value)
-            return super.handleDatum(datum)
-        }
-        if (DEBUG) console.log('not interesting. ')
-        return false
+     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        super.setupSubscription(
+            sink$.pipe(
+                filter((val) => {
+                    if (val instanceof Datum){
+                        return this.insideDomain(val.value)
+                    }
+                    else return true
+                }),
+            ),
+        )
     }
 
     /**

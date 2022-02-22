@@ -91,12 +91,12 @@ export class DemoSlopeParity
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParity')
-        this.increasingFilter = new SlopeParityHandler(this.sink, new FileOutput(this._increasingBuffer), 1)
-        this.decreasingFilter = new SlopeParityHandler(this.sink, new FileOutput(this._decreasingBuffer), -1)
+        this.increasingFilter = new SlopeParityHandler(new FileOutput(this._increasingBuffer), 1)
+        this.decreasingFilter = new SlopeParityHandler(new FileOutput(this._decreasingBuffer), -1)
         if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.increasingFilter)
         this.sink.addDataHandler(this.decreasingFilter)
+        this.sink.addDataHandler(new NoteHandler())
         return this.sink
     }
 }

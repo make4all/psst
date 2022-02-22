@@ -29,12 +29,12 @@ export class DemoRunningExtrema
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParity')
-        this.maximumFilter = new RunningExtremaHandler(this.sink, new Speech(), 1) // FileOutput(this._maximumBuffer), 1)
-        this.minimumFilter = new RunningExtremaHandler(this.sink, new Speech(), -1) // FileOutput(this._minimumBuffer), -1)
+        this.maximumFilter = new RunningExtremaHandler(new Speech(), 1)
+        this.minimumFilter = new RunningExtremaHandler(new Speech(), -1)
         if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(new NoteHandler(this.sink))
         this.sink.addDataHandler(this.maximumFilter)
         this.sink.addDataHandler(this.minimumFilter)
+        this.sink.addDataHandler(new NoteHandler())
         return this.sink
     }
 }

@@ -1,9 +1,9 @@
-import { DataSink } from '../DataSink'
-import { Datum } from '../Datum'
+import { filter, Observable, tap } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
 
-const DEBUG = false
+const DEBUG = true
 
 /**
  * A DataHandler that filters out things which are not betwen min and max (inclusive)
@@ -11,14 +11,18 @@ const DEBUG = false
  */
 export class FilterRangeHandler extends DataHandler {
     /**
-     * The range to accept points within. Defaults to 0,0 if not defined in constructor
+     * The domain to accept points within. Defaults to 0,0 if not defined in constructor
      */
-    private _range: [number, number]
-    public get range(): [number, number] {
-        return this._range
+    private _domain: [number, number]
+    public get domain(): [number, number] {
+        return this._domain
     }
-    public set range(value: [number, number]) {
-        this._range = value
+    public set domain(value: [number, number]) {
+        this._domain = value
+    }
+    public insideDomain(num: number): boolean {
+        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${num} is inside ${this.domain}`)
+        return num >= this.domain[0] && num <= this.domain[1]
     }
 
     /**
@@ -26,34 +30,71 @@ export class FilterRangeHandler extends DataHandler {
      *
      * @param sink. DataSink that is providing data to this Handler.
      * @param output. Optional output for this data
-     * @param range [min, max]. Defaults to 0, 0 if not provided
+     * @param domain [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(sink?: DataSink, output?: DatumOutput, range?: [number, number]) {
-        super(sink, output)
-        if (range) this._range = range
-        else this._range = [0, 0]
+    constructor(output?: DatumOutput, domain?: [number, number]) {
+        super(output)
+        debugStatic(SonificationLoggingLevel.DEBUG, "setting up filter range handeler")
+        if (domain){
+            debugStatic(SonificationLoggingLevel.DEBUG, `setting up filter range handeler with domain ${domain}`)
+            this._domain = domain
+        }
+        else this._domain = [0, 0]
     }
 
     /**
-     * Handle the next datum by filtering if it is not inside the range (inclusive)
-     * @param datum The datum to handle
-     * @returns
+     * Set up a subscription so we are notified about events
+     * Override this if the data needs to be modified in some way
+     *
+     * @param sink The sink that is producing data for us
      */
-    handleDatum(datum?: Datum): boolean {
-        if (!datum) return false
-
-        if (this.range[0] <= datum.value && datum.value <= this.range[1]) {
-            if (DEBUG) console.log('in range. ')
-            return super.handleDatum(datum)
-        }
-        if (DEBUG) console.log('not in range. ')
-        return false
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        super.setupSubscription(
+            sink$.pipe(
+                filter((val) => {
+                    if (val instanceof Datum){
+                        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${val} is inside ${this.domain}`)
+                        return this.insideDomain(val.value)
+                    }
+                    else return true
+                }),
+            ),
+        )
     }
 
     /**
      * @returns A string describing this class including its range.
      */
     public toString(): string {
-        return `FilterRangeHandler: Keeping only data in ${this.range[0]},${this.range[1]}`
+        return `FilterRangeHandler: Keeping only data in ${this.domain[0]},${this.domain[1]}`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from '../Datum'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }

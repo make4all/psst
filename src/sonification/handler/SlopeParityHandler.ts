@@ -1,6 +1,6 @@
-import { DataSink } from '../DataSink'
-import { Datum } from '../Datum'
+import { filter, Observable, tap } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
 
 const DEBUG = true
@@ -47,8 +47,8 @@ export class SlopeParityHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param direction. -1 for decreasing, 1 for increasing. Defaults to 0 if not provided.
      */
-    constructor(sink?: DataSink, output?: DatumOutput, direction?: number) {
-        super(sink, output)
+    constructor(output?: DatumOutput, direction?: number) {
+        super(output)
         this._prevPoint = 0
         this._prevSlope = 0
         if (direction) {
@@ -59,29 +59,39 @@ export class SlopeParityHandler extends DataHandler {
     }
 
     /**
-     * Use datum to determine the current slope.
-     * @param datum The datum to handle
-     * @returns
+     * Set up a subscription so we are notified about events
+     * Override this if the data needs to be modified in some way
+     *
+     * @param sink The sink that is producing data for us
      */
-    handleDatum(datum?: Datum): boolean {
-        if (!datum) return false
-        let slope = datum.value - this.prevPoint
-        this.prevPoint = datum.value // no matter what, we'll need the prev point to calculate the slope
-        if (this.direction == 0) {
-            console.log("direction 0")
-            if (Math.sign(slope) != Math.sign(this.prevSlope)) {
-                if (DEBUG) console.log('direction of slope changed')
-                this.prevSlope = slope
-                return super.handleDatum(datum)
-            }
-            return false
-        } else {
-            if (Math.sign(slope) == this.direction) {
-                if (DEBUG) console.log("slope matching direction", this.direction)
-                return super.handleDatum(datum)
-            }
-            return false
-        }
+     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        super.setupSubscription(
+            sink$.pipe(
+                filter((val) => {
+                    if (val instanceof Datum){
+                        let slope = val.value - this.prevPoint
+                        this.prevPoint = val.value // no matter what, we'll need the prev point to calculate the slope
+                        if (this.direction == 0) {
+                            console.log("direction 0")
+                            if (Math.sign(slope) != Math.sign(this.prevSlope)) {
+                                if (DEBUG) console.log('direction of slope changed')
+                                this.prevSlope = slope
+                                return true
+                            }
+                            return false
+                        } else {
+                            if (Math.sign(slope) == this.direction) {
+                                if (DEBUG) console.log("slope matching direction", this.direction)
+                                return true
+                            }
+                            return false
+                        }
+                    }
+                    else return true
+                }),
+            ),
+        )
     }
 
     /**
@@ -89,5 +99,33 @@ export class SlopeParityHandler extends DataHandler {
      */
     public toString(): string {
         return `SlopeParityHandler`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+import { Datum } from '../Datum'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
     }
 }
