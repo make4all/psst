@@ -4,6 +4,11 @@ import React, { useState } from 'react'
 
 import '../styles/dashboard.css'
 
+import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
+import { useServices, useChange, useBus } from 'react-jacdac'
+import { bus } from '../bus'
+import { JacdacProvider } from 'react-jacdac'
+
 import { Grid, AppBar, Typography, Toolbar, Box, Container, Button, Input, InputAdornment } from '@mui/material'
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
@@ -12,12 +17,6 @@ import { DataHandler } from '../sonification/handler/DataHandler'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
 import { DatumOutput } from '../sonification/output/DatumOutput'
-
-// Service
-//      Stream Value
-//              Active Data Handlers
-//                      Data Handler Parameters
-//                      Data Outputs
 
 export interface JDServiceWrapper {
     name: string
@@ -58,18 +57,18 @@ const unitMap = {
 }
 
 const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
-    {
-        name: 'Accelerometer',
-        values: [
-            { name: 'x', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-            { name: 'y', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-            { name: 'z', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-        ],
-    },
-    {
-        name: 'Button',
-        values: [{ name: '', unit: '', format: formatMap.accelerometer, dataHandlers: [] }],
-    },
+    // {
+    //     name: 'Accelerometer',
+    //     values: [
+    //         { name: 'x', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+    //         { name: 'y', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+    //         { name: 'z', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
+    //     ],
+    // },
+    // {
+    //     name: 'Button',
+    //     values: [{ name: '', unit: '', format: formatMap.accelerometer, dataHandlers: [] }],
+    // },
 ]
 
 // const serviceList = [
@@ -124,10 +123,22 @@ const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
     { name: 'Slope Change Handler', description: 'Description of slope change handler' },
 ]
 
-
-export default function Dashboard() {
+export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>(DEFAULT_SERVICE_LIST)
-    const [connected, setConnected] = useState(false)
+    const jdServices = useServices({ sensor: true })
+    console.log(jdServices)
+    const bus = useBus()
+    const connected = useChange(bus, (_) => _.connected)
+
+    const handleConnect = async () => {
+        if (connected) {
+            console.log('disconnect')
+            await bus.disconnect()
+        } else {
+            console.log('connect')
+            await bus.connect()
+        }
+    }
 
     const handleRemoveDataHandlerFromService = (serviceName: string, valueName: string, handlerName: string) => {
         console.log(handlerName)
@@ -183,7 +194,9 @@ export default function Dashboard() {
                         Connect your device
                     </Typography>
                     <Box sx={{ my: 2 }}>
-                        <Button variant="contained">{connected ? 'Disconnect' : 'Connect'}</Button>
+                        <Button variant="contained" onClick={handleConnect}>
+                            {connected ? 'Disconnect' : 'Connect'}
+                        </Button>
                     </Box>
                 </Box>
                 {services.length === 0 ? undefined : (
@@ -249,5 +262,13 @@ export default function Dashboard() {
                 )}
             </Container>
         </>
+    )
+}
+
+export default function Page() {
+    return (
+        <JacdacProvider initialBus={bus}>
+            <DashboardView />
+        </JacdacProvider>
     )
 }
