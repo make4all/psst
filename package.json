@@ -1,20 +1,30 @@
 {
+    "homepage": ".",
     "name": "sonification",
-    "version": "0.1.0",
+    "version": "1.1.1",
     "description": "library that provides sonification primitives to make data accessible.",
-    "source": "src/sonification.ts",
-    "exports": "./dist/sonification.modern.js",
-    "main": "./dist/sonification.cjs",
-    "module": "./dist/sonification.module.js",
-    "unpkg": "./dist/sonification.umd.js",
+    "source": "src/sonifier.ts",
+    "exports": {
+        "require": "./dist/sonifier.cjs",
+        "default": "./dist/sonifier.modern.js"
+    },
+    "main": "./dist/sonifier.cjs",
+    "module": "./dist/sonifier.module.js",
+    "unpkg": "./dist/sonifier.umd.js",
     "license": "MIT",
+    "files": [
+        "dist",
+        "src"
+    ],
     "scripts": {
-        "build": "tsc",
-        "start": "node ./dist/lib/sonification.js",
-        "dev": "ts-node ./src/sonification.ts",
-        "test": "mocha",
+        "bundle": "microbundle",
+        "watch:bundle": "microbundle watch",
+        "start": "react-scripts start",
+        "eject": "react-scripts eject",
+        "serve": "live-server --open=public/index.html",
+        "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
-        "bundle": "microbundle"
+        "pretify": "prettier --write src/**"
     },
     "husky": {
         "hooks": {
@@ -27,26 +37,62 @@
         ]
     },
     "dependencies": {
-        "@types/node": "^16.9.1",
-        "vega": "^5.21.0",
-        "vega-embed": "^6.19.1"
+        "@types/node": "^16.11.6",
+        "d3": "^7.1.1",
+        "jacdac-ts": "^1.24.4",
+        "react-jacdac": "^1.1.1",
+        "rxjs": "^7.5.2",
+        "rxjs-spy": "^8.0.2",
+        "typedoc": "^0.22.11",
+        "webusb": "^2.2.0"
     },
     "devDependencies": {
-        "@semantic-release/exec": "^5.0.0",
-        "@semantic-release/git": "^9.0.1",
-        "@types/chai": "^4.2.21",
+        "@emotion/react": "^11.7.0",
+        "@emotion/styled": "^11.6.0",
+        "@mui/icons-material": "^5.2.0",
+        "@mui/material": "^5.2.2",
+        "@mui/x-data-grid": "^5.0.1",
+        "@semantic-release/exec": "^6.0.2",
+        "@semantic-release/git": "^10.0.1",
+        "@types/chai": "^4.2.22",
         "@types/mocha": "^9.0.0",
-        "@typescript-eslint/eslint-plugin": "^4.31.1",
-        "@typescript-eslint/parser": "^4.31.1",
+        "@types/react": "^17.0.34",
+        "@types/react-dom": "^17.0.11",
+        "@typescript-eslint/eslint-plugin": "^5.3.0",
+        "@typescript-eslint/parser": "^5.3.0",
+        "ajv": "^8.7.1",
+        "arquero": "^4.8.7",
         "chai": "^4.3.4",
-        "eslint": "^7.32.0",
-        "eslint-config-prettier": "^8.3.0",
+        "concurrently": "^6.3.0",
+        "csv-parser": "^3.0.0",
         "eslint-plugin-prettier": "^4.0.0",
-        "microbundle": "^0.13.3",
-        "mocha": "^9.1.1",
-        "prettier": "^2.4.0",
-        "semantic-release": "^17.4.7",
-        "ts-node": "^10.2.1",
-        "typescript": "^4.4.3"
-    }
+        "live-server": "^1.2.1",
+        "microbundle": "^0.14.1",
+        "mocha": "^9.1.3",
+        "monaco-editor": "^0.29.1",
+        "prettier": "^2.4.1",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-router-dom": "^6.0.2",
+        "react-scripts": "4.0.3",
+        "semantic-release": "^18.0.0",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.4.4",
+        "vega": "^5.21.0",
+        "vega-embed": "^6.20.0"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "repository": "https://github.com/make4all/sonification.git",
+    "author": "Jennifer Mankoff <jmankoff@cs.washington.edu>"
 }
