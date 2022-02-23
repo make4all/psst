@@ -84,13 +84,11 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                         service.values.map((value) => (
                                             <MenuItem
                                                 onClick={() => {
-                                                    if (onAddToService) {
-                                                        onAddToService(service.name, value.name, {
-                                                            name: props.name,
-                                                            description: props.description,
-                                                            dataOutputs: [],
-                                                        })
-                                                    }
+                                                    onAddToService?.(service.name, value.name, {
+                                                        name: props.name,
+                                                        description: props.description,
+                                                        dataOutputs: [],
+                                                    })
                                                     console.log(value.dataHandlers)
                                                     handleMenuClose()
                                                 }}

@@ -36,7 +36,6 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                         {props.values.map((value, valueIndex) => (
                             <JDValueItem
                                 {...value}
-                                currentValue={0.889}
                                 key={valueIndex}
                                 currentHandlerTemplates={props.currentHandlerTemplates}
                                 onAddDataHandler={(template: DataHandlerTemplate) => {

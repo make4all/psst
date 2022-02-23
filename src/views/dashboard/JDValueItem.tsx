@@ -6,9 +6,20 @@ import { DataHandlerTemplate, DataHandlerWrapper } from '../../pages/Dashboard'
 
 import DataHandlerItem from './DataHandlerItem'
 
+import {
+    JDBus,
+    JDDevice,
+    SRV_ACCELEROMETER,
+    REPORT_UPDATE,
+    throttle,
+    startDevTools,
+    inIFrame,
+    JDRegister,
+} from 'jacdac-ts'
+
 export interface JDValueItemProps {
     name: string
-    currentValue: number
+    register: JDRegister
     dataHandlers: DataHandlerWrapper[]
     currentHandlerTemplates: DataHandlerTemplate[]
     onRemoveDataHandler?: (handlerName: string) => void
@@ -20,7 +31,20 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
     const handlersExist = props.dataHandlers.length !== 0
 
     const [addButtonAnchor, setAddButtonAnchor] = useState<null | HTMLElement>(null)
+    const [currentValue, setCurrentValue] = useState<string>('0')
     const menuOpen = Boolean(addButtonAnchor)
+
+    useEffect(() => {
+        props.register.subscribe(
+            REPORT_UPDATE,
+            throttle(async () => {
+                const [raw] = props.register.unpackedValue
+                console.log(raw)
+                setCurrentValue(raw)
+            }, 100),
+        )
+    }, [props.register])
+    
 
     const handleAddButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAddButtonAnchor(event.currentTarget)
@@ -29,7 +53,7 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
         setAddButtonAnchor(null)
     }
 
-    const { currentHandlerTemplates, name, currentValue, onAddDataHandler, onRemoveDataHandler } = props
+    const { currentHandlerTemplates, name, onAddDataHandler, onRemoveDataHandler } = props
 
     return (
         <Grid item xs={12} sm={handlersExist ? 12 : 6} md={handlersExist ? 12 : 4}>

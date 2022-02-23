@@ -1,10 +1,10 @@
 import { OutputEngine } from '../sonification/OutputEngine'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import '../styles/dashboard.css'
 
-import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
+import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame, JDRegister } from 'jacdac-ts'
 import { useServices, useChange, useBus } from 'react-jacdac'
 import { bus } from '../bus'
 import { JacdacProvider } from 'react-jacdac'
@@ -28,6 +28,7 @@ export interface JDValueWrapper {
     name: string
     unit: string
     format: (value: number) => string
+    register: JDRegister
     dataHandlers: DataHandlerWrapper[]
 }
 
@@ -129,6 +130,17 @@ export function DashboardView() {
     console.log(jdServices)
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
+
+    useEffect(() => {
+        const newServices = jdServices.map((jds) => {
+            const serviceWrapper = {
+                name: jds.name,
+                values: [{ name: '', unit: 's', format: formatMap.accelerometer, register: jds.readingRegister, dataHandlers: [] }],
+            }
+            return serviceWrapper
+        })
+        setServices(newServices)
+    }, [jdServices.map((jdService) => jdService.id).join(' ')])
 
     const handleConnect = async () => {
         if (connected) {
