@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react'
 
 import '../styles/dashboard.css'
 
-import { JDBus, JDDevice, SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame, JDRegister } from 'jacdac-ts'
+import * as d3 from 'd3'
+
+import { JDRegister } from 'jacdac-ts'
 import { useServices, useChange, useBus } from 'react-jacdac'
 import { bus } from '../bus'
 import { JacdacProvider } from 'react-jacdac'
@@ -14,9 +16,18 @@ import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
 import { JDService } from 'jacdac-ts'
 import { DataHandler } from '../sonification/handler/DataHandler'
-import { NoteHandler } from '../sonification/handler/NoteHandler'
-import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
 import { DatumOutput } from '../sonification/output/DatumOutput'
+
+import {
+    SRV_ACCELEROMETER,
+    SRV_BUTTON,
+    SRV_BUZZER,
+    SRV_GYROSCOPE,
+    SRV_HUMIDITY,
+    SRV_LIGHT_LEVEL,
+    SRV_POTENTIOMETER,
+    SRV_TEMPERATURE,
+} from 'jacdac-ts'
 
 export interface JDServiceWrapper {
     name: string
@@ -26,7 +37,8 @@ export interface JDServiceWrapper {
 
 export interface JDValueWrapper {
     name: string
-    unit: string
+    units: string
+    index: number
     format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
@@ -72,48 +84,16 @@ const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
     // },
 ]
 
-// const serviceList = [
-//     {
-//         name: 'Accelerometer',
-//         values: [
-//             {
-//                 name: 'x',
-//                 units: 'g',
-//                 value: 0.8999343,
-//                 dataHandlers: [
-//                     { name: 'Note Handler', description: 'Describe the note handler', active: true },
-//                     { name: 'Filter Range Handler', description: 'Description of filter range handler', active: true },
-//                 ],
-//             },
-//             { name: 'y', units: 'g', value: 0.12222323, dataHandlers: [] },
-//             { name: 'z', units: 'g', value: 0.5699, dataHandlers: [] },
-//         ],
-//     },
-//     {
-//         name: 'Gyroscope',
-//         values: [
-//             { name: 'x', units: 'm/s', value: 140.02323, dataHandlers: [] },
-//             { name: 'y', units: 'm/s', value: 9.780899, dataHandlers: [] },
-//             { name: 'z', units: 'm/s', value: -9.82323, dataHandlers: [] },
-//         ],
-//     },
-//     {
-//         name: 'Button',
-//         values: [{ name: '', units: '', value: 0, dataHandlers: [] }],
-//     },
-//     {
-//         name: 'Light Level',
-//         values: [{ name: '', units: '', value: 78.023, dataHandlers: [] }],
-//     },
-//     {
-//         name: 'Temperature',
-//         values: [{ name: '', units: 'C', value: 23.34, dataHandlers: [] }],
-//     },
-//     {
-//         name: 'Humidity',
-//         values: [{ name: '', units: 'mH', value: 29.89, dataHandlers: [] }],
-//     },
-// ]
+const SRV_INFO_MAP = {
+    [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f') },
+    [SRV_BUTTON]: { values: [''], units: '', format: d3.format('.0d') },
+    [SRV_BUZZER]: { values: [''], units: '', format: d3.format('.0d') },
+    [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f') },
+    [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f') },
+    [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%') },
+    [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%') },
+    [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f') },
+}
 
 const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
     { name: 'Note Handler', description: 'Description of note handler' },
@@ -133,9 +113,17 @@ export function DashboardView() {
 
     useEffect(() => {
         const newServices = jdServices.map((jds) => {
+            const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
             const serviceWrapper = {
-                name: jds.name,
-                values: [{ name: '', unit: 's', format: formatMap.accelerometer, register: jds.readingRegister, dataHandlers: [] }],
+                name: jds.specification.name,
+                values: serviceInfo.values.map((v, i) => ({
+                    name: v,
+                    index: i,
+                    units: serviceInfo.units,
+                    format: serviceInfo.format,
+                    register: jds.readingRegister,
+                    dataHandlers: [],
+                })),
             }
             return serviceWrapper
         })

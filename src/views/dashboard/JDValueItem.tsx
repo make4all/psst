@@ -19,6 +19,9 @@ import {
 
 export interface JDValueItemProps {
     name: string
+    index: number
+    units: string
+    format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
     currentHandlerTemplates: DataHandlerTemplate[]
@@ -38,13 +41,12 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
         props.register.subscribe(
             REPORT_UPDATE,
             throttle(async () => {
-                const [raw] = props.register.unpackedValue
+                const raw = props.register.unpackedValue[props.index]
                 console.log(raw)
-                setCurrentValue(raw)
+                setCurrentValue(props.format(raw))
             }, 100),
         )
     }, [props.register])
-    
 
     const handleAddButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAddButtonAnchor(event.currentTarget)
@@ -53,21 +55,26 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
         setAddButtonAnchor(null)
     }
 
-    const { currentHandlerTemplates, name, onAddDataHandler, onRemoveDataHandler } = props
+    const { currentHandlerTemplates, name, units, onAddDataHandler, onRemoveDataHandler } = props
 
     return (
         <Grid item xs={12} sm={handlersExist ? 12 : 6} md={handlersExist ? 12 : 4}>
             <Card>
                 <CardHeader
                     title={
-                        <Typography variant="subtitle1" component="span">
+                        <Typography sx={{ mr: 1 }} variant="subtitle1" component="span">
                             {name}
                         </Typography>
                     }
                     subheader={
-                        <Typography variant="h5" component="span">
-                            {currentValue}
-                        </Typography>
+                        <Box sx={{display: 'inline'}}>
+                            <Typography variant="h5" component="span">
+                                {currentValue}
+                            </Typography>
+                            <Typography sx={{ ml: 1 }} variant="subtitle1" component="span">
+                                {units}
+                            </Typography>
+                        </Box>
                     }
                     action={
                         <Box>
