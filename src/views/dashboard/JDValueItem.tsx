@@ -62,12 +62,10 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
             <Card>
                 <CardHeader
                     title={
-                        <Typography sx={{ mr: 1 }} variant="subtitle1" component="span">
-                            {name}
-                        </Typography>
-                    }
-                    subheader={
-                        <Box sx={{display: 'inline'}}>
+                        <Box>
+                            <Typography sx={{ mr: 1 }} variant="subtitle1" component="span">
+                                {name}
+                            </Typography>
                             <Typography variant="h5" component="span">
                                 {currentValue}
                             </Typography>

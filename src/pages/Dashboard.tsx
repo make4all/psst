@@ -28,6 +28,10 @@ import {
     SRV_POTENTIOMETER,
     SRV_TEMPERATURE,
 } from 'jacdac-ts'
+import { NoteSonify } from '../sonification/output/NoteSonify'
+import { NoiseSonify } from '../sonification/output/NoiseSonify'
+import { SonifyFixedDuration } from '../sonification/output/SonifyFixedDuration'
+import { Speech } from '../sonification/output/Speech'
 
 export interface JDServiceWrapper {
     name: string
@@ -56,6 +60,12 @@ export interface DataHandlerWrapper {
     handlerObject?: DataHandler
     dataOutputs: DataOutputWrapper[]
 }
+
+export interface DataOutputTemplate {
+    name: string
+    createOutput?: () => DatumOutput
+}
+
 export interface DataOutputWrapper {
     name: string
     outputObject?: DatumOutput
@@ -102,6 +112,13 @@ const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
     { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
     { name: 'Slope Handler', description: 'Description of slope handler' },
     { name: 'Slope Change Handler', description: 'Description of slope change handler' },
+]
+
+const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
+    { name: 'Note', createOutput: () => new NoteSonify() },
+    { name: 'White Noise', createOutput: () => new NoiseSonify() },
+    { name: 'Earcon', createOutput: () => new NoteSonify() },
+    { name: 'Speech', createOutput: () => new Speech() },
 ]
 
 export function DashboardView() {
@@ -252,7 +269,8 @@ export function DashboardView() {
                                         active={false}
                                         key={index}
                                         index={index}
-                                        currentServices={services}
+                                        availableServices={services}
+                                        availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
                                         onAddToService={handleAddDataHandlerToService}
                                     />
                                 ))}

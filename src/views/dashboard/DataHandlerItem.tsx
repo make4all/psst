@@ -1,17 +1,27 @@
 import { useState, useEffect } from 'react'
 
-import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typography } from '@mui/material'
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    FormControl,
+    FormGroup,
+    FormLabel,
+    Grid,
+    Menu,
+    MenuItem,
+    Typography,
+} from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
-import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper } from '../../pages/Dashboard'
-import { NoiseSonify } from '../../sonification/output/NoiseSonify'
-import { NoteSonify } from '../../sonification/output/NoteSonify'
-import { SonifyFixedDuration } from '../../sonification/output/SonifyFixedDuration'
-import { Speech } from '../../sonification/output/Speech'
+import { DataHandlerWrapper, DataOutputTemplate, DataOutputWrapper, JDServiceWrapper } from '../../pages/Dashboard'
 import DataOutputList from './DataOutputList'
 
 import { DataHandler } from '../../sonification/handler/DataHandler'
+import DataOutputItem from './DataOutputItem'
 
 export interface DataHandlerItemProps {
     name: string
@@ -21,17 +31,11 @@ export interface DataHandlerItemProps {
     onRemove?: () => void
     onAddToService?: (serviceName: string, valueName: string, dataHandler: DataHandlerWrapper) => void
     handlerObject?: DataHandler
-    currentServices?: JDServiceWrapper[]
+    availableServices?: JDServiceWrapper[]
+    availableDataOutputs?: DataOutputTemplate[]
 }
 
 export default function DataHandlerItem(props: React.Attributes & DataHandlerItemProps): JSX.Element {
-    const dataOutputList = [
-        { name: 'Note', class: NoteSonify },
-        { name: 'White Noise', class: NoiseSonify },
-        { name: 'Earcon', class: SonifyFixedDuration },
-        { name: 'Speech', class: Speech },
-    ]
-
     const [addButtonAnchor, setAddButtonAnchor] = useState<null | HTMLElement>(null)
     const menuOpen = Boolean(addButtonAnchor)
 
@@ -41,8 +45,11 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
     const handleMenuClose = () => {
         setAddButtonAnchor(null)
     }
+    const handleDataOutputChange = (event: React.ChangeEvent) => {
+        console.log(event)
+    }
 
-    const { active, currentServices, onAddToService } = props
+    const { active, availableServices, availableDataOutputs, onAddToService } = props
 
     return (
         <Grid item md={6} sm={12} xs={12}>
@@ -61,7 +68,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                         </Typography>
                     }
                     action={
-                        !active && currentServices ? (
+                        !active && availableServices ? (
                             <Box>
                                 <Button
                                     id="btn-data-handler-add-to-stream"
@@ -80,7 +87,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                     anchorEl={addButtonAnchor}
                                     id="menu-data-handler-stream-list"
                                 >
-                                    {currentServices.map((service) =>
+                                    {availableServices.map((service) =>
                                         service.values.map((value) => (
                                             <MenuItem
                                                 onClick={() => {
@@ -117,8 +124,21 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             <Typography variant="body2">{props.description}</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <DataOutputList dataOutputs={dataOutputList} />
-                            {/* <Box sx={{mx: 4}}></Box> */}
+                            <FormControl component="fieldset" sx={{ float: 'right' }}>
+                                <FormLabel component="legend">Choose Data Outputs</FormLabel>
+                                <FormGroup>
+                                    {availableDataOutputs?.map((output, index) => {
+                                        return (
+                                            <DataOutputItem
+                                                key={index}
+                                                name={output.name}
+                                                activated={false}
+                                                onChange={handleDataOutputChange}
+                                            />
+                                        )
+                                    })}
+                                </FormGroup>
+                            </FormControl>
                         </Grid>
                     </Grid>
                 </CardContent>
