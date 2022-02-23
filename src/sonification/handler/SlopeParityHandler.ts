@@ -1,4 +1,4 @@
-import { filter, Observable, tap } from 'rxjs'
+import { filter, map, Observable, tap, withLatestFrom } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
@@ -10,28 +10,6 @@ const DEBUG = true
  * @todo change this to take a function that decides how to filter?
  */
 export class SlopeParityHandler extends DataHandler {
-    /**
-     * The slope between the previous two points.
-     */
-    private _prevSlope: number
-    public get prevSlope(): number {
-        return this._prevSlope
-    }
-    public set prevSlope(value: number) {
-        this._prevSlope = value
-    }
-
-    /**
-     * The previous data point, used to calculate current slope.
-     */
-    private _prevPoint: number
-    public get prevPoint(): number {
-        return this._prevPoint;
-    }
-    public set prevPoint(value: number) {
-        this._prevPoint = value
-    }
-
     private _direction: number
     public get direction(): number {
         return this._direction
@@ -49,8 +27,6 @@ export class SlopeParityHandler extends DataHandler {
      */
     constructor(output?: DatumOutput, direction?: number) {
         super(output)
-        this._prevPoint = 0
-        this._prevSlope = 0
         if (direction) {
             this._direction = direction
         } else {
@@ -64,32 +40,15 @@ export class SlopeParityHandler extends DataHandler {
      *
      * @param sink The sink that is producing data for us
      */
-     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
-        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic(SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        let slope$ = new SlopeChange(3, sink$)
+
         super.setupSubscription(
             sink$.pipe(
-                filter((val) => {
-                    if (val instanceof Datum){
-                        let slope = val.value - this.prevPoint
-                        this.prevPoint = val.value // no matter what, we'll need the prev point to calculate the slope
-                        if (this.direction == 0) {
-                            console.log("direction 0")
-                            if (Math.sign(slope) != Math.sign(this.prevSlope)) {
-                                if (DEBUG) console.log('direction of slope changed')
-                                this.prevSlope = slope
-                                return true
-                            }
-                            return false
-                        } else {
-                            if (Math.sign(slope) == this.direction) {
-                                if (DEBUG) console.log("slope matching direction", this.direction)
-                                return true
-                            }
-                            return false
-                        }
-                    }
-                    else return true
-                }),
+                withLatestFrom(slope$),
+                filter((vals) => vals[1] != this.direction),
+                map((vals) => vals[0]),
             ),
         )
     }
@@ -105,6 +64,7 @@ export class SlopeParityHandler extends DataHandler {
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
 import { Datum } from '../Datum'
+import { SlopeChange } from '../stat/SlopeChange'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(

@@ -3,9 +3,7 @@ import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../Output
 import { Sonify } from './Sonify'
 import { Observable, tap } from 'rxjs'
 
-
 const DEBUG = false
-
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -43,17 +41,17 @@ export class NoteSonify extends Sonify {
     protected output(datum: Datum) {
         debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
-        if(!this.isAudioPlaying) {
-        oscillator.start()
-        this.isAudioPlaying = true
+        if (!this.isAudioPlaying) {
+            oscillator.start()
+            this.isAudioPlaying = true
+        }
+        oscillator.frequency.value = datum.value
     }
-    oscillator.frequency.value = datum.value
-}
     /**
      * Generates a new note sonifier
      */
-    public constructor(pan:number=0) {
-        super(Sonify.audioCtx.createOscillator(),pan)
+    public constructor(pan: number = 0) {
+        super(Sonify.audioCtx.createOscillator(), pan)
 
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
@@ -94,11 +92,9 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
         } //else console.log('debug message dumped')
     }
-
 }
