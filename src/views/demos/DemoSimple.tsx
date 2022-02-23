@@ -13,7 +13,7 @@ import {
 import { Demo } from '../../pages/Demo'
 
 
-const DEBUG = true
+const DEBUG = false
 
 
 export interface DemoSimpleState {}

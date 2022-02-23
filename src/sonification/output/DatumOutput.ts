@@ -2,6 +2,8 @@ import { lastValueFrom, Observable, Subject, tap } from 'rxjs'
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
+const DEBUG = false
+
 /**
  * Base class for outputing information about a single datum. Must be subclassed to be fully defined
  * @field datum The raw data used to generate this sonification type
@@ -123,7 +125,9 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-    if (level >= getSonificationLoggingLevel()) {
-        console.log(message)
-    } else console.log('debug message dumped')
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } else console.log('debug message dumped')
+    }
 }

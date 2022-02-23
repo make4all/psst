@@ -82,15 +82,15 @@ export class SlopeParityHandler extends DataHandler {
                             return false
                         } else {
                             if (Math.sign(slope) == this.direction) {
-                                if (Math.sign(slope) != Math.sign(this.prevSlope)) { 
-                                    this.prevSlope=slope
+                                if (Math.sign(slope) != Math.sign(this.prevSlope)) {
+                                    this.prevSlope = slope
                                     return true
+                                } else { // slope did not change direction
+                                    this.prevSlope = slope
+                                    return false
                                 }
-
-                                this.prevSlope=slope
-                                if (DEBUG) console.log("slope matching direction", this.direction)
-                                return false
                             }
+                            this.prevSlope = slope
                             return false
                         }
                     }
@@ -129,7 +129,7 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-    if (DEBUG) {
+    if (false) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
         } else console.log('debug message dumped')

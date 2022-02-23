@@ -9,7 +9,7 @@ import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { Box, Button, Input } from '@mui/material'
 
-const DEBUG = true
+const DEBUG = false
 
 export interface DemoSlopeParityV2Props extends DemoSimpleProps {
     dataSummary: any
