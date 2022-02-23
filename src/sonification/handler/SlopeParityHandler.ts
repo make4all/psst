@@ -82,8 +82,14 @@ export class SlopeParityHandler extends DataHandler {
                             return false
                         } else {
                             if (Math.sign(slope) == this.direction) {
+                                if (Math.sign(slope) != Math.sign(this.prevSlope)) { 
+                                    this.prevSlope=slope
+                                    return true
+                                }
+
+                                this.prevSlope=slope
                                 if (DEBUG) console.log("slope matching direction", this.direction)
-                                return true
+                                return false
                             }
                             return false
                         }
