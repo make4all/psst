@@ -18,7 +18,6 @@ import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
 import { DataHandlerWrapper, DataOutputTemplate, DataOutputWrapper, JDServiceWrapper } from '../../pages/Dashboard'
-import DataOutputList from './DataOutputList'
 
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import DataOutputItem from './DataOutputItem'

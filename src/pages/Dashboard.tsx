@@ -11,7 +11,23 @@ import { useServices, useChange, useBus } from 'react-jacdac'
 import { bus } from '../bus'
 import { JacdacProvider } from 'react-jacdac'
 
-import { Grid, AppBar, Typography, Toolbar, Box, Container, Button, Input, InputAdornment } from '@mui/material'
+import {
+    Alert,
+    AppBar,
+    Box,
+    Button,
+    Collapse,
+    Container,
+    Grid,
+    IconButton,
+    Input,
+    InputAdornment,
+    Typography,
+    Toolbar,
+} from '@mui/material'
+
+import { Close } from '@mui/icons-material'
+
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
 import { JDService } from 'jacdac-ts'
@@ -105,7 +121,7 @@ const SRV_INFO_MAP = {
     [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f') },
 }
 
-const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
+export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
     { name: 'Note Handler', description: 'Description of note handler' },
     { name: 'Filter Range Handler', description: 'Description of filter range handler' },
     { name: 'Extrema Handler', description: 'Description of extrema handler' },
@@ -114,7 +130,7 @@ const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
     { name: 'Slope Change Handler', description: 'Description of slope change handler' },
 ]
 
-const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
+export const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
     { name: 'Note', createOutput: () => new NoteSonify() },
     { name: 'White Noise', createOutput: () => new NoiseSonify() },
     { name: 'Earcon', createOutput: () => new NoteSonify() },
@@ -123,6 +139,7 @@ const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
 
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>(DEFAULT_SERVICE_LIST)
+    const [alertOpen, setAlertOpen] = useState(false)
     const jdServices = useServices({ sensor: true })
     console.log(jdServices)
     const bus = useBus()
@@ -146,6 +163,10 @@ export function DashboardView() {
         })
         setServices(newServices)
     }, [jdServices.map((jdService) => jdService.id).join(' ')])
+
+    useEffect(() => {
+        setAlertOpen(connected)
+    }, [connected])
 
     const handleConnect = async () => {
         if (connected) {
@@ -215,69 +236,94 @@ export function DashboardView() {
                             {connected ? 'Disconnect' : 'Connect'}
                         </Button>
                     </Box>
+                    <Grid container aria-live="polite">
+                        <Grid item xs={12} md={9}>
+                            <Collapse in={alertOpen}>
+                                <Alert
+                                    action={
+                                        <IconButton
+                                            aria-label="close"
+                                            color="inherit"
+                                            size="small"
+                                            onClick={() => {
+                                                setAlertOpen(false)
+                                            }}
+                                        >
+                                            <Close fontSize="inherit" />
+                                        </IconButton>
+                                    }
+                                    sx={{ mb: 2 }}
+                                >
+                                    Your device has been successfully connected. Now you can hear your sensor data!
+                                </Alert>
+                            </Collapse>
+                        </Grid>
+                    </Grid>
                 </Box>
-                {services.length === 0 ? undefined : (
-                    <Box>
-                        <Box sx={{ mb: 2, mt: 4 }}>
-                            <Typography variant="h5" component="h2">
-                                Sonify your sensor data
-                            </Typography>
-                            <Grid container spacing={2} sx={{ my: 1 }}>
-                                {services.map((s, i) => (
-                                    <JDServiceItem
-                                        name={s.name}
-                                        key={i}
-                                        values={s.values}
-                                        currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
-                                        onAddDataHandler={handleAddDataHandlerToService}
-                                        onRemoveDataHandler={handleRemoveDataHandlerFromService}
+                <Box aria-live="polite">
+                    {!connected ? undefined : (
+                        <Box>
+                            <Box sx={{ mb: 2, mt: 4 }}>
+                                <Typography variant="h5" component="h2">
+                                    Hear your sensor data
+                                </Typography>
+                                <Grid container spacing={2} sx={{ my: 1 }}>
+                                    {services.map((s, i) => (
+                                        <JDServiceItem
+                                            name={s.name}
+                                            key={i}
+                                            values={s.values}
+                                            currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
+                                            onAddDataHandler={handleAddDataHandlerToService}
+                                            onRemoveDataHandler={handleRemoveDataHandlerFromService}
+                                        />
+                                    ))}
+                                </Grid>
+                            </Box>
+                            <Box sx={{ mb: 2, mt: 4 }}>
+                                <Typography variant="h5" component="h2">
+                                    Play your data sonification
+                                </Typography>
+                                <Box sx={{ my: 2 }}>
+                                    <Button variant="contained" size="large" sx={{ mr: 2 }}>
+                                        Play
+                                    </Button>
+                                    <Button variant="contained" size="large" sx={{ mx: 2 }}>
+                                        Go Back
+                                    </Button>
+                                    <Input
+                                        id="input-number-go-back-time"
+                                        sx={{ width: '15ch' }}
+                                        defaultValue={5}
+                                        endAdornment={<InputAdornment position="end">seconds</InputAdornment>}
+                                        inputProps={{
+                                            'aria-label': 'go back time',
+                                            type: 'number',
+                                        }}
                                     />
-                                ))}
-                            </Grid>
-                        </Box>
-                        <Box sx={{ mb: 2, mt: 4 }}>
-                            <Typography variant="h5" component="h2">
-                                Play your data sonification
-                            </Typography>
-                            <Box sx={{ my: 2 }}>
-                                <Button variant="contained" size="large" sx={{ mr: 2 }}>
-                                    Play
-                                </Button>
-                                <Button variant="contained" size="large" sx={{ mx: 2 }}>
-                                    Go Back
-                                </Button>
-                                <Input
-                                    id="input-number-go-back-time"
-                                    sx={{ width: '15ch' }}
-                                    defaultValue={5}
-                                    endAdornment={<InputAdornment position="end">seconds</InputAdornment>}
-                                    inputProps={{
-                                        'aria-label': 'go back time',
-                                        type: 'number',
-                                    }}
-                                />
+                                </Box>
+                            </Box>
+                            <Box sx={{ mb: 2, mt: 4 }}>
+                                <Typography variant="h5" component="h2">
+                                    Configure and add sonifiers
+                                </Typography>
+                                <Grid container spacing={2} sx={{ my: 1 }}>
+                                    {AVAILABLE_DATA_HANDLER_TEMPLATES.map((dataHandler, index) => (
+                                        <DataHandlerItem
+                                            {...dataHandler}
+                                            active={false}
+                                            key={index}
+                                            index={index}
+                                            availableServices={services}
+                                            availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
+                                            onAddToService={handleAddDataHandlerToService}
+                                        />
+                                    ))}
+                                </Grid>
                             </Box>
                         </Box>
-                        <Box sx={{ mb: 2, mt: 4 }}>
-                            <Typography variant="h5" component="h2">
-                                Configure and add sonifiers
-                            </Typography>
-                            <Grid container spacing={2} sx={{ my: 1 }}>
-                                {AVAILABLE_DATA_HANDLER_TEMPLATES.map((dataHandler, index) => (
-                                    <DataHandlerItem
-                                        {...dataHandler}
-                                        active={false}
-                                        key={index}
-                                        index={index}
-                                        availableServices={services}
-                                        availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
-                                        onAddToService={handleAddDataHandlerToService}
-                                    />
-                                ))}
-                            </Grid>
-                        </Box>
-                    </Box>
-                )}
+                    )}
+                </Box>
             </Container>
         </>
     )

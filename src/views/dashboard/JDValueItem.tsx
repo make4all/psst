@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typography } from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
-import { DataHandlerTemplate, DataHandlerWrapper } from '../../pages/Dashboard'
+import { AVAILABLE_DATA_OUTPUT_TEMPLATES, DataHandlerTemplate, DataHandlerWrapper } from '../../pages/Dashboard'
 
 import DataHandlerItem from './DataHandlerItem'
 
@@ -118,6 +118,7 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                                     active={true}
                                     key={index}
                                     index={index}
+                                    availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
                                     onRemove={() => {
                                         if (onRemoveDataHandler) {
                                             onRemoveDataHandler(dataHandler.name)
