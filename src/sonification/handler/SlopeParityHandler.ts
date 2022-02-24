@@ -32,6 +32,9 @@ export class SlopeParityHandler extends DataHandler {
         this._prevPoint = value
     }
 
+    /**
+     * Direction to be tracked and notified for.
+     */
     private _direction: number
     public get direction(): number {
         return this._direction

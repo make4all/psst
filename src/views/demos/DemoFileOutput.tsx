@@ -22,7 +22,7 @@ export class DemoFileOutput
     extends DemoSimple<DemoFileOutputProps, DemoFileOutputState>
     implements IDemoView
 {
-    filter: NotificationHandler | undefined
+    notifier: NotificationHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _buffer: ArrayBuffer | undefined
 
@@ -78,7 +78,7 @@ export class DemoFileOutput
             let targetValues = [this.props.dataSummary.max]
             this.setState({ targetValues })
         }
-        if (this.filter) this.filter.interestPoints = this.state.targetValues
+        if (this.notifier) this.notifier.interestPoints = this.state.targetValues
     }
 
     private _handleValueChange = (value: string) => {
@@ -112,10 +112,10 @@ export class DemoFileOutput
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
-        this.filter = new NotificationHandler(new FileOutput(this._buffer), this.state.targetValues)
+        this.notifier = new NotificationHandler(new FileOutput(this._buffer), this.state.targetValues)
         if (DEBUG) console.log("sink initialized")
         //this.sink.addDataHandler(new NoteHandler())
-        this.sink.addDataHandler(this.filter)
+        this.sink.addDataHandler(this.notifier)
         return this.sink
     }
 }

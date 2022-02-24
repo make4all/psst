@@ -16,6 +16,7 @@ export class FileOutput extends SonifyFixedDuration {
     }
   }
 
+  // Create the buffer source and start it playing.
   protected create(datum: Datum): AudioScheduledSourceNode {
     console.log("playing for datum", datum.value)
     const source = FileOutput.audioCtx.createBufferSource()

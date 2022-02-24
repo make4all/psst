@@ -15,12 +15,13 @@ export interface DemoSlopeParityV2Props extends DemoSimpleProps {
     dataSummary: any
 }
 
+// V2: indicate when the slope is increasing vs decreasing with separate notifications
 export class DemoSlopeParityV2
     extends DemoSimple<DemoSlopeParityV2Props, DemoSimpleState>
     implements IDemoView
 {
-    increasingFilter: SlopeParityHandler | undefined
-    decreasingFilter: SlopeParityHandler | undefined
+    increasingTracker: SlopeParityHandler | undefined
+    decreasingTracker: SlopeParityHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _increasingBuffer: ArrayBuffer | undefined
     private _decreasingBuffer: ArrayBuffer | undefined
@@ -91,11 +92,11 @@ export class DemoSlopeParityV2
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParityV2')
-        this.increasingFilter = new SlopeParityHandler(new FileOutput(this._increasingBuffer), 1)
-        this.decreasingFilter = new SlopeParityHandler(new FileOutput(this._decreasingBuffer), -1)
+        this.increasingTracker = new SlopeParityHandler(new FileOutput(this._increasingBuffer), 1)
+        this.decreasingTracker = new SlopeParityHandler(new FileOutput(this._decreasingBuffer), -1)
         if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(this.increasingFilter)
-        this.sink.addDataHandler(this.decreasingFilter)
+        this.sink.addDataHandler(this.increasingTracker)
+        this.sink.addDataHandler(this.decreasingTracker)
         this.sink.addDataHandler(new NoteHandler())
         return this.sink
     }
