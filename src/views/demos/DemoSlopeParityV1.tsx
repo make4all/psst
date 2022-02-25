@@ -18,11 +18,12 @@ export interface DemoSlopeParityV1Props extends DemoSimpleProps {
     dataSummary: any
 }
 
+// V1: indicate change in slope direction with single notification sound
 export class DemoSlopeParityV1
     extends DemoSimple<DemoSlopeParityV1Props, DemoSlopeParityV1State>
     implements IDemoView
 {
-    filter: SlopeParityHandler | undefined
+    slopeHandler: SlopeParityHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _buffer: ArrayBuffer | undefined
 
@@ -78,10 +79,10 @@ export class DemoSlopeParityV1
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParityV1')
-        this.filter = new SlopeParityHandler(new FileOutput(this._buffer))
+        this.slopeHandler = new SlopeParityHandler(new FileOutput(this._buffer))
         if (DEBUG) console.log("sink initialized")
         this.sink.addDataHandler(new NoteHandler())
-        this.sink.addDataHandler(this.filter)
+        this.sink.addDataHandler(this.slopeHandler)
         return this.sink
     }
 }
