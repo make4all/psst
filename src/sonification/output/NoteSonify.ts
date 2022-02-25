@@ -44,11 +44,12 @@ export class NoteSonify extends Sonify {
         debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
         if(!this.isAudioPlaying) {
-        oscillator.start()
-        this.isAudioPlaying = true
+            oscillator.start()
+            this.isAudioPlaying = true
+        }
+        oscillator.frequency.value = datum.value
     }
-    oscillator.frequency.value = datum.value
-}
+
     /**
      * Generates a new note sonifier
      */

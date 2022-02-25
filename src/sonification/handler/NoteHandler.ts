@@ -22,6 +22,7 @@ export class NoteHandler extends ScaleHandler {
         if (frequency == NaN || frequency == undefined) frequency = range[1]
         return frequency
     }
+
     public toString(): string {
         return `NoteHandler: Converting using Mel from ${this.domain[0]}, ${this.domain[1]} to ${this.range[0]},${this.range[1]}`
     }
