@@ -4,6 +4,7 @@ import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../Output
 import { Sonify } from './Sonify'
 import { SonifyFixedDuration } from './SonifyFixedDuration'
 const DEBUG = false
+
 /**
  * Class for sonifying a data point as a pitch.
  * @extends Sonify

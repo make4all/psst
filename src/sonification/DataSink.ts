@@ -3,7 +3,7 @@ import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLeve
 import { DataHandler } from './handler/DataHandler'
 
 
-const DEBUG = true
+const DEBUG = false
 
 
 /**

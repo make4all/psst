@@ -8,7 +8,7 @@ import { getSonificationLoggingLevel, OutputStateChange, SonificationLevel, Soni
 const DEBUG = true
 
 /**
- * A DataHandler that  notifies if a set of point/s are seen
+ * A DataHandler that notifies if a set of point/s are seen
   */
 export class NotificationHandler extends DataHandler {
     /**
@@ -24,15 +24,15 @@ export class NotificationHandler extends DataHandler {
 
     /**
      * checks if a given point is in the points of interest.
-     * @param num 
+     * @param num
      * @returns true if a point is in the points of interest, else returns false.
      */
     public isInterestPoint(num: number) {
         // return true
-        
+
         debugStatic(SonificationLoggingLevel.DEBUG,"checking if " + num + " is in " + this.interestPoints.toString())
         return this.interestPoints.includes(num)
-        
+
     }
 
     /**

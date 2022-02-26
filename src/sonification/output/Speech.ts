@@ -1,7 +1,12 @@
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants';
 import { DatumOutput } from './DatumOutput'
+
 const DEBUG = true;
+
+/**
+ * Class for sonifying data point as speech.
+ */
 export class Speech extends DatumOutput {
     private _speechSynthesis : SpeechSynthesis
     private _utterance : SpeechSynthesisUtterance
@@ -25,20 +30,18 @@ export class Speech extends DatumOutput {
     }
 
     /**
-     * Show the output
+     * Output the datum as speech
      */
-     protected output(datum: Datum) {
+    protected output(datum: Datum) {
         if (!this.playing) return
         super.output(datum)
- this._utterance.text = datum.value.toString()
- if(this._speechSynthesis.pending || this._speechSynthesis.speaking)
- this._speechSynthesis.cancel()
- this._speechSynthesis.speak(this._utterance)
-     }
-        
-    
+        this._utterance.text = datum.value.toString()
+        if(this._speechSynthesis.pending || this._speechSynthesis.speaking)
+        this._speechSynthesis.cancel()
+        this._speechSynthesis.speak(this._utterance)
+    }
 
-    // start speaking
+    // Start speaking
     public start(): void {
         this._utterance.volume = this._volume;
         this._speechSynthesis.resume(); // always resume before speaking. There is a bug on Web Speech that if you pause for more than 15 seconds, speech fails quietly.
@@ -48,13 +51,12 @@ export class Speech extends DatumOutput {
         }
         // start current utterance
         this.playing = true
-        
-        
+
         this._utterance.onend = () => { this._utterance.text = ""} // natural end
         super.start();
     }
 
-    // pause the speech if it was playing
+    // Pause speech if playing.
     public pause(): void {
         this._utterance.volume = 0;
         this._speechSynthesis.cancel();
@@ -62,12 +64,14 @@ export class Speech extends DatumOutput {
         super.pause();
     }
 
-    // resume the speech if it was paused
+    // Resume speech if paused.
     public resume(): void {
-     this.playing = true
-     this._utterance.volume = this._volume;
-this._speechSynthesis.resume();}
+        this.playing = true
+        this._utterance.volume = this._volume;
+        this._speechSynthesis.resume();
+    }
 
+    // Stop speech.
     public stop(): void {
         if (this._speechSynthesis.pending) {
             this._speechSynthesis.cancel();
