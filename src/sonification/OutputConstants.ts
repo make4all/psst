@@ -40,6 +40,26 @@ export enum GrowthDirection {
     Min,
 }
 
+// Used by SheetMusic to represent different notes.
+// Should read as 1A, for example, but enum won't accept numeric names.
+export enum Note {
+    C1,
+    D1,
+    E1,
+    F1,
+    G1,
+    A1,
+    B1,
+    C2,
+    D2,
+    E2,
+    F2,
+    G2,
+    A2,
+    B2,
+    C3
+}
+
 /**
  * For debugging
  */
