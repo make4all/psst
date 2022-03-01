@@ -14,6 +14,9 @@ import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { OutputStateChange } from '../sonification/OutputConstants'
 import { filter, Observable, OperatorFunction, pipe, Subject, UnaryFunction } from 'rxjs'
 import { Datum } from '../sonification/Datum'
+import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
+import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
+import { Speech } from '../sonification/output/Speech'
 
 const TONE_THROTTLE = 100
 
@@ -59,7 +62,7 @@ function ConnectButton() {
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
                 if(xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id,x))
-                if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
+                // if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
                 // if(zSink && zAxisStream) zAxisStream.next(new Datum(zSink.id,z))
                 // OutputEngine.getInstance().pushPoint(x, sink.id)
             }, TONE_THROTTLE),
@@ -99,6 +102,12 @@ function ConnectButton() {
                 srcX.addDataHandler(new NoteHandler([-1,1],-1))
                 // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
+                //max:
+                // srcX.addDataHandler(new RunningExtremaHandler(new Speech(), -1))
+                //slope for min
+                srcX.addDataHandler(new SlopeParityHandler(new Speech(), -1))
+                //min
+                // srcX.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
                 xSinkID = srcX.id;
                 setXSink(srcX)
             }
@@ -122,9 +131,13 @@ function ConnectButton() {
              if (!srcZ) {
                 srcZ = OutputEngine.getInstance().addSink('jacdac accelerometer Z axis')
                 console.log(`added sink to stream z axis data ${zSink}`)
-                srcZ.addDataHandler(new NoteHandler([-1,1],0.6))
+                // srcZ.addDataHandler(new NoteHandler([-1,1],0))
                 // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
+                //max:
+                // srcZ.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
+                //min
+                // srcZ.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
                 zSinkID = srcZ.id;
                 setZSink(srcZ)
             }
