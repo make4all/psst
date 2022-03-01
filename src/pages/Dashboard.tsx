@@ -146,21 +146,22 @@ export function DashboardView() {
     const connected = useChange(bus, (_) => _.connected)
 
     useEffect(() => {
-        const newServices = jdServices.map((jds) => {
-            const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
-            const serviceWrapper = {
-                name: jds.specification.name,
-                values: serviceInfo.values.map((v, i) => ({
-                    name: v,
-                    index: i,
-                    units: serviceInfo.units,
-                    format: serviceInfo.format,
-                    register: jds.readingRegister,
-                    dataHandlers: [],
-                })),
-            }
-            return serviceWrapper
-        })
+        const newServices = jdServices.filter(jds => SRV_INFO_MAP[jds.specification.classIdentifier])
+            .map((jds) => {
+                const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
+                const serviceWrapper = {
+                    name: jds.specification.name,
+                    values: serviceInfo.values.map((v, i) => ({
+                        name: v,
+                        index: i,
+                        units: serviceInfo.units,
+                        format: serviceInfo.format,
+                        register: jds.readingRegister,
+                        dataHandlers: [],
+                    })),
+                }
+                return serviceWrapper
+            })
         setServices(newServices)
     }, [jdServices.map((jdService) => jdService.id).join(' ')])
 
@@ -260,7 +261,7 @@ export function DashboardView() {
                         </Grid>
                     </Grid>
                 </Box>
-                <Box aria-live="polite">
+                <Box>
                     {!connected ? undefined : (
                         <Box>
                             <Box sx={{ mb: 2, mt: 4 }}>
