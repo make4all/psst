@@ -87,14 +87,6 @@ export interface DataOutputWrapper {
     outputObject?: DatumOutput
 }
 
-const formatMap = {
-    accelerometer: (v: number) => v.toFixed(2),
-}
-
-const unitMap = {
-    accelerometer: 'g',
-}
-
 const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
     // {
     //     name: 'Accelerometer',
@@ -146,7 +138,8 @@ export function DashboardView() {
     const connected = useChange(bus, (_) => _.connected)
 
     useEffect(() => {
-        const newServices = jdServices.filter(jds => SRV_INFO_MAP[jds.specification.classIdentifier])
+        const newServices = jdServices
+            .filter((jds) => SRV_INFO_MAP[jds.specification.classIdentifier])
             .map((jds) => {
                 const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
                 const serviceWrapper = {
