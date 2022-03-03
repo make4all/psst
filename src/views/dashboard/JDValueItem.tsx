@@ -42,7 +42,6 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
             REPORT_UPDATE,
             throttle(async () => {
                 const raw = props.register.unpackedValue[props.index]
-                console.log(raw)
                 setCurrentValue(props.format(raw))
             }, 100),
         )

@@ -1,15 +1,28 @@
 import { OutputEngine } from '../sonification/OutputEngine'
 
+import { Observable, Subject, from, combineLatest } from 'rxjs'
+
 import React, { useState, useEffect } from 'react'
 
 import '../styles/dashboard.css'
 
 import * as d3 from 'd3'
 
-import { JDRegister } from 'jacdac-ts'
-import { useServices, useChange, useBus } from 'react-jacdac'
 import { bus } from '../bus'
-import { JacdacProvider } from 'react-jacdac'
+
+import { JDRegister, JDService, REPORT_UPDATE, throttle } from 'jacdac-ts'
+import { JacdacProvider, useServices, useChange, useBus } from 'react-jacdac'
+
+import {
+    SRV_ACCELEROMETER,
+    SRV_BUTTON,
+    SRV_BUZZER,
+    SRV_GYROSCOPE,
+    SRV_HUMIDITY,
+    SRV_LIGHT_LEVEL,
+    SRV_POTENTIOMETER,
+    SRV_TEMPERATURE,
+} from 'jacdac-ts'
 
 import {
     Alert,
@@ -30,24 +43,16 @@ import { Close } from '@mui/icons-material'
 
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
-import { JDService } from 'jacdac-ts'
+
 import { DataHandler } from '../sonification/handler/DataHandler'
 import { DatumOutput } from '../sonification/output/DatumOutput'
 
-import {
-    SRV_ACCELEROMETER,
-    SRV_BUTTON,
-    SRV_BUZZER,
-    SRV_GYROSCOPE,
-    SRV_HUMIDITY,
-    SRV_LIGHT_LEVEL,
-    SRV_POTENTIOMETER,
-    SRV_TEMPERATURE,
-} from 'jacdac-ts'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { NoiseSonify } from '../sonification/output/NoiseSonify'
 import { SonifyFixedDuration } from '../sonification/output/SonifyFixedDuration'
 import { Speech } from '../sonification/output/Speech'
+import { NoteHandler } from '../sonification/handler/NoteHandler'
+import { OutputState } from '../sonification/OutputConstants'
 
 export interface JDServiceWrapper {
     name: string
@@ -59,6 +64,7 @@ export interface JDValueWrapper {
     name: string
     units: string
     index: number
+    sinkId: number
     format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
@@ -74,6 +80,7 @@ export interface DataHandlerWrapper {
     name: string
     description: string
     handlerObject?: DataHandler
+    unsubscribe?: () => void
     dataOutputs: DataOutputWrapper[]
 }
 
@@ -85,6 +92,13 @@ export interface DataOutputTemplate {
 export interface DataOutputWrapper {
     name: string
     outputObject?: DatumOutput
+}
+
+export enum PlaybackState {
+    PlayingLive,
+    PlayingBuffer,
+    Paused,
+    Stopped,
 }
 
 const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
@@ -114,7 +128,7 @@ const SRV_INFO_MAP = {
 }
 
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
-    { name: 'Note Handler', description: 'Description of note handler' },
+    { name: 'Note Handler', description: 'Description of note handler', createHandler: () => new NoteHandler() },
     { name: 'Filter Range Handler', description: 'Description of filter range handler' },
     { name: 'Extrema Handler', description: 'Description of extrema handler' },
     { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
@@ -129,13 +143,21 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
     { name: 'Speech', createOutput: () => new Speech() },
 ]
 
+const playbackSubject = new Subject<PlaybackState>()
+
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>(DEFAULT_SERVICE_LIST)
     const [alertOpen, setAlertOpen] = useState(false)
+    const [playback, setPlayback] = useState(PlaybackState.Stopped)
+
+    playbackSubject.next(playback)
     const jdServices = useServices({ sensor: true })
-    console.log(jdServices)
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
+
+    useEffect(() => {
+        playbackSubject.next(playback)
+    }, [playback])
 
     useEffect(() => {
         const newServices = jdServices
@@ -144,14 +166,22 @@ export function DashboardView() {
                 const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
                 const serviceWrapper = {
                     name: jds.specification.name,
-                    values: serviceInfo.values.map((v, i) => ({
-                        name: v,
-                        index: i,
-                        units: serviceInfo.units,
-                        format: serviceInfo.format,
-                        register: jds.readingRegister,
-                        dataHandlers: [],
-                    })),
+                    values: serviceInfo.values.map((v, i) => {
+                        const sink = OutputEngine.getInstance().addSink(
+                            `JacDac Service = ${jds.specification.name}; Index = ${i}`,
+                        )
+                        sink.setStat('max', 1.0)
+                        sink.setStat('min', 0)
+                        return {
+                            name: v,
+                            index: i,
+                            sinkId: sink.id,
+                            units: serviceInfo.units,
+                            format: serviceInfo.format,
+                            register: jds.readingRegister,
+                            dataHandlers: [],
+                        }
+                    }),
                 }
                 return serviceWrapper
             })
@@ -172,15 +202,43 @@ export function DashboardView() {
         }
     }
 
+    const handlePlaybackClick = () => {
+        switch (playback) {
+            case PlaybackState.PlayingLive:
+                OutputEngine.getInstance().onStop()
+                setPlayback(PlaybackState.Stopped)
+                break
+            case PlaybackState.PlayingBuffer:
+                break
+            case PlaybackState.Paused:
+                break
+            case PlaybackState.Stopped:
+                OutputEngine.getInstance().onPlay()
+                setPlayback(PlaybackState.PlayingLive)
+                break
+        }
+    }
+
     const handleRemoveDataHandlerFromService = (serviceName: string, valueName: string, handlerName: string) => {
-        console.log(handlerName)
         const servicesCopy = services.map((service) => {
             if (serviceName === service.name) {
                 const values = service.values.map((value) => {
                     if (valueName === value.name) {
-                        const dataHandlers = value.dataHandlers.filter((dataHandler) => dataHandler.name != handlerName)
-                        console.log(dataHandlers)
-                        return { ...value, dataHandlers }
+                        const indexToRemove = value.dataHandlers.findIndex(
+                            (dataHandler) => dataHandler.name == handlerName,
+                        )
+                        const dataHandlerToRemove = value.dataHandlers[indexToRemove]
+                        dataHandlerToRemove.unsubscribe?.()
+                        value.dataHandlers.splice(indexToRemove, 1)
+                        const sink = OutputEngine.getInstance().getSink(value.sinkId)
+                        if (dataHandlerToRemove.handlerObject) {
+                            if (sink.outputState == OutputState.Outputting) {
+                                // Still a bug here where a handler can't be added while playing, it never gets started
+                                dataHandlerToRemove.handlerObject.stop()
+                            }
+                            sink.removeDataHandler(dataHandlerToRemove.handlerObject)
+                        }
+                        return { ...value }
                     }
                     return value
                 })
@@ -197,7 +255,51 @@ export function DashboardView() {
             if (serviceName === service.name) {
                 service.values.map((value) => {
                     if (valueName === value.name) {
-                        value.dataHandlers.push({ ...template, dataOutputs: [] })
+                        const handlerObject = template.createHandler?.()
+                        // TODO there is a bug where if you add a datahandler while playing, it never gets started
+
+                        if (handlerObject) {
+                            OutputEngine.getInstance().getSink(value.sinkId).addDataHandler(handlerObject)
+
+                            const rawSubject = new Subject<number>()
+                            const combined = combineLatest([rawSubject, playbackSubject])
+                            const combineSubscription = combined.subscribe(([r, p]) => {
+                                switch (p) {
+                                    case PlaybackState.PlayingLive:
+                                    case PlaybackState.PlayingBuffer:
+                                        OutputEngine.getInstance().pushPoint(r, value.sinkId)
+                                        break
+                                    case PlaybackState.Stopped:
+                                    case PlaybackState.Paused:
+                                        // put new value on stack to be played later
+                                        break
+                                }
+                            })
+                            // OutputEngine.getInstance().getSink(0).stream.pipe(mergeMap(x => ))
+                            const rawSubscription = rawSubject.subscribe((raw) => {
+                                OutputEngine.getInstance().pushPoint(raw, value.sinkId)
+                            })
+
+                            const jdUnsubscribe = value.register.subscribe(REPORT_UPDATE, () => {
+                                rawSubject.next(value.register.unpackedValue[value.index])
+                            })
+
+                            const unsubscribe = () => {
+                                // Is this going to create a memory leak?
+                                // .. do I have to remove pointers to the Observables?
+                                rawSubscription.unsubscribe()
+                                combineSubscription.unsubscribe()
+                                jdUnsubscribe()
+                            }
+
+                            value.dataHandlers.push({
+                                ...template,
+                                dataOutputs: [],
+                                handlerObject,
+                                unsubscribe,
+                            })
+                        }
+
                         return { ...value }
                     }
                     return value
@@ -208,6 +310,8 @@ export function DashboardView() {
         })
         setServices(servicesCopy)
     }
+
+    const playbackText = playback == PlaybackState.Stopped || playback == PlaybackState.Paused ? 'Play' : 'Stop'
 
     return (
         <>
@@ -279,8 +383,13 @@ export function DashboardView() {
                                     Play your data sonification
                                 </Typography>
                                 <Box sx={{ my: 2 }}>
-                                    <Button variant="contained" size="large" sx={{ mr: 2 }}>
-                                        Play
+                                    <Button
+                                        variant="contained"
+                                        size="large"
+                                        sx={{ mr: 2 }}
+                                        onClick={handlePlaybackClick}
+                                    >
+                                        {playbackText}
                                     </Button>
                                     <Button variant="contained" size="large" sx={{ mx: 2 }}>
                                         Go Back
