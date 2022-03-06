@@ -2,7 +2,7 @@ import { filter, map, Observable, tap, withLatestFrom } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
-import { SlopeChange } from '../stat/SlopeChange'
+import { Slope } from '../stat/Slope'
 
 const DEBUG = true
 
@@ -10,15 +10,7 @@ const DEBUG = true
  * A DataHandler that tracks the slope of the data
  * @todo change this to take a function that decides how to filter?
  */
-export class SlopeParityHandler extends DataHandler {
-    private _direction: number
-    public get direction(): number {
-        return this._direction
-    }
-    public set direction(value: number) {
-        this._direction = value
-    }
-
+export class SlopeHandler extends DataHandler {
     /**
      * Constructor
      *
@@ -26,13 +18,8 @@ export class SlopeParityHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param direction. -1 for decreasing, 1 for increasing. Defaults to 0 if not provided.
      */
-    constructor(output?: DatumOutput, direction?: number) {
+    constructor(output?: DatumOutput) {
         super(output)
-        if (direction) {
-            this._direction = direction
-        } else {
-            this._direction = 0
-        }
     }
 
     /**
@@ -47,9 +34,19 @@ export class SlopeParityHandler extends DataHandler {
 
         super.setupSubscription(
             sink$.pipe(
+                debug(SonificationLoggingLevel.DEBUG, 'slopeOutput val', true),
                 withLatestFrom(slope$),
-                filter((vals) => vals[1] != this.direction),
-                map((vals) => vals[0]),
+                map((vals) => {
+                    debugStatic(SonificationLoggingLevel.DEBUG, `vals ${vals} ${vals[1]}: vals`)
+                    let datum = vals[0]
+                    try {
+                        datum.value = vals[1]
+                    } catch (e: unknown) {
+                        datum = vals[0]
+                    }
+                    return datum
+                }),
+                debug(SonificationLoggingLevel.DEBUG, 'slopeOutput val', true),
             ),
         )
     }
@@ -65,7 +62,7 @@ export class SlopeParityHandler extends DataHandler {
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
 import { Datum } from '../Datum'
-
+import { SlopeChange } from '../stat/SlopeChange'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(

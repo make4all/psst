@@ -2,26 +2,15 @@ import { DatumOutput } from '../output/DatumOutput'
 import { filter, Observable, Subject, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
-
 const DEBUG = false
-
 
 /**
  * A DataHandler class is used to decide how to output each data point.
  */
 export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
-
-
-
-
-    /**
-     * Add an output and make sure it has the right subscriptions
-     *
-     * @param output The output to add
-     */
-    public addOutput(output: DatumOutput) {
-        this.setupOutputSubscription(output)
-    }
+    // TODO: right now has to be provided at construction time. Change?
+    private output: DatumOutput | undefined
+    private outputSubscription
 
     /**
      * Set up a subscription so we are notified about events
@@ -30,8 +19,9 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
-        debugStatic (SonificationLoggingLevel.DEBUG,"setting up subscription for sink")
+        debugStatic(SonificationLoggingLevel.DEBUG, 'setting up subscription for sink')
         sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', DEBUG)).subscribe(this)
+        if (this.output) this.setupOutputSubscription(this.output, sink$)
     }
 
     /**
@@ -39,29 +29,26 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      *
      * @param output The output object
      */
-    setupOutputSubscription(output: DatumOutput) {
-        let outputStream$ = this.pipe(filter((val) => val != undefined))
+    setupOutputSubscription(output: DatumOutput, stream$: Observable<OutputStateChange | Datum>) {
+        let outputStream$ = stream$.pipe(
+            filter((val) => val != undefined),
+            debug(SonificationLoggingLevel.DEBUG, `Output val`, true),
+        )
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
-        output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
-
+        this.outputSubscription = output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
     }
     public toString(): string {
         return `DataHandler ${this}`
-}
-
-
+    }
 
     /**
      * @param output An optional way to output the data
      */
     constructor(output?: DatumOutput) {
         super()
-        if (output) this.addOutput(output)
-
+        this.output = output
     }
 }
-
-
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'

@@ -10,7 +10,7 @@ const DEBUG = false // true
  * -1 if the slopes switched from positive to negative
  * 1 if the slopes switched from negative to positive
  */
-export class SlopeChange extends Statistic {
+export class Slope extends Statistic {
     /**
      * What buffer should the slope average be calculated over?
      */
@@ -28,7 +28,8 @@ export class SlopeChange extends Statistic {
     protected setupSubscription(stream$: Observable<number>): Subscription {
         if (!this.slopeWindow) this.slopeWindow = 3
         // TODO: figure out why typescript thinks slopeWindow is undefined
-        // TODO: and consider how to make window length possible to change without editing the code
+        // TODO: and consider how to make window length possible to change without editing the cod
+
         return super.setupSubscription(
             stream$.pipe(
                 bufferCount(this.slopeWindow, 1),
@@ -37,15 +38,6 @@ export class SlopeChange extends Statistic {
                     const min = Math.min(...nums)
                     return max - min
                 }),
-                bufferCount(2, 0),
-                map((slopes) => {
-                    slopes[0] = slopes[0] >= 0 ? 1 : -1
-                    slopes[1] = slopes[1] >= 0 ? 1 : -1
-                    if (slopes[0] == slopes[1]) return 0
-                    if (slopes[0] > slopes[1]) return -1
-                    return 1
-                }),
-                debug(SonificationLoggingLevel.DEBUG, 'result', DEBUG),
             ),
         )
     }
