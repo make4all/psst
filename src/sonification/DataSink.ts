@@ -29,6 +29,7 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
     private _dataHandlers: Array<DataHandler>
     overrideDatum: boolean
     public removeDataHandler(dataHandler: DataHandler) {
+        dataHandler.complete()
         this._dataHandlers = this._dataHandlers.filter((dataHandler) => dataHandler !== dataHandler)
     }
     public addDataHandler(dataHandler: DataHandler) {

@@ -52,7 +52,8 @@ import { NoiseSonify } from '../sonification/output/NoiseSonify'
 import { SonifyFixedDuration } from '../sonification/output/SonifyFixedDuration'
 import { Speech } from '../sonification/output/Speech'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
-import { OutputState } from '../sonification/OutputConstants'
+import { OutputStateChange } from '../sonification/OutputConstants'
+import { Datum } from '../sonification/Datum'
 
 export interface JDServiceWrapper {
     name: string
@@ -68,6 +69,7 @@ export interface JDValueWrapper {
     format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
+    unsubscribe?: () => void
 }
 
 export interface DataHandlerTemplate {
@@ -80,8 +82,8 @@ export interface DataHandlerWrapper {
     name: string
     description: string
     handlerObject?: DataHandler
-    unsubscribe?: () => void
     dataOutputs: DataOutputWrapper[]
+    unsubscribe?: () => void
 }
 
 export interface DataOutputTemplate {
@@ -117,14 +119,14 @@ const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
 ]
 
 const SRV_INFO_MAP = {
-    [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f') },
-    [SRV_BUTTON]: { values: [''], units: '', format: d3.format('.0d') },
-    [SRV_BUZZER]: { values: [''], units: '', format: d3.format('.0d') },
-    [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f') },
-    [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f') },
-    [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%') },
-    [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%') },
-    [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f') },
+    [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f'), domain: [-1, 1] },
+    [SRV_BUTTON]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 1] },
+    [SRV_BUZZER]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 1] },
+    [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f'), domain: [0, 360] },
+    [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f'), domain: [0, 1] },
+    [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
+    [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
+    [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 40] },
 }
 
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
@@ -170,8 +172,21 @@ export function DashboardView() {
                         const sink = OutputEngine.getInstance().addSink(
                             `JacDac Service = ${jds.specification.name}; Index = ${i}`,
                         )
-                        sink.setStat('max', 1.0)
-                        sink.setStat('min', 0)
+                        const sinkId = sink.id
+
+                        const rawSubject = new Subject<Datum>()
+
+                        OutputEngine.getInstance().setStream(sinkId, rawSubject)
+
+                        const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
+                            rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
+                        })
+
+                        const unsubscribe = () => {
+                            // Is this going to create a memory leak?
+                            // .. do I have to remove pointers to the Observables?
+                            jdUnsubscribe()
+                        }
                         return {
                             name: v,
                             index: i,
@@ -180,6 +195,7 @@ export function DashboardView() {
                             format: serviceInfo.format,
                             register: jds.readingRegister,
                             dataHandlers: [],
+                            unsubscribe,
                         }
                     }),
                 }
@@ -205,7 +221,7 @@ export function DashboardView() {
     const handlePlaybackClick = () => {
         switch (playback) {
             case PlaybackState.PlayingLive:
-                OutputEngine.getInstance().onStop()
+                OutputEngine.getInstance().next(OutputStateChange.Pause)
                 setPlayback(PlaybackState.Stopped)
                 break
             case PlaybackState.PlayingBuffer:
@@ -213,7 +229,7 @@ export function DashboardView() {
             case PlaybackState.Paused:
                 break
             case PlaybackState.Stopped:
-                OutputEngine.getInstance().onPlay()
+                OutputEngine.getInstance().next(OutputStateChange.Play)
                 setPlayback(PlaybackState.PlayingLive)
                 break
         }
@@ -232,10 +248,6 @@ export function DashboardView() {
                         value.dataHandlers.splice(indexToRemove, 1)
                         const sink = OutputEngine.getInstance().getSink(value.sinkId)
                         if (dataHandlerToRemove.handlerObject) {
-                            if (sink.outputState == OutputState.Outputting) {
-                                // Still a bug here where a handler can't be added while playing, it never gets started
-                                dataHandlerToRemove.handlerObject.stop()
-                            }
                             sink.removeDataHandler(dataHandlerToRemove.handlerObject)
                         }
                         return { ...value }
@@ -261,42 +273,10 @@ export function DashboardView() {
                         if (handlerObject) {
                             OutputEngine.getInstance().getSink(value.sinkId).addDataHandler(handlerObject)
 
-                            const rawSubject = new Subject<number>()
-                            const combined = combineLatest([rawSubject, playbackSubject])
-                            const combineSubscription = combined.subscribe(([r, p]) => {
-                                switch (p) {
-                                    case PlaybackState.PlayingLive:
-                                    case PlaybackState.PlayingBuffer:
-                                        OutputEngine.getInstance().pushPoint(r, value.sinkId)
-                                        break
-                                    case PlaybackState.Stopped:
-                                    case PlaybackState.Paused:
-                                        // put new value on stack to be played later
-                                        break
-                                }
-                            })
-                            // OutputEngine.getInstance().getSink(0).stream.pipe(mergeMap(x => ))
-                            const rawSubscription = rawSubject.subscribe((raw) => {
-                                OutputEngine.getInstance().pushPoint(raw, value.sinkId)
-                            })
-
-                            const jdUnsubscribe = value.register.subscribe(REPORT_UPDATE, () => {
-                                rawSubject.next(value.register.unpackedValue[value.index])
-                            })
-
-                            const unsubscribe = () => {
-                                // Is this going to create a memory leak?
-                                // .. do I have to remove pointers to the Observables?
-                                rawSubscription.unsubscribe()
-                                combineSubscription.unsubscribe()
-                                jdUnsubscribe()
-                            }
-
                             value.dataHandlers.push({
                                 ...template,
                                 dataOutputs: [],
                                 handlerObject,
-                                unsubscribe,
                             })
                         }
 
