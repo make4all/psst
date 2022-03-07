@@ -1,0 +1,3 @@
+[submodule "vega"]
+	path = vega
+	url = https://github.com/vega/vega.git

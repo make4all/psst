@@ -42,6 +42,7 @@
         "jacdac-ts": "^1.24.4",
         "react-jacdac": "^1.1.1",
         "rxjs": "^7.5.2",
+        "rxjs-spy": "^8.0.2",
         "typedoc": "^0.22.11",
         "webusb": "^2.2.0"
     },
