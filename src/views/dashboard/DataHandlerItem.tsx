@@ -10,8 +10,10 @@ import {
     FormGroup,
     FormLabel,
     Grid,
+    InputLabel,
     Menu,
     MenuItem,
+    NativeSelect,
     Typography,
 } from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
@@ -21,6 +23,7 @@ import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper } from '../../p
 
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import DataOutputItem from './DataOutputItem'
+import ParameterItem from './ParameterItem'
 
 export interface DataHandlerItemProps {
     name: string
@@ -31,7 +34,7 @@ export interface DataHandlerItemProps {
     onRemove?: () => void
     onAddToService?: (add: boolean, serviceName: string, valueName: string, template: DataHandlerWrapper) => void
     onParameterChange?: () => void
-    createHandler: () => DataHandler
+    createHandler: (domain: [number, number]) => DataHandler
     handlerObject?: DataHandler
     availableServices?: JDServiceWrapper[]
 }
@@ -140,6 +143,13 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                     <Grid container spacing={1}>
                         <Grid item xs={6}>
                             <Typography variant="body2">{props.description}</Typography>
+                            <div>
+                                {dataOutputs?.map((output, index) => {
+                                    return output.parameters?.map((parameter) => {
+                                        return <ParameterItem {...parameter} obj={output.outputObject} />
+                                    })
+                                })}
+                            </div>
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl component="fieldset" sx={{ float: 'right' }}>

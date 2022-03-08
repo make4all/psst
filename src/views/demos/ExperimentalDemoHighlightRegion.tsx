@@ -172,7 +172,7 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
          */
 
         this.sink.addDataHandler(new NoteHandler())
-        this.filter = new FilterRangeHandler(new NoiseSonify(), [this.min, this.max])
+        this.filter = new FilterRangeHandler([this.min, this.max], new NoiseSonify())
         this.sink.addDataHandler(this.filter)
         return this.sink
     }

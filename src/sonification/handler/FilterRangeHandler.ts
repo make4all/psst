@@ -34,7 +34,7 @@ export class FilterRangeHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param domain [min, max]. Defaults to 0, 0 if not provided
      */
-    constructor(output?: DatumOutput, domain?: [number, number]) {
+    constructor(domain?: [number, number], output?: DatumOutput) {
         super(output)
         debugStatic(SonificationLoggingLevel.DEBUG, "setting up filter range handeler")
         if (domain){

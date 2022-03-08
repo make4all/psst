@@ -66,9 +66,10 @@ export interface JDServiceWrapper {
 
 export interface JDValueWrapper {
     name: string
-    units: string
     index: number
     sinkId: number
+    domain: [number, number]
+    units: string
     format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
@@ -80,7 +81,7 @@ export interface DataHandlerWrapper {
     description: string
     dataOutputs: DataOutputWrapper[]
     handlerObject?: DataHandler
-    createHandler: () => DataHandler
+    createHandler: (domain: [number, number]) => DataHandler
     unsubscribe?: () => void
 }
 
@@ -88,6 +89,15 @@ export interface DataOutputWrapper {
     name: string
     createOutput: () => DatumOutput
     outputObject?: DatumOutput
+    parameters?: ParameterWrapper[]
+}
+
+export interface ParameterWrapper {
+    name: string
+    type: string
+    default?: number
+    values?: { display: string; value: number }[]
+    handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => void
 }
 
 export enum PlaybackState {
@@ -98,18 +108,39 @@ export enum PlaybackState {
 }
 
 const SRV_INFO_MAP = {
-    [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f'), domain: [-1, 1] },
+    [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f'), domain: [-2, 2] },
     [SRV_BUTTON]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 1] },
     [SRV_BUZZER]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 1] },
-    [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f'), domain: [0, 360] },
-    [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f'), domain: [0, 1] },
+    [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f'), domain: [-500, 500] },
+    [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f'), domain: [0, 100] },
     [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
     [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
-    [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 40] },
+    [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 60] },
 }
 
 export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
-    note: { name: 'Note', createOutput: () => new NoteSonify() },
+    note: {
+        name: 'Note',
+        createOutput: () => new NoteSonify(),
+        parameters: [
+            {
+                name: 'Stereo Pan',
+                type: 'list',
+                default: 0,
+                values: [
+                    { display: 'Both', value: 0 },
+                    { display: 'Left', value: -1 },
+                    { display: 'Right', value: 1 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const ns = obj as NoteSonify
+                        ns.stereoPannerNode.pan.value = value
+                    } 
+                },
+            },
+        ],
+    },
     noise: { name: 'White Noise', createOutput: () => new NoiseSonify() },
     earcon: { name: 'Earcon', createOutput: () => new FileOutput() },
     speech: { name: 'Speech', createOutput: () => new Speech() },
@@ -124,7 +155,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         name: 'Note Handler',
         description: 'Description of note handler',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
-        createHandler: () => new NoteHandler(),
+        createHandler: (domain: [number, number]) => new NoteHandler(domain),
     },
     {
         name: 'Filter Range Handler',
@@ -133,7 +164,11 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
         ],
-        createHandler: () => new FilterRangeHandler(),
+        createHandler: (domain: [number, number]) =>
+            new FilterRangeHandler([
+                (domain[1] - domain[0]) * 0.25 + domain[0],
+                (domain[1] - domain[0]) * 0.75 + domain[0],
+            ]),
     },
     {
         name: 'Extrema Handler',
@@ -142,7 +177,8 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
         ],
-        createHandler: () => new RunningExtremaHandler(),
+        // Has min/max direction
+        createHandler: (domain: [number, number]) => new RunningExtremaHandler(),
     },
     // { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
     // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
@@ -153,7 +189,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
         ],
-        createHandler: () => new SlopeParityHandler(),
+        createHandler: (domain: [number, number]) => new SlopeParityHandler(),
     },
 ]
 
@@ -198,6 +234,7 @@ export function DashboardView() {
                             sinkId: sink.id,
                             units: serviceInfo.units,
                             format: serviceInfo.format,
+                            domain: serviceInfo.domain,
                             register: jds.readingRegister,
                             dataHandlers: [],
                             unsubscribe,
@@ -271,7 +308,7 @@ export function DashboardView() {
                     if (valueName === value.name) {
                         const sink = OutputEngine.getInstance().getSink(value.sinkId)
                         if (add) {
-                            const handlerObject = template.createHandler?.()
+                            const handlerObject = template.createHandler?.(value.domain)
 
                             if (handlerObject) {
                                 const dataOutputsCopy = template.dataOutputs.map((output) => {
