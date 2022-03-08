@@ -57,6 +57,7 @@ export class DemoHighlightRegion
                     value={isNaN(maxValue) ? '' : maxValue}
                     onChange={(e) => this._handleValueChange(parseFloat(e.target.value), 'max')}
                 />
+                <div id="for-svg"></div>
             </div>
         )
     }

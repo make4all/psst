@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom'
 import { Demo } from './pages/Demo'
+import { MusicSheet } from './pages/MusicSheet'
 const Jacdac = lazy(() => import('./pages/Jacdac'))
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -23,6 +24,7 @@ ReactDOM.render(
                     </Suspense>
                 }
             />
+            <Route path="music" element={<MusicSheet />} />
         </Routes>
     </BrowserRouter>,
     document.getElementById('root'),

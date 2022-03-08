@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { Note } from '../OutputConstants'
+import { Note, MusicSheet } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
 import { Statistic } from '../stat/Statistic';
 
@@ -27,9 +27,20 @@ export class SheetMusic extends DatumOutput {
         }
         this.sheet = []
         this.range = [new Statistic(0), new Statistic(14)]
+        let svg = MusicSheet();
+        const parser = new DOMParser();
+        // parsed svg into a document, can now append to document
+        const doc = parser.parseFromString(svg, "image/svg+xml")
+        console.log("parsed svg", doc)
+        const myElement = document.getElementById('for-svg')!
+        if (doc && myElement) {
+            myElement.appendChild(doc.documentElement)
+        }
     }
 
     protected output(datum: Datum): void {
+        // try loading in file here?
+
         // convert value to closest note and add to list of values seen
         let idx : number = Math.round(this.convertToNote(datum.value))
         let note : string = Note[idx]
