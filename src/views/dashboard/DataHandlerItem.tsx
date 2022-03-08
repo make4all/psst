@@ -19,7 +19,7 @@ import {
 import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
-import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper } from '../../pages/Dashboard'
+import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper, ParameterWrapper } from '../../pages/Dashboard'
 
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import DataOutputItem from './DataOutputItem'
@@ -34,6 +34,7 @@ export interface DataHandlerItemProps {
     onRemove?: () => void
     onAddToService?: (add: boolean, serviceName: string, valueName: string, template: DataHandlerWrapper) => void
     onParameterChange?: () => void
+    parameters?: ParameterWrapper[]
     createHandler: (domain: [number, number]) => DataHandler
     handlerObject?: DataHandler
     availableServices?: JDServiceWrapper[]
@@ -143,6 +144,11 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                     <Grid container spacing={1}>
                         <Grid item xs={6}>
                             <Typography variant="body2">{props.description}</Typography>
+                            <div>
+                                {props.parameters?.map((parameter) => {
+                                    return <ParameterItem {...parameter} obj={props.handlerObject} />
+                                })}
+                            </div>
                             <div>
                                 {dataOutputs?.map((output, index) => {
                                     return output.parameters?.map((parameter) => {

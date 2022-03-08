@@ -83,6 +83,7 @@ export interface DataHandlerWrapper {
     handlerObject?: DataHandler
     createHandler: (domain: [number, number]) => DataHandler
     unsubscribe?: () => void
+    parameters?: ParameterWrapper[]
 }
 
 export interface DataOutputWrapper {
@@ -136,7 +137,7 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
                     if (obj) {
                         const ns = obj as NoteSonify
                         ns.stereoPannerNode.pan.value = value
-                    } 
+                    }
                 },
             },
         ],
@@ -169,6 +170,28 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
                 (domain[1] - domain[0]) * 0.25 + domain[0],
                 (domain[1] - domain[0]) * 0.75 + domain[0],
             ]),
+        parameters: [
+            {
+                name: 'Min',
+                type: 'number',
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as FilterRangeHandler
+                        frh.domain = [value, frh.domain[1]]
+                    }
+                },
+            },
+            {
+                name: 'Max',
+                type: 'number',
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as FilterRangeHandler
+                        frh.domain = [frh.domain[0], value]
+                    }
+                },
+            },
+        ],
     },
     {
         name: 'Extrema Handler',
