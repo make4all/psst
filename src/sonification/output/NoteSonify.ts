@@ -3,9 +3,7 @@ import { getSonificationLoggingLevel, SonificationLoggingLevel } from '../Output
 import { Sonify } from './Sonify'
 import { Observable, tap } from 'rxjs'
 
-
 const DEBUG = false
-
 
 /**
  * Class for sonifying a data point as a pitch.
@@ -23,7 +21,13 @@ export class NoteSonify extends Sonify {
     protected stop() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'Stopping Playback')
         let oscillator = this.outputNode as OscillatorNode
-        oscillator?.stop()
+        // Need to prevent calling stop on OscillatorNode if start() is never called
+        // For now use a try catch to handle the error
+        try {
+            oscillator?.stop()
+        } catch (e) {
+            console.log(e)
+        }
         super.stop()
     }
 
@@ -33,7 +37,10 @@ export class NoteSonify extends Sonify {
     protected start() {
         debugStatic(SonificationLoggingLevel.DEBUG, 'starting oscillator')
         let oscillator = this.outputNode as OscillatorNode
-        // oscillator.start()
+        if (!this.isAudioPlaying) {
+            oscillator.start()
+            this.isAudioPlaying = true
+        }
         super.start()
     }
 
@@ -43,18 +50,15 @@ export class NoteSonify extends Sonify {
     protected output(datum: Datum) {
         debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
-        if(!this.isAudioPlaying) {
-            oscillator.start()
-            this.isAudioPlaying = true
-        }
+
         oscillator.frequency.value = datum.value
     }
 
     /**
      * Generates a new note sonifier
      */
-    public constructor(pan:number=0) {
-        super(Sonify.audioCtx.createOscillator(),pan)
+    public constructor(pan: number = 0) {
+        super(Sonify.audioCtx.createOscillator(), pan)
 
         let oscillator = this.outputNode as OscillatorNode
         if (oscillator == undefined) {
@@ -95,11 +99,9 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
         } //else console.log('debug message dumped')
     }
-
 }

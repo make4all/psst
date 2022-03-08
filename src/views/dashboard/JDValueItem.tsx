@@ -2,20 +2,11 @@ import { useState, useEffect } from 'react'
 
 import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typography } from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
-import { AVAILABLE_DATA_OUTPUT_TEMPLATES, DataHandlerTemplate, DataHandlerWrapper } from '../../pages/Dashboard'
+import { AVAILABLE_DATA_OUTPUT_TEMPLATES, DataHandlerWrapper, DataOutputWrapper } from '../../pages/Dashboard'
 
 import DataHandlerItem from './DataHandlerItem'
 
-import {
-    JDBus,
-    JDDevice,
-    SRV_ACCELEROMETER,
-    REPORT_UPDATE,
-    throttle,
-    startDevTools,
-    inIFrame,
-    JDRegister,
-} from 'jacdac-ts'
+import { REPORT_UPDATE, throttle, JDRegister } from 'jacdac-ts'
 
 export interface JDValueItemProps {
     name: string
@@ -24,10 +15,9 @@ export interface JDValueItemProps {
     format: (value: number) => string
     register: JDRegister
     dataHandlers: DataHandlerWrapper[]
-    currentHandlerTemplates: DataHandlerTemplate[]
-    onRemoveDataHandler?: (handlerName: string) => void
-    onAddDataHandler?: (template: DataHandlerTemplate) => void
-    availableDataHandlers?: DataHandlerTemplate[]
+    currentHandlerTemplates: DataHandlerWrapper[]
+    onDataHandlerChange?: (add: boolean, handler: DataHandlerWrapper) => void
+    onParameterChange?: () => void
 }
 
 export default function JDValueItem(props: React.Attributes & JDValueItemProps): JSX.Element {
@@ -54,7 +44,7 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
         setAddButtonAnchor(null)
     }
 
-    const { currentHandlerTemplates, name, units, onAddDataHandler, onRemoveDataHandler } = props
+    const { currentHandlerTemplates, name, units, onDataHandlerChange, onParameterChange } = props
 
     return (
         <Grid item xs={12} sm={handlersExist ? 12 : 6} md={handlersExist ? 12 : 4}>
@@ -94,10 +84,9 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                             >
                                 {currentHandlerTemplates.map((template) => (
                                     <MenuItem
+                                        key={template.name}
                                         onClick={() => {
-                                            if (onAddDataHandler) {
-                                                onAddDataHandler(template)
-                                            }
+                                            onDataHandlerChange?.(true, { ...template })
                                             handleMenuClose()
                                         }}
                                     >
@@ -115,13 +104,11 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                                 <DataHandlerItem
                                     {...dataHandler}
                                     active={true}
-                                    key={index}
+                                    key={dataHandler.name + index}
                                     index={index}
-                                    availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
+                                    onParameterChange={onParameterChange}
                                     onRemove={() => {
-                                        if (onRemoveDataHandler) {
-                                            onRemoveDataHandler(dataHandler.name)
-                                        }
+                                        onDataHandlerChange?.(false, dataHandler)
                                     }}
                                 />
                             ))}

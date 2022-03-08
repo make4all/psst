@@ -1,6 +1,6 @@
 import { OutputEngine } from '../sonification/OutputEngine'
 
-import { Observable, Subject, from, combineLatest } from 'rxjs'
+import { Subject } from 'rxjs'
 
 import React, { useState, useEffect } from 'react'
 
@@ -49,11 +49,14 @@ import { DatumOutput } from '../sonification/output/DatumOutput'
 
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { NoiseSonify } from '../sonification/output/NoiseSonify'
-import { SonifyFixedDuration } from '../sonification/output/SonifyFixedDuration'
 import { Speech } from '../sonification/output/Speech'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { OutputStateChange } from '../sonification/OutputConstants'
 import { Datum } from '../sonification/Datum'
+import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
+import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
+import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
+import { FileOutput } from '../sonification/output/FileOutput'
 
 export interface JDServiceWrapper {
     name: string
@@ -72,27 +75,18 @@ export interface JDValueWrapper {
     unsubscribe?: () => void
 }
 
-export interface DataHandlerTemplate {
-    name: string
-    description: string
-    createHandler?: () => DataHandler
-}
-
 export interface DataHandlerWrapper {
     name: string
     description: string
-    handlerObject?: DataHandler
     dataOutputs: DataOutputWrapper[]
+    handlerObject?: DataHandler
+    createHandler: () => DataHandler
     unsubscribe?: () => void
-}
-
-export interface DataOutputTemplate {
-    name: string
-    createOutput?: () => DatumOutput
 }
 
 export interface DataOutputWrapper {
     name: string
+    createOutput: () => DatumOutput
     outputObject?: DatumOutput
 }
 
@@ -102,21 +96,6 @@ export enum PlaybackState {
     Paused,
     Stopped,
 }
-
-const DEFAULT_SERVICE_LIST: JDServiceWrapper[] = [
-    // {
-    //     name: 'Accelerometer',
-    //     values: [
-    //         { name: 'x', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-    //         { name: 'y', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-    //         { name: 'z', unit: unitMap.accelerometer, format: formatMap.accelerometer, dataHandlers: [] },
-    //     ],
-    // },
-    // {
-    //     name: 'Button',
-    //     values: [{ name: '', unit: '', format: formatMap.accelerometer, dataHandlers: [] }],
-    // },
-]
 
 const SRV_INFO_MAP = {
     [SRV_ACCELEROMETER]: { values: ['x', 'y', 'z'], units: 'g', format: d3.format('.2f'), domain: [-1, 1] },
@@ -129,37 +108,63 @@ const SRV_INFO_MAP = {
     [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 40] },
 }
 
-export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerTemplate[] = [
-    { name: 'Note Handler', description: 'Description of note handler', createHandler: () => new NoteHandler() },
-    { name: 'Filter Range Handler', description: 'Description of filter range handler' },
-    { name: 'Extrema Handler', description: 'Description of extrema handler' },
-    { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
-    { name: 'Slope Handler', description: 'Description of slope handler' },
-    { name: 'Slope Change Handler', description: 'Description of slope change handler' },
-]
+export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
+    note: { name: 'Note', createOutput: () => new NoteSonify() },
+    noise: { name: 'White Noise', createOutput: () => new NoiseSonify() },
+    earcon: { name: 'Earcon', createOutput: () => new FileOutput() },
+    speech: { name: 'Speech', createOutput: () => new Speech() },
+}
 
-export const AVAILABLE_DATA_OUTPUT_TEMPLATES: DataOutputTemplate[] = [
-    { name: 'Note', createOutput: () => new NoteSonify() },
-    { name: 'White Noise', createOutput: () => new NoiseSonify() },
-    { name: 'Earcon', createOutput: () => new NoteSonify() },
-    { name: 'Speech', createOutput: () => new Speech() },
-]
+const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
+    return { ...output, outputObject: output.createOutput() }
+}
 
-const playbackSubject = new Subject<PlaybackState>()
+export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
+    {
+        name: 'Note Handler',
+        description: 'Description of note handler',
+        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
+        createHandler: () => new NoteHandler(),
+    },
+    {
+        name: 'Filter Range Handler',
+        description: 'Description of filter range handler',
+        dataOutputs: [
+            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
+            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
+        ],
+        createHandler: () => new FilterRangeHandler(),
+    },
+    {
+        name: 'Extrema Handler',
+        description: 'Description of extrema handler',
+        dataOutputs: [
+            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
+            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
+        ],
+        createHandler: () => new RunningExtremaHandler(),
+    },
+    // { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
+    // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
+    {
+        name: 'Slope Change Handler',
+        description: 'Description of slope change handler',
+        dataOutputs: [
+            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
+            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
+        ],
+        createHandler: () => new SlopeParityHandler(),
+    },
+]
 
 export function DashboardView() {
-    const [services, setServices] = useState<JDServiceWrapper[]>(DEFAULT_SERVICE_LIST)
+    const [services, setServices] = useState<JDServiceWrapper[]>([])
     const [alertOpen, setAlertOpen] = useState(false)
     const [playback, setPlayback] = useState(PlaybackState.Stopped)
 
-    playbackSubject.next(playback)
     const jdServices = useServices({ sensor: true })
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
-
-    useEffect(() => {
-        playbackSubject.next(playback)
-    }, [playback])
 
     useEffect(() => {
         const newServices = jdServices
@@ -221,7 +226,7 @@ export function DashboardView() {
     const handlePlaybackClick = () => {
         switch (playback) {
             case PlaybackState.PlayingLive:
-                OutputEngine.getInstance().next(OutputStateChange.Pause)
+                OutputEngine.getInstance().next(OutputStateChange.Stop)
                 setPlayback(PlaybackState.Stopped)
                 break
             case PlaybackState.PlayingBuffer:
@@ -235,20 +240,66 @@ export function DashboardView() {
         }
     }
 
-    const handleRemoveDataHandlerFromService = (serviceName: string, valueName: string, handlerName: string) => {
+    const resendPlaybackForOutputEngine = () => {
+        switch (playback) {
+            case PlaybackState.PlayingLive:
+                OutputEngine.getInstance().next(OutputStateChange.Play)
+                break
+            case PlaybackState.PlayingBuffer:
+                break
+            case PlaybackState.Paused:
+                break
+            case PlaybackState.Stopped:
+                OutputEngine.getInstance().next(OutputStateChange.Stop)
+                break
+        }
+    }
+
+    const handleParameterChange = () => {
+        resendPlaybackForOutputEngine()
+    }
+
+    const handleDataHandlerChange = (
+        add: boolean,
+        serviceName: string,
+        valueName: string,
+        template: DataHandlerWrapper,
+    ) => {
         const servicesCopy = services.map((service) => {
             if (serviceName === service.name) {
                 const values = service.values.map((value) => {
                     if (valueName === value.name) {
-                        const indexToRemove = value.dataHandlers.findIndex(
-                            (dataHandler) => dataHandler.name == handlerName,
-                        )
-                        const dataHandlerToRemove = value.dataHandlers[indexToRemove]
-                        dataHandlerToRemove.unsubscribe?.()
-                        value.dataHandlers.splice(indexToRemove, 1)
                         const sink = OutputEngine.getInstance().getSink(value.sinkId)
-                        if (dataHandlerToRemove.handlerObject) {
-                            sink.removeDataHandler(dataHandlerToRemove.handlerObject)
+                        if (add) {
+                            const handlerObject = template.createHandler?.()
+
+                            if (handlerObject) {
+                                const dataOutputsCopy = template.dataOutputs.map((output) => {
+                                    const outputObject = output.outputObject ? output.createOutput() : undefined
+                                    if (outputObject) {
+                                        handlerObject.addOutput(outputObject)
+                                    }
+                                    return { ...output, outputObject }
+                                })
+                                sink.addDataHandler(handlerObject)
+
+                                value.dataHandlers.push({
+                                    ...template,
+                                    dataOutputs: dataOutputsCopy,
+                                    handlerObject,
+                                })
+                            }
+                        } else {
+                            const indexToRemove = value.dataHandlers.findIndex(
+                                (dataHandler) => dataHandler.name === template.name,
+                            )
+                            const dataHandlerToRemove = value.dataHandlers[indexToRemove]
+                            dataHandlerToRemove.unsubscribe?.()
+                            value.dataHandlers.splice(indexToRemove, 1)
+
+                            if (dataHandlerToRemove.handlerObject) {
+                                sink.removeDataHandler(dataHandlerToRemove.handlerObject)
+                            }
                         }
                         return { ...value }
                     }
@@ -259,36 +310,7 @@ export function DashboardView() {
             return service
         })
         setServices(servicesCopy)
-    }
-
-    const handleAddDataHandlerToService = (serviceName: string, valueName: string, template: DataHandlerTemplate) => {
-        console.log(template)
-        const servicesCopy = services.map((service) => {
-            if (serviceName === service.name) {
-                service.values.map((value) => {
-                    if (valueName === value.name) {
-                        const handlerObject = template.createHandler?.()
-                        // TODO there is a bug where if you add a datahandler while playing, it never gets started
-
-                        if (handlerObject) {
-                            OutputEngine.getInstance().getSink(value.sinkId).addDataHandler(handlerObject)
-
-                            value.dataHandlers.push({
-                                ...template,
-                                dataOutputs: [],
-                                handlerObject,
-                            })
-                        }
-
-                        return { ...value }
-                    }
-                    return value
-                })
-                return { ...service }
-            }
-            return service
-        })
-        setServices(servicesCopy)
+        resendPlaybackForOutputEngine()
     }
 
     const playbackText = playback == PlaybackState.Stopped || playback == PlaybackState.Paused ? 'Play' : 'Stop'
@@ -349,11 +371,11 @@ export function DashboardView() {
                                     {services.map((s, i) => (
                                         <JDServiceItem
                                             name={s.name}
-                                            key={i}
+                                            key={s.name}
                                             values={s.values}
                                             currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
-                                            onAddDataHandler={handleAddDataHandlerToService}
-                                            onRemoveDataHandler={handleRemoveDataHandlerFromService}
+                                            onDataHandlerChange={handleDataHandlerChange}
+                                            onParameterChange={handleParameterChange}
                                         />
                                     ))}
                                 </Grid>
@@ -391,15 +413,14 @@ export function DashboardView() {
                                     Configure and add sonifiers
                                 </Typography>
                                 <Grid container spacing={2} sx={{ my: 1 }}>
-                                    {AVAILABLE_DATA_HANDLER_TEMPLATES.map((dataHandler, index) => (
+                                    {AVAILABLE_DATA_HANDLER_TEMPLATES.map((template, index) => (
                                         <DataHandlerItem
-                                            {...dataHandler}
+                                            {...template}
                                             active={false}
-                                            key={index}
+                                            key={template.name + index}
                                             index={index}
                                             availableServices={services}
-                                            availableDataOutputs={AVAILABLE_DATA_OUTPUT_TEMPLATES}
-                                            onAddToService={handleAddDataHandlerToService}
+                                            onAddToService={handleDataHandlerChange}
                                         />
                                     ))}
                                 </Grid>

@@ -1,18 +1,21 @@
 import { Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
 
 import { blueGrey } from '@mui/material/colors'
-import { DataHandlerTemplate, JDValueWrapper } from '../../pages/Dashboard'
+import { DataHandlerWrapper, JDValueWrapper } from '../../pages/Dashboard'
 import JDValueItem from './JDValueItem'
 
 export interface JDServiceItemProps {
     name: string
     values: JDValueWrapper[]
-    currentHandlerTemplates: DataHandlerTemplate[]
-    onAddDataHandler?: (serviceName: string, valueName: string, template: DataHandlerTemplate) => void
-    onRemoveDataHandler?: (serviceName: string, valueName: string, handlerName: string) => void
+    currentHandlerTemplates: DataHandlerWrapper[]
+    onDataHandlerChange?: (add: boolean, serviceName: string, valueName: string, template: DataHandlerWrapper) => void
+    onParameterChange?: () => void
+    // onRemoveDataHandler?: (serviceName: string, valueName: string, handlerName: string) => void
 }
 
 export default function JDServiceItem(props: React.Attributes & JDServiceItemProps): JSX.Element {
+    const { onDataHandlerChange, onParameterChange } = props
+
     return (
         <Grid item xs={12}>
             <Card
@@ -33,21 +36,15 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                 />
                 <CardContent>
                     <Grid container spacing={2}>
-                        {props.values.map((value, valueIndex) => (
+                        {props.values.map((value, index) => (
                             <JDValueItem
                                 {...value}
-                                key={valueIndex}
+                                key={value.name + index}
                                 currentHandlerTemplates={props.currentHandlerTemplates}
-                                onAddDataHandler={(template: DataHandlerTemplate) => {
-                                    if (props.onAddDataHandler) {
-                                        props.onAddDataHandler(props.name, value.name, template)
-                                    }
+                                onDataHandlerChange={(add: boolean, template: DataHandlerWrapper) => {
+                                    onDataHandlerChange?.(add, props.name, value.name, template)
                                 }}
-                                onRemoveDataHandler={(handlerName: string) => {
-                                    if (props.onRemoveDataHandler) {
-                                        props.onRemoveDataHandler(props.name, value.name, handlerName)
-                                    }
-                                }}
+                                onParameterChange={onParameterChange}
                             />
                         ))}
                     </Grid>
