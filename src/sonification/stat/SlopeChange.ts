@@ -21,12 +21,13 @@ export class SlopeChange extends Statistic {
      * @param stream$ The stream of data over which to calculate the statistic
      * @param len The number of data points to calculate the running average over
      */
-    constructor(stream$: Observable<OutputStateChange | Datum>) {
+    constructor(stream$: Observable<OutputStateChange | Datum>, slopeWindow:number = 3) {
         super(0, stream$)
+        this.slopeWindow = slopeWindow;
     }
 
     protected setupSubscription(stream$: Observable<number>): Subscription {
-        if (!this.slopeWindow) this.slopeWindow = 3
+        // if (!this.slopeWindow) this.slopeWindow = 3
         // TODO: figure out why typescript thinks slopeWindow is undefined
         // TODO: and consider how to make window length possible to change without editing the code
         return super.setupSubscription(
