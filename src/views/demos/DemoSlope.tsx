@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { TextField } from '@mui/material'
+import { fabClasses, TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
 import { SlopeHandler } from '../../sonification/handler/SlopeHandler'
 import { FileOutput } from '../../sonification/output/FileOutput'
@@ -79,9 +79,9 @@ export class DemoSlope extends DemoSimple<DemoSlopeProps, DemoSlopeState> implem
     public initializeSink() {
         console.log('setting up note sonify for slope')
         this.sink = OutputEngine.getInstance().addSink('DemoSlope')
-        this.sink.addDataHandler(new SlopeHandler(new NoteSonify()))
+        this.sink.addDataHandler(new SlopeHandler(new NoteSonify()), false)
         if (DEBUG) console.log('sink initialized')
-        this.sink.addDataHandler(new NoteHandler())
+        this.sink.addDataHandler(new NoteHandler(), false)
         return this.sink
     }
 }

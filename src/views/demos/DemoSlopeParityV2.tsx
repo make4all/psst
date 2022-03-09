@@ -15,10 +15,7 @@ export interface DemoSlopeParityV2Props extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoSlopeParityV2
-    extends DemoSimple<DemoSlopeParityV2Props, DemoSimpleState>
-    implements IDemoView
-{
+export class DemoSlopeParityV2 extends DemoSimple<DemoSlopeParityV2Props, DemoSimpleState> implements IDemoView {
     increasingFilter: SlopeParityHandler | undefined
     decreasingFilter: SlopeParityHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
@@ -31,7 +28,6 @@ export class DemoSlopeParityV2
     }
 
     public render() {
-
         return (
             <div>
                 <label htmlFor="input-upload-file" aria-label="Choose file">
@@ -69,23 +65,25 @@ export class DemoSlopeParityV2
     }
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>, direction: number) => {
-      if (DEBUG) console.log("file changed!")
-      let target: any = event.target
-      if (target && target.files && target.files.length === 1) {
-          console.log(event)
-          let file: File = target.files[0]
-          // process file
-          file.arrayBuffer().then((buffer) => {
-            // if (DEBUG) console.log(buffer.byteLength)
-            // byte length is not 0 from console.log statements
-            if (direction == 1) {
-              this._increasingBuffer = buffer
-            } else {
-              this._decreasingBuffer = buffer
-            }
-            if (DEBUG) console.log("updated buffer for", direction)
-          }).catch(console.error)
-      }
+        if (DEBUG) console.log('file changed!')
+        let target: any = event.target
+        if (target && target.files && target.files.length === 1) {
+            console.log(event)
+            let file: File = target.files[0]
+            // process file
+            file.arrayBuffer()
+                .then((buffer) => {
+                    // if (DEBUG) console.log(buffer.byteLength)
+                    // byte length is not 0 from console.log statements
+                    if (direction == 1) {
+                        this._increasingBuffer = buffer
+                    } else {
+                        this._decreasingBuffer = buffer
+                    }
+                    if (DEBUG) console.log('updated buffer for', direction)
+                })
+                .catch(console.error)
+        }
     }
 
     ////////// HELPER METHODS ///////////////
@@ -93,10 +91,10 @@ export class DemoSlopeParityV2
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParityV2')
         this.increasingFilter = new SlopeParityHandler(new FileOutput(this._increasingBuffer), 1)
         this.decreasingFilter = new SlopeParityHandler(new FileOutput(this._decreasingBuffer), -1)
-        if (DEBUG) console.log("sink initialized")
-        this.sink.addDataHandler(this.increasingFilter)
-        this.sink.addDataHandler(this.decreasingFilter)
-        this.sink.addDataHandler(new NoteHandler())
+        if (DEBUG) console.log('sink initialized')
+        this.sink.addDataHandler(this.increasingFilter, false)
+        this.sink.addDataHandler(this.decreasingFilter, false)
+        this.sink.addDataHandler(new NoteHandler(), false)
         return this.sink
     }
 }

@@ -12,16 +12,13 @@ import { Box, Button, Input } from '@mui/material'
 const DEBUG = true
 
 export interface DemoFileOutputState extends DemoSimpleState {
-    targetValues : number[]
+    targetValues: number[]
 }
 export interface DemoFileOutputProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoFileOutput
-    extends DemoSimple<DemoFileOutputProps, DemoFileOutputState>
-    implements IDemoView
-{
+export class DemoFileOutput extends DemoSimple<DemoFileOutputProps, DemoFileOutputState> implements IDemoView {
     filter: NotificationHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _buffer: ArrayBuffer | undefined
@@ -30,7 +27,7 @@ export class DemoFileOutput
         super(props)
         this.state = {
             // currently just chooses max as the default
-            targetValues: [this.props.dataSummary.max]
+            targetValues: [this.props.dataSummary.max],
         }
         this._inputFile = React.createRef()
     }
@@ -83,39 +80,41 @@ export class DemoFileOutput
 
     private _handleValueChange = (value: string) => {
         let values = value.split(',')
-        let targets : number[] = []
+        let targets: number[] = []
         for (let val of values) {
             let numb = parseFloat(val)
             if (!isNaN(numb)) {
                 targets.push(numb)
             }
         }
-        this.setState({ targetValues: targets})
+        this.setState({ targetValues: targets })
     }
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
-      if (DEBUG) console.log("file changed!")
-      let target: any = event.target
-      if (target && target.files && target.files.length === 1) {
-          console.log(event)
-          let file: File = target.files[0]
-          // process file
-          file.arrayBuffer().then((buffer) => {
-            // if (DEBUG) console.log(buffer.byteLength)
-            // byte length is not 0 from console.log statements
-            this._buffer = buffer
-            if (DEBUG) console.log("buffer updated!")
-          }).catch(console.error)
-      }
+        if (DEBUG) console.log('file changed!')
+        let target: any = event.target
+        if (target && target.files && target.files.length === 1) {
+            console.log(event)
+            let file: File = target.files[0]
+            // process file
+            file.arrayBuffer()
+                .then((buffer) => {
+                    // if (DEBUG) console.log(buffer.byteLength)
+                    // byte length is not 0 from console.log statements
+                    this._buffer = buffer
+                    if (DEBUG) console.log('buffer updated!')
+                })
+                .catch(console.error)
+        }
     }
 
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
         this.filter = new NotificationHandler(new FileOutput(this._buffer), this.state.targetValues)
-        if (DEBUG) console.log("sink initialized")
+        if (DEBUG) console.log('sink initialized')
         //this.sink.addDataHandler(new NoteHandler())
-        this.sink.addDataHandler(this.filter)
+        this.sink.addDataHandler(this.filter, false)
         return this.sink
     }
 }

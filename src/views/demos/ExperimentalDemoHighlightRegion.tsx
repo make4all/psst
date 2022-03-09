@@ -171,9 +171,9 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
 
-        this.sink.addDataHandler(new NoteHandler())
+        this.sink.addDataHandler(new NoteHandler(), false)
         this.filter = new FilterRangeHandler(new NoiseSonify(), [this.min, this.max])
-        this.sink.addDataHandler(this.filter)
+        this.sink.addDataHandler(this.filter, false)
         return this.sink
     }
 }

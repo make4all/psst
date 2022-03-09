@@ -12,9 +12,7 @@ import {
 } from '../../sonification/OutputConstants'
 import { Demo } from '../../pages/Demo'
 
-
 const DEBUG = true
-
 
 export interface DemoSimpleState {}
 
@@ -49,11 +47,11 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
     /**
      * Holder for the current DataSink object that starts after a delay
      */
-     protected delaySink: DataSink | undefined
-     public getDelaySink() {
-        if(this.delaySink) return this.delaySink
+    protected delaySink: DataSink | undefined
+    public getDelaySink() {
+        if (this.delaySink) return this.delaySink
         else return this.initializeDelaySink()
-         }
+    }
     initializeDelaySink() {
         // SONIFICATION
         debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
@@ -102,10 +100,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         //let delayID = this.delaySink ? this.delaySink.id : 1
 
-        let dataCopy = Object.assign([],data)
+        let dataCopy = Object.assign([], data)
         let data$ = of(...data) //.slice(0, 8))
         let delayData$ = of(...dataCopy) //.slice(0, 8))
-
 
         let timer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
 
@@ -126,13 +123,16 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
         this.sink?.addDataHandler(
-            new NoteHandler([
-                data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
-                data.reduce((prev, curr) => (prev > curr ? prev : curr)),
-            ],-1),
+            new NoteHandler(
+                [
+                    data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
+                    data.reduce((prev, curr) => (prev > curr ? prev : curr)),
+                ],
+                -1,
+            ),
+            false,
         ) // max
         debugStatic(SonificationLoggingLevel.DEBUG, `success`)
-
 
         /*let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
 
@@ -162,7 +162,6 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
             ],1),
 
         )*/ // max
-
 
         console.log('sending play')
         // Change State
@@ -216,11 +215,9 @@ const debug = (level: number, message: string) => (source: Observable<any>) =>
         }),
     )
 const debugStatic = (level: number, message: string) => {
-
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
         } //else console.log('debug message dumped')
     }
-
 }

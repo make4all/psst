@@ -26,12 +26,12 @@ export class RunningAverage extends Statistic {
         return super.setupSubscription(
             stream$.pipe(
                 bufferCount(this.buffer),
-                map((frames) => {
-                    const total = frames.reduce((acc, curr) => {
+                map((nums) => {
+                    const total = nums.reduce((acc, curr) => {
                         acc += curr
                         return acc
                     }, 0)
-                    return 1 / (total / frames.length)
+                    return 1 / (total / nums.length)
                 }),
             ),
         )
