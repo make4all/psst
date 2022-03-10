@@ -47,6 +47,7 @@ export default function ParameterItem(props: React.Attributes & ParameterItemPro
                     aria-label={`${name} value`}
                     label={name}
                     variant="outlined"
+                    size="small"
                     type="number"
                     value={value}
                     onChange={(e) => {

@@ -21,6 +21,7 @@ import {
     SRV_HUMIDITY,
     SRV_LIGHT_LEVEL,
     SRV_POTENTIOMETER,
+    SRV_SOUND_LEVEL,
     SRV_TEMPERATURE,
 } from 'jacdac-ts'
 
@@ -115,6 +116,7 @@ const SRV_INFO_MAP = {
     [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f'), domain: [-500, 500] },
     [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f'), domain: [0, 100] },
     [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
+    [SRV_SOUND_LEVEL]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 100] },
     [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
     [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 60] },
 }
