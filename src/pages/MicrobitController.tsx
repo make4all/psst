@@ -41,8 +41,9 @@ function filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Obs
     return pipe(filter((x) => x != null) as OperatorFunction<T | null | undefined, T>)
 }
 
-function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService}) {
-    const { service, outputEngine } = props
+function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService, onButtonPress: Function
+}) {
+    const { service, outputEngine, onButtonPress } = props
     const downEvent = useEvent(service, ButtonEvent.Down)
     const upEvent = useEvent(service, ButtonEvent.Up)
 
@@ -53,8 +54,11 @@ function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService})
     const handleButton = (id: string, down: boolean) => {
         // only act on an up event
 
-        if (down)
+        if (down) {
             setState("down")
+            console.log("button press down", instanceName)
+            onButtonPress(instanceName)
+        }
         else
             setState("up")
 
@@ -95,6 +99,7 @@ function ConnectButton() {
     const [xAxisStream, setXAxisStream] = useState<Subject<Datum>>()
     const [yAxisStream, setYAxisStream] = useState<Subject<Datum>>()
     const [zAxisStream, setZAxisStream] = useState<Subject<Datum>>()
+    const [currAxis, setCurrAxis] = useState('A') // initialize to use x
 
     useEffect(() => {
         if (!inIFrame() && window.location.hash === '#dbg') startDevTools()
@@ -111,8 +116,13 @@ function ConnectButton() {
                 if (!streaming || !xSink || !ySink || !zSink) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
-                if (xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id, x))
-                // if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
+                if (currAxis == 'A') {
+                    if (xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id, x))
+                    console.log("X axis selected")
+                } else if (currAxis == 'B') {
+                    if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
+                    console.log("Y axis selected")
+                }
                 // if(zSink && zAxisStream) zAxisStream.next(new Datum(zSink.id,z))
                 // OutputEngine.getInstance().pushPoint(x, sink.id)
             }, TONE_THROTTLE),
@@ -125,9 +135,9 @@ function ConnectButton() {
     useEffect(()=>{
         OutputEngine.getInstance().subscribe((e: OutputStateChange)=>{
             console.log("Chaning streaming state ", e)
-            if (e === OutputStateChange.Play) 
+            if (e === OutputStateChange.Play)
                 setStreaming(true);
-            else 
+            else
                 setStreaming(false);
         })
         return () => OutputEngine.getInstance().unsubscribe()
@@ -233,6 +243,10 @@ function ConnectButton() {
         }
     }
 
+    const handleButtonPress = (buttonID: string) => {
+        setCurrAxis(buttonID)
+    }
+
     console.log("STREAMING STATE: ", streaming)
 
     return (
@@ -244,7 +258,7 @@ function ConnectButton() {
                 </Button>
             )}
             {buttons &&
-                buttons.map((button,i) => <MicroBitButton key={i} service={button} outputEngine={OutputEngine.getInstance()}/>)}
+                buttons.map((button,i) => <MicroBitButton key={i} service={button} outputEngine={OutputEngine.getInstance()} onButtonPress={handleButtonPress}/>)}
         </>
     )
 }
