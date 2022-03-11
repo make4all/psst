@@ -189,6 +189,7 @@ function ConnectButton() {
                 srcY = OutputEngine.getInstance().addSink('jacdac accelerometer Y axis')
                 console.log(`added sink to stream y axis data ${ySink}`)
                 srcY.addDataHandler(new NoteHandler([-1, 1], 1))
+                srcY.addDataHandler(new SlopeParityHandler(new Speech(), -1))
                 // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
                 // dummy stats. Do we know the min and max for accelerometer?
                 ySinkID = srcY.id
