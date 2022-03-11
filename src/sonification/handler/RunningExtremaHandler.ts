@@ -39,7 +39,7 @@ export class RunningExtremaHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param direction. -1 for minimum, 1 for maximum. Default to maximum if not provided.
      */
-    constructor(output?: DatumOutput, direction?: number) {
+    constructor(direction?: number, output?: DatumOutput) {
         super(output)
         if (direction) {
             this._direction = direction

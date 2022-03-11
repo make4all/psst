@@ -8,6 +8,7 @@ import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { FileOutput } from '../../sonification/output/FileOutput'
+import { NoteSonify } from '../../sonification/output/NoteSonify'
 
 export interface DemoHighlightRegionState extends DemoSimpleState {
     minValue: number
@@ -101,7 +102,7 @@ export class DemoHighlightRegion
         
         
         this.sink.addDataHandler(this.filter)
-        this.sink.addDataHandler(new NoteHandler())
+        this.sink.addDataHandler(new NoteHandler(undefined, new NoteSonify()))
         
         return this.sink
     }

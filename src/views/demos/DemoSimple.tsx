@@ -61,7 +61,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         // debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
 
-        // this.sink?.addDataHandler(new NoteHandler())
+        // this.sink?.addDataHandler(new NoteHandler(undefined, new NoteSonify()))
 
         debugStatic(SonificationLoggingLevel.DEBUG, `success initializing sink ${this.sink}`)
 
@@ -200,7 +200,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         // debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler`)
 
-        // this.sink?.addDataHandler(new NoteHandler())
+        // this.sink?.addDataHandler(new NoteHandler(undefined, new NoteSonify()))
 
         debugStatic(SonificationLoggingLevel.DEBUG, `success initializing sink ${this.sink}`)
 
