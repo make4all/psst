@@ -120,7 +120,7 @@ const SRV_INFO_MAP = {
     [SRV_GYROSCOPE]: { values: ['x', 'y', 'z'], units: '°/s', format: d3.format('.2f'), domain: [-500, 500] },
     [SRV_HUMIDITY]: { values: [''], units: '%RH', format: d3.format('.1f'), domain: [0, 100] },
     [SRV_LIGHT_LEVEL]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
-    [SRV_SOUND_LEVEL]: { values: [''], units: '', format: d3.format('.0d'), domain: [0, 100] },
+    [SRV_SOUND_LEVEL]: { values: [''], units: '', format: d3.format('.2f'), domain: [0, 1] },
     [SRV_POTENTIOMETER]: { values: [''], units: '', format: d3.format('.0%'), domain: [0, 1] },
     [SRV_TEMPERATURE]: { values: [''], units: '°C', format: d3.format('.1f'), domain: [-20, 60] },
 }
@@ -258,6 +258,7 @@ export function DashboardView() {
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
 
                         const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
+                            console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
                             rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
                         })
 
