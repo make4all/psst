@@ -38,6 +38,9 @@ import {
     InputAdornment,
     Typography,
     Toolbar,
+    Modal,
+    Stack,
+    CardHeader,
 } from '@mui/material'
 
 import { Close } from '@mui/icons-material'
@@ -387,8 +390,56 @@ export function DashboardView() {
 
     const playbackText = playback == PlaybackState.Stopped || playback == PlaybackState.Paused ? 'Play' : 'Stop'
 
+    const style = {
+        position: 'absolute' as 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 440,
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+    }
+
     return (
         <>
+            <Modal
+                open={alertOpen}
+                onClose={() => {
+                    setAlertOpen(false)
+                }}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={style}>
+                    <div>
+                        <CardHeader
+                            title={
+                                <Typography id="modal-modal-title" variant="h6" component="h2">
+                                    JacDac Connected
+                                </Typography>
+                            }
+                            action={
+                                <IconButton
+                                    aria-label="close"
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => {
+                                        setAlertOpen(false)
+                                    }}
+                                >
+                                    <Close fontSize="inherit" />
+                                </IconButton>
+                            }
+                        ></CardHeader>
+                    </div>
+
+                    <Alert sx={{ mb: 2 }}>
+                        Your device has been successfully connected. Now you can hear your sensor data!
+                    </Alert>
+                </Box>
+            </Modal>
             <Box sx={{ flexGrow: 1 }}>
                 <AppBar position="static">
                     <Toolbar>
@@ -408,29 +459,6 @@ export function DashboardView() {
                             {connected ? 'Disconnect' : 'Connect'}
                         </Button>
                     </Box>
-                    <Grid container aria-live="polite">
-                        <Grid item xs={12} md={9}>
-                            <Collapse in={alertOpen}>
-                                <Alert
-                                    action={
-                                        <IconButton
-                                            aria-label="close"
-                                            color="inherit"
-                                            size="small"
-                                            onClick={() => {
-                                                setAlertOpen(false)
-                                            }}
-                                        >
-                                            <Close fontSize="inherit" />
-                                        </IconButton>
-                                    }
-                                    sx={{ mb: 2 }}
-                                >
-                                    Your device has been successfully connected. Now you can hear your sensor data!
-                                </Alert>
-                            </Collapse>
-                        </Grid>
-                    </Grid>
                 </Box>
                 <Box>
                     {!connected ? undefined : (

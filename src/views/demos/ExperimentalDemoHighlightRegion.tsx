@@ -10,6 +10,7 @@ import { Datum } from '../../sonification/Datum'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { OutputStateChange } from '../../sonification/OutputConstants'
 import { TextField } from '@mui/material'
+import { NoteSonify } from '../../sonification/output/NoteSonify'
 
 export interface ExperimentalDemoHighlightRegionState {
     // dataSummary: any
@@ -171,7 +172,7 @@ export class ExperimentalDemoHighlightRegion<ExperimentalDemoHighlightRegionProp
          * @todo vpotluri to understand: where is the update datum method for this being called?
          */
 
-        this.sink.addDataHandler(new NoteHandler())
+        this.sink.addDataHandler(new NoteHandler(undefined, new NoteSonify()))
         this.filter = new FilterRangeHandler([this.min, this.max], new NoiseSonify())
         this.sink.addDataHandler(this.filter)
         return this.sink
