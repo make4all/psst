@@ -58,6 +58,7 @@ import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
 import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { FileOutput } from '../sonification/output/FileOutput'
+import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
 
 export interface JDServiceWrapper {
     name: string
@@ -156,13 +157,13 @@ const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
         name: 'Note Handler',
-        description: 'Description of note handler',
+        description: 'converts data to an audible note range',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
         createHandler: (domain: [number, number]) => new NoteHandler(domain),
     },
     {
         name: 'Filter Range Handler',
-        description: 'Description of filter range handler',
+        description: 'filters data in a given range. If data is in a given range, it is sent to the output corresponding to this handeler.',
         dataOutputs: [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
@@ -197,7 +198,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
     {
         name: 'Extrema Handler',
-        description: 'Description of extrema handler',
+        description: 'sends the output corresponding to this handeler when the handeler sees a new extrema in the data stream.',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
@@ -209,14 +210,23 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
     {
         name: 'Slope Change Handler',
-        description: 'Description of slope change handler',
+        description: 'this handeler calls the output corresponding to it when the direction of the slope of data changes. That is, when the data goes from increasing to decreasing, and vise-versa',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
         ],
         createHandler: (domain: [number, number]) => new SlopeParityHandler(),
     },
-]
+
+    {
+        name: 'simple handeler',
+        description: 'this handeler calls the output corresponding to it and streams the data without anyprocessing. That is, when the data goes from increasing to decreasing, and vise-versa',
+        dataOutputs: [
+            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
+        ],
+        createHandler: (domain: [number, number]) => new SimpleDataHandler(),
+    },
+]   
 
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>([])
