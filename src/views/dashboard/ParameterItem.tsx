@@ -6,14 +6,14 @@ import { DatumOutput } from '../../sonification/output/DatumOutput'
 export interface ParameterItemProps {
     name: string
     type: string
-    default?: number
+    default?: (obj?: DataHandler | DatumOutput) => number
     values?: { display: string; value: number }[]
     obj?: DataHandler | DatumOutput
     handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => void
 }
 
 export default function ParameterItem(props: React.Attributes & ParameterItemProps): JSX.Element {
-    const [value, setValue] = useState<number | undefined>(props.default)
+    const [value, setValue] = useState<number | undefined>(props.default?.(props.obj))
 
     const { name, values } = props
 
@@ -49,11 +49,14 @@ export default function ParameterItem(props: React.Attributes & ParameterItemPro
                     variant="outlined"
                     size="small"
                     type="number"
+                    inputProps={{ step: '0.1' }}
                     value={value}
                     onChange={(e) => {
                         const newValue = +e.target.value
-                        props.handleUpdate(newValue, props.obj)
-                        setValue(newValue)
+                        if (typeof value === 'number') {
+                            props.handleUpdate(newValue, props.obj)
+                            setValue(newValue)
+                        }
                     }}
                 />
             )}

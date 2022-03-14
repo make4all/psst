@@ -101,7 +101,7 @@ export interface DataOutputWrapper {
 export interface ParameterWrapper {
     name: string
     type: string
-    default?: number
+    default?: (obj?: DataHandler | DatumOutput) => number
     values?: { display: string; value: number }[]
     handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => void
 }
@@ -133,7 +133,7 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
             {
                 name: 'Stereo Pan',
                 type: 'list',
-                default: 0,
+                default: (obj?: DataHandler | DatumOutput) => 0,
                 values: [
                     { display: 'Both', value: 0 },
                     { display: 'Left', value: -1 },
@@ -149,7 +149,50 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
         ],
     },
     noise: { name: 'White Noise', createOutput: () => new NoiseSonify() },
-    earcon: { name: 'Earcon', createOutput: () => new FileOutput() },
+    earcon: {
+        name: 'Earcon',
+        createOutput: () => {
+            const fo = new FileOutput()
+            // Use long beep as the default
+            fetch(`./assets/shortbeep.wav`)
+                .then((res) => res.arrayBuffer())
+                .then((buffer: ArrayBuffer) => {
+                    fo.buffer = buffer
+                })
+            return fo
+        },
+        parameters: [
+            {
+                name: 'Earcon to Play',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Short Beep', value: 0 },
+                    { display: 'Long Beep', value: 1 },
+                    { display: 'Bell', value: 2 },
+                    { display: 'Whistle Up', value: 3 },
+                    { display: 'Whistle Down', value: 4 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const file_list = [
+                            'shortbeep.wav',
+                            'beep.wav',
+                            'bell.mp3',
+                            'whistle%20up.wav',
+                            'whistle%20down.wav',
+                        ]
+                        const fo = obj as FileOutput
+                        fetch(`./assets/${file_list[value]}`)
+                            .then((res) => res.arrayBuffer())
+                            .then((buffer: ArrayBuffer) => {
+                                fo.buffer = buffer
+                            })
+                    }
+                },
+            },
+        ],
+    },
     speech: { name: 'Speech', createOutput: () => new Speech() },
 }
 
@@ -173,13 +216,21 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         ],
         createHandler: (domain: [number, number]) =>
             new FilterRangeHandler([
-                (domain[1] - domain[0]) * 0.25 + domain[0],
-                (domain[1] - domain[0]) * 0.75 + domain[0],
+                (domain[1] - domain[0]) * 0.4 + domain[0],
+                (domain[1] - domain[0]) * 0.6 + domain[0],
             ]),
         parameters: [
             {
                 name: 'Min',
                 type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as FilterRangeHandler
+                        return frh.domain[0]
+                    } else {
+                        return 0.4
+                    }
+                },
                 handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
                     if (obj) {
                         const frh = obj as FilterRangeHandler
@@ -190,6 +241,14 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             {
                 name: 'Max',
                 type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as FilterRangeHandler
+                        return frh.domain[1]
+                    } else {
+                        return 0.6
+                    }
+                },
                 handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
                     if (obj) {
                         const frh = obj as FilterRangeHandler
@@ -206,8 +265,25 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
         ],
-        // Has min/max direction
         createHandler: (domain: [number, number]) => new RunningExtremaHandler(),
+        parameters: [
+            {
+                name: 'Extrema to Find',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Maximum and Minimum', value: 0 },
+                    { display: 'Maximum Only', value: 1 },
+                    { display: 'Minimum Only', value: -1 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const reh = obj as RunningExtremaHandler
+                        reh.direction = value
+                    }
+                },
+            },
+        ],
     },
     // { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
     // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
@@ -220,6 +296,24 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
         ],
         createHandler: (domain: [number, number]) => new SlopeParityHandler(),
+        parameters: [
+            {
+                name: 'Direction to Find',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Postive and Negative', value: 0 },
+                    { display: 'Positive Only', value: 1 },
+                    { display: 'Negative Only', value: -1 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const sph = obj as SlopeParityHandler
+                        sph.direction = value
+                    }
+                },
+            },
+        ],
     },
 
     {

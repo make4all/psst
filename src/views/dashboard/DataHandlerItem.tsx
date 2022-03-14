@@ -117,6 +117,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                                         name: props.name,
                                                         description: props.description,
                                                         dataOutputs: dataOutputs,
+                                                        parameters: props.parameters,
                                                         createHandler: props.createHandler,
                                                     })
                                                     handleMenuClose()
