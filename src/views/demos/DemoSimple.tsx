@@ -94,11 +94,11 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         if (this.sink == undefined) this.sink = this.initializeSink()
 
-        //if(this.delaySink == undefined) this.delaySink = this.initializeDelaySink()
+        if(this.delaySink == undefined) this.delaySink = this.initializeDelaySink()
 
         let id = this.sink ? this.sink.id : 0
 
-        //let delayID = this.delaySink ? this.delaySink.id : 1
+        let delayID = this.delaySink ? this.delaySink.id : 1
 
         let dataCopy = Object.assign([], data)
         let data$ = of(...data) //.slice(0, 8))
@@ -134,16 +134,16 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         ) // max
         debugStatic(SonificationLoggingLevel.DEBUG, `success`)
 
-        /*let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
+        let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
 
         let delaySource$ = zip(delayData$, delayTimer$, (num, time) => new Datum(delayID, num)).pipe(delay(1000)).pipe(
             debug(SonificationLoggingLevel.DEBUG, 'delayPoint'),
         )
         OutputEngine.getInstance().setStream(delayID, delaySource$)
 
-        */
+        
         /// Make sure to delete the sink when the source is
-        /*delaySource$.subscribe({
+        delaySource$.subscribe({
 
 
         /// Make sure to delete the sink when the source is
@@ -159,9 +159,9 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
             new NoteHandler([
                 data.reduce((prev, curr) => (prev < curr ? prev : curr)), // min
                 data.reduce((prev, curr) => (prev > curr ? prev : curr)),
-            ],1),
+            ],1),false
 
-        )*/ // max
+        ) // max
 
         console.log('sending play')
         // Change State
