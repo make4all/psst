@@ -166,7 +166,8 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
     {
         name: 'Filter Range Handler',
-        description: 'filters data in a given range. If data is in a given range, it is sent to the output corresponding to this handeler.',
+        description:
+            'filters data in a given range. If data is in a given range, it is sent to the output corresponding to this handeler.',
         dataOutputs: [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
@@ -201,7 +202,8 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
     {
         name: 'Extrema Handler',
-        description: 'sends the output corresponding to this handeler when the handeler sees a new extrema in the data stream.',
+        description:
+            'sends the output corresponding to this handeler when the handeler sees a new extrema in the data stream.',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
@@ -213,7 +215,8 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
     {
         name: 'Slope Change Handler',
-        description: 'this handeler calls the output corresponding to it when the direction of the slope of data changes. That is, when the data goes from increasing to decreasing, and vise-versa',
+        description:
+            'this handeler calls the output corresponding to it when the direction of the slope of data changes. That is, when the data goes from increasing to decreasing, and vise-versa',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
@@ -223,13 +226,12 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
 
     {
         name: 'simple handeler',
-        description: 'this handeler calls the output corresponding to it and streams the data without anyprocessing. That is, when the data goes from increasing to decreasing, and vise-versa',
-        dataOutputs: [
-            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
-        ],
+        description:
+            'this handeler calls the output corresponding to it and streams the data without anyprocessing. That is, when the data goes from increasing to decreasing, and vise-versa',
+        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
     },
-]   
+]
 
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>([])
@@ -468,6 +470,21 @@ export function DashboardView() {
                                 <Typography variant="h5" component="h2">
                                     Hear your sensor data
                                 </Typography>
+                                <div
+                                    style={{ width: '1px', height: '1px', position: 'absolute', left: '-200px' }}
+                                    aria-live="polite"
+                                    aria-atomic="true"
+                                    aria-relevant="additions removals"
+                                >
+                                    <Typography variant="h6" component="h3">
+                                        List of {services.length} sensor services connected:
+                                    </Typography>
+                                    <ul>
+                                        {services.map((s) => (
+                                            <li key={s.name}>{s.name}</li>
+                                        ))}
+                                    </ul>
+                                </div>
                                 <Grid container spacing={2} sx={{ my: 1 }}>
                                     {services.map((s, i) => (
                                         <JDServiceItem
