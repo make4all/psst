@@ -81,7 +81,7 @@ export class DemoSlope extends DemoSimple<DemoSlopeProps, DemoSlopeState> implem
         this.sink = OutputEngine.getInstance().addSink('DemoSlope')
         this.sink.addDataHandler(new SlopeHandler(new NoteSonify()), false)
         if (DEBUG) console.log('sink initialized')
-        this.sink.addDataHandler(new NoteHandler(), false)
+        //this.sink.addDataHandler(new NoteHandler(), false)
         return this.sink
     }
 }

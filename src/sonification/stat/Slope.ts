@@ -1,4 +1,4 @@
-import { buffer, bufferCount, map, Subscription } from 'rxjs'
+import { bufferCount, map, Subscription } from 'rxjs'
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { Statistic } from './Statistic'

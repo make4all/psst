@@ -30,7 +30,7 @@ export class SlopeHandler extends DataHandler {
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         debugStatic(SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
-        let slope$ = new SlopeChange(sink$)
+        let slope$ = new Slope(sink$)
 
         super.setupSubscription(
             sink$.pipe(
@@ -62,7 +62,6 @@ export class SlopeHandler extends DataHandler {
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
 import { Datum } from '../Datum'
-import { SlopeChange } from '../stat/SlopeChange'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(
