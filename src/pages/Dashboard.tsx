@@ -193,7 +193,27 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
             },
         ],
     },
-    speech: { name: 'Speech', createOutput: () => new Speech() },
+    speech: {
+        name: 'Speech',
+        createOutput: () => new Speech(),
+        parameters: [
+            {
+                name: 'Interrupt when new point arrives?',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Yes', value: 1 },
+                    { display: 'No', value: 0 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const sp = obj as Speech
+                        sp.polite = value == 1 ? true : false
+                    }
+                },
+            }
+        ]
+    },
 }
 
 const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
@@ -351,7 +371,7 @@ export function DashboardView() {
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
 
                         const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
-                            console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
+                            // console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
                             rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
                         })
 
@@ -602,6 +622,7 @@ export function DashboardView() {
                                     >
                                         {playbackText}
                                     </Button>
+                                    {/*
                                     <Button variant="contained" size="large" sx={{ mx: 2 }}>
                                         Go Back
                                     </Button>
@@ -615,6 +636,7 @@ export function DashboardView() {
                                             type: 'number',
                                         }}
                                     />
+                                    */}
                                 </Box>
                             </Box>
                             <Box sx={{ mb: 2, mt: 4 }}>
