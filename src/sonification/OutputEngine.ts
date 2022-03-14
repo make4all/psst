@@ -146,7 +146,10 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
                         return state
                 }
             }),
-            distinctUntilChanged(),
+            // distinctUntilChanged(),
+            // shareReplay doesn't seem to work as expected
+            // only works for adding new sinks to the chain
+            // does not update OutputStateChange for newly added handlers or outputs
             shareReplay(1),
         )
         let combined$ = merge(filteredState$, data$)
@@ -201,7 +204,6 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)

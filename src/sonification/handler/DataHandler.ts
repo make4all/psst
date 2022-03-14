@@ -1,18 +1,16 @@
 import { DatumOutput } from '../output/DatumOutput'
-import { filter, Observable, Subject, tap } from 'rxjs'
+import { filter, Observable, Subject, Subscription, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
-
 const DEBUG = false
-
 
 /**
  * A DataHandler class is used to decide how to output each data point.
  */
 export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
-
-
-
+    
+    private subscription?: Subscription
+    private _outputs: Array<DatumOutput>
 
     /**
      * Add an output and make sure it has the right subscriptions
@@ -21,6 +19,16 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      */
     public addOutput(output: DatumOutput) {
         this.setupOutputSubscription(output)
+        this._outputs.push(output)
+    }
+
+    /**
+     * 
+     * @param output 
+     */
+    public removeOutput(output: DatumOutput) {
+        this._outputs = this._outputs.filter((o) => o !== output)
+        output.complete()
     }
 
     /**
@@ -30,8 +38,8 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
-        debugStatic (SonificationLoggingLevel.DEBUG,"setting up subscription for sink")
-        sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', DEBUG)).subscribe(this)
+        debugStatic(SonificationLoggingLevel.DEBUG, 'setting up subscription for sink')
+        this.subscription = sink$.pipe(debug(SonificationLoggingLevel.DEBUG, 'DataHandler', DEBUG)).subscribe(this)
     }
 
     /**
@@ -43,25 +51,29 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
         let outputStream$ = this.pipe(filter((val) => val != undefined))
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output')
         output.setupSubscription(outputStream$ as Observable<OutputStateChange | Datum>)
-
     }
     public toString(): string {
         return `DataHandler ${this}`
-}
+    }
 
-
+    /**
+     * Remove all subscriptions
+     */
+    complete(): void {
+        this.subscription?.unsubscribe()
+        this._outputs.forEach((output) => output.complete())
+        super.complete()
+    }
 
     /**
      * @param output An optional way to output the data
      */
     constructor(output?: DatumOutput) {
         super()
+        this._outputs = new Array<DatumOutput>()
         if (output) this.addOutput(output)
-
     }
 }
-
-
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'

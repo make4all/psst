@@ -17,6 +17,7 @@ import { Datum } from '../sonification/Datum'
 import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { Speech } from '../sonification/output/Speech'
+import { NoteSonify } from '../sonification/output/NoteSonify'
 
 const TONE_THROTTLE = 100
 
@@ -26,11 +27,9 @@ const TONE_THROTTLE = 100
  * @returns observable <datum>
  */
 
- function filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Observable<T>> {
-    return pipe(
-      filter(x => x != null) as OperatorFunction<T | null |  undefined, T>
-    );
-  }
+function filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Observable<T>> {
+    return pipe(filter((x) => x != null) as OperatorFunction<T | null | undefined, T>)
+}
 
 function ConnectButton() {
     const bus = useBus()
@@ -58,10 +57,10 @@ function ConnectButton() {
             REPORT_UPDATE,
             // don't trigger more than every 100ms
             throttle(async () => {
-                if (!streaming || !xSink || !ySink || !zSink  ) return
+                if (!streaming || !xSink || !ySink || !zSink) return
                 const [x, y, z] = accelService.readingRegister.unpackedValue
                 console.log('vpotluri: calling PushPoint.')
-                if(xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id,x))
+                if (xSink && xAxisStream) xAxisStream.next(new Datum(xSink.id, x))
                 // if(ySink && yAxisStream) yAxisStream.next(new Datum(ySink.id,y))
                 // if(zSink && zAxisStream) zAxisStream.next(new Datum(zSink.id,z))
                 // OutputEngine.getInstance().pushPoint(x, sink.id)
@@ -83,95 +82,88 @@ function ConnectButton() {
     }
 
     const handleStartStreaming = () => {
-        console.log("entering handel stream")
-        let xSinkID:number = 0;
-        let ySinkID:number = 1;
-        let zSinkID:number = 2;
-        let srcX = xSink;
-        let srcY = ySink;
-        let srcZ = zSink;
+        console.log('entering handel stream')
+        let xSinkID: number = 0
+        let ySinkID: number = 1
+        let zSinkID: number = 2
+        let srcX = xSink
+        let srcY = ySink
+        let srcZ = zSink
         if (!streaming) {
-            console.log("streaming was false")
+            console.log('streaming was false')
             /**
              * check if a sink exists to stream X axis data to. else create one.
              */
             if (!srcX) {
-                
                 srcX = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
                 console.log(`added sink to stream x axis data ${xSink}`)
-                srcX.addDataHandler(new NoteHandler([-1,1],-1))
-                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                srcX.addDataHandler(new NoteHandler([-1, 1], new NoteSonify(-1)))
+                // src.addDataHandler(new FilterRangeHandler([-1, 0], new NoiseSonify()))
                 // dummy stats. Do we know the min and max for accelerometer?
                 //max:
-                // srcX.addDataHandler(new RunningExtremaHandler(new Speech(), -1))
+                // srcX.addDataHandler(new RunningExtremaHandler(-1, new Speech()))
                 //slope for min
-                srcX.addDataHandler(new SlopeParityHandler(new Speech(), -1))
+                srcX.addDataHandler(new SlopeParityHandler(-1, new Speech()))
                 //min
-                // srcX.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
-                xSinkID = srcX.id;
+                // srcX.addDataHandler(new RunningExtremaHandler(1, new Speech()))
+                xSinkID = srcX.id
                 setXSink(srcX)
             }
 
             /**
              * check if a sink exists to stream Y axis data to. else create one.
              */
-             if (!srcY) {
+            if (!srcY) {
                 srcY = OutputEngine.getInstance().addSink('jacdac accelerometer Y axis')
                 console.log(`added sink to stream y axis data ${ySink}`)
-                srcY.addDataHandler(new NoteHandler([-1,1],1))
-                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                srcY.addDataHandler(new NoteHandler([-1, 1], new NoteSonify(1)))
+                // src.addDataHandler(new FilterRangeHandler([-1, 0], new NoiseSonify()))
                 // dummy stats. Do we know the min and max for accelerometer?
-                ySinkID = srcY.id;
+                ySinkID = srcY.id
                 setYSink(srcY)
             }
 
             /**
              * check if a sink exists to stream Z axis data to. else create one.
              */
-             if (!srcZ) {
+            if (!srcZ) {
                 srcZ = OutputEngine.getInstance().addSink('jacdac accelerometer Z axis')
                 console.log(`added sink to stream z axis data ${zSink}`)
-                // srcZ.addDataHandler(new NoteHandler([-1,1],0))
-                // src.addDataHandler(new FilterRangeHandler(new NoiseSonify(), [-1, 0]))
+                // srcZ.addDataHandler(new NoteHandler([-1,1], new NoteSonify(0)))
+                // src.addDataHandler(new FilterRangeHandler([-1, 0], new NoiseSonify()))
                 // dummy stats. Do we know the min and max for accelerometer?
                 //max:
-                // srcZ.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
+                // srcZ.addDataHandler(new RunningExtremaHandler(1, new Speech()))
                 //min
-                // srcZ.addDataHandler(new RunningExtremaHandler(new Speech(), 1))
-                zSinkID = srcZ.id;
+                // srcZ.addDataHandler(new RunningExtremaHandler(1, new Speech()))
+                zSinkID = srcZ.id
                 setZSink(srcZ)
             }
-/**
- * check if a observable exists for each of the axes.
- * If not, create an RXJS Subject, filter out null values and change it to be typed as observable<datum>, and then set this as a stream for the source.
- */
+            /**
+             * check if a observable exists for each of the axes.
+             * If not, create an RXJS Subject, filter out null values and change it to be typed as observable<datum>, and then set this as a stream for the source.
+             */
 
- let sourceX = xAxisStream;
- if(!sourceX)
- {
-     sourceX = new Subject<Datum>();
-     setXAxisStream(sourceX)
-     OutputEngine.getInstance().setStream(xSinkID,sourceX.pipe(filterNullish()))
-
- }
-            
- let sourceY = yAxisStream;
-            if(!sourceY)
-            {
-                sourceY = new Subject<Datum>();
-                setYAxisStream(sourceY)
-                OutputEngine.getInstance().setStream(ySinkID,sourceY.pipe(filterNullish()))
-
+            let sourceX = xAxisStream
+            if (!sourceX) {
+                sourceX = new Subject<Datum>()
+                setXAxisStream(sourceX)
+                OutputEngine.getInstance().setStream(xSinkID, sourceX.pipe(filterNullish()))
             }
 
-            let sourceZ = zAxisStream;
-            if(!sourceZ)
-            {
-                sourceZ = new Subject<Datum>();
-                setZAxisStream(sourceZ)
-                OutputEngine.getInstance().setStream(zSinkID,sourceZ.pipe(filterNullish()))
+            let sourceY = yAxisStream
+            if (!sourceY) {
+                sourceY = new Subject<Datum>()
+                setYAxisStream(sourceY)
+                OutputEngine.getInstance().setStream(ySinkID, sourceY.pipe(filterNullish()))
+            }
 
-            }            
+            let sourceZ = zAxisStream
+            if (!sourceZ) {
+                sourceZ = new Subject<Datum>()
+                setZAxisStream(sourceZ)
+                OutputEngine.getInstance().setStream(zSinkID, sourceZ.pipe(filterNullish()))
+            }
 
             OutputEngine.getInstance().next(OutputStateChange.Play)
         } else {

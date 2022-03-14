@@ -1,4 +1,4 @@
-import { lastValueFrom, Observable, Subject, tap } from 'rxjs'
+import { lastValueFrom, Observable, Subject, Subscription, tap } from 'rxjs'
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 
@@ -14,6 +14,9 @@ export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
      */
     private state = OutputStateChange.Undefined
 
+
+    private subscription?: Subscription
+
     /**
      * Subscribe to the handler (override to modify or filter the stream in some way)
      *
@@ -21,7 +24,7 @@ export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
      */
     public setupSubscription(stream$: Observable<OutputStateChange | Datum>) {
         debugStatic(SonificationLoggingLevel.DEBUG, 'setting up output subscription')
-        stream$
+        this.subscription = stream$
             .pipe(
                 tap((val) => {
                     if (val instanceof Datum) {
@@ -67,6 +70,7 @@ export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
      */
     complete(): void {
         this.stop()
+        this.subscription?.unsubscribe()
     }
 
     /**

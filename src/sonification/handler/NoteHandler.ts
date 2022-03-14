@@ -1,4 +1,4 @@
-import { NoteSonify } from '../output/NoteSonify'
+import { DatumOutput } from '../output/DatumOutput'
 import { ScaleHandler } from './ScaleHandler'
 /**
  * A DataHandler that outputs a Datum as a note in the audible range.
@@ -12,8 +12,8 @@ export class NoteHandler extends ScaleHandler {
      * @param volume How loudly to play the note.
      */
 
-    constructor(domain?: [number, number],pan:number=0) {
-        super(NoteHandler.melConversion, domain, [80, 450], new NoteSonify(pan))
+    constructor(domain?: [number, number], output?: DatumOutput) {
+        super(NoteHandler.melConversion, domain, [80, 450], output)
     }
 
     public static melConversion(num, domain, range): number {

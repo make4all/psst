@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom'
 import { Demo } from './pages/Demo'
 const Jacdac = lazy(() => import('./pages/Jacdac'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
 const MicrobitController = lazy(() => import('./pages/MicrobitController'))
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -29,6 +30,14 @@ ReactDOM.render(
                 element={
                     <Suspense fallback={null}>
                         <MicrobitController />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="dashboard"
+                element={
+                    <Suspense fallback={null}>
+                        <Dashboard />
                     </Suspense>
                 }
             />
