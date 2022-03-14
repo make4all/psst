@@ -160,14 +160,13 @@ const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
         name: 'Note Handler',
-        description: 'converts data to an audible note range',
+        description: 'Converts data to an audible note range.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
         createHandler: (domain: [number, number]) => new NoteHandler(domain),
     },
     {
         name: 'Filter Range Handler',
-        description:
-            'filters data in a given range. If data is in a given range, it is sent to the output corresponding to this handeler.',
+        description: "Filters data within the provided range. If within range, sent to this handler's outputs.",
         dataOutputs: [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
@@ -202,8 +201,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
     {
         name: 'Extrema Handler',
-        description:
-            'sends the output corresponding to this handeler when the handeler sees a new extrema in the data stream.',
+        description: 'Finds the new extrema value (maximum and/or minimum) in the data stream.',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
@@ -216,7 +214,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
         name: 'Slope Change Handler',
         description:
-            'this handeler calls the output corresponding to it when the direction of the slope of data changes. That is, when the data goes from increasing to decreasing, and vise-versa',
+            'Finds direction of slope changes in the data stream. When the data goes from increasing to decreasing, and vise-versa.',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
@@ -225,9 +223,8 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
 
     {
-        name: 'simple handeler',
-        description:
-            'this handeler calls the output corresponding to it and streams the data without anyprocessing. That is, when the data goes from increasing to decreasing, and vise-versa',
+        name: 'Simple Handler',
+        description: 'Outputs the raw data stream without processing.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
     },

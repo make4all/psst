@@ -142,7 +142,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                 />
                 <CardContent sx={{ minHeight: 140 }}>
                     <Grid container spacing={1}>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} lg={8}>
                             <Typography variant="body2">{props.description}</Typography>
                             <div>
                                 {props.parameters?.map((parameter) => {
@@ -157,7 +157,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                 })}
                             </div>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid item xs={6} lg={4}>
                             <FormControl component="fieldset" sx={{ float: 'right' }}>
                                 <FormLabel component="legend">Choose Data Outputs</FormLabel>
                                 <FormGroup>
