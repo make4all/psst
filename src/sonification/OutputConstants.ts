@@ -2370,5 +2370,9 @@ let fourSheets = `<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="htt
 </svg>`
 
 export function FourMusicSheet() {
+    return fourSheets;
+}
+
+export function SingleMusicSheet() {
     return singleSheet;
 }

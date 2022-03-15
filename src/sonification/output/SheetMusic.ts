@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { Note, FourMusicSheet } from '../OutputConstants'
+import { Note, FourMusicSheet, SingleMusicSheet } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
 import { Statistic } from '../stat/Statistic';
 
@@ -16,9 +16,12 @@ export class SheetMusic extends DatumOutput {
     private range : [Statistic, Statistic]
     // the current sequence of notes
     private noteSeq : string[]
+    // the current sequence of notes indicated by number
     private numSeq : number[]
+    // either one sheet or four sheet
+    private numSheet : number
 
-    constructor(domain? : [number, number]) {
+    constructor(domain? : [number, number], numSheet?) {
         super()
         if (domain) {
             this.domain = [new Statistic(domain[0]), new Statistic(domain[1])]
@@ -26,42 +29,50 @@ export class SheetMusic extends DatumOutput {
             // ask what a valid default domain
             this.domain = [new Statistic(-10), new Statistic(10)]
         }
+        if (numSheet) {
+            this.numSheet = numSheet;
+        } else {
+            this.numSheet = 1;
+        }
         this.noteSeq = []
         this.numSeq = []
         this.range = [new Statistic(0), new Statistic(14)]
-        let svg = FourMusicSheet();
+        let svg : string;
+        if (this.numSheet == 4) {
+            svg = FourMusicSheet();
+        } else {
+            svg = SingleMusicSheet();
+        }
         const parser = new DOMParser();
         // parsed svg into a document, can now append to document
         const doc = parser.parseFromString(svg, "image/svg+xml")
         const myElement = document.getElementById('for-svg')!
         doc.documentElement.id = 'epic-svg'
         if (doc && myElement) {
-            //doc.documentElement.appendChild(circle)
             myElement.appendChild(doc.documentElement)
         }
     }
 
     protected output(datum: Datum): void {
-        // try loading in file here?
-
         // convert value to closest note and add to list of values seen
         let idx : number = Math.round(this.convertToNote(datum.value))
         let note : string = Note[idx]
         this.numSeq.push(idx)
         this.noteSeq.push(note)
-        //console.log(this.noteSeq.toString())
     }
 
     // why is stop being called twice?
     protected stop(): void {
-        console.log("stopped")
-        console.log("numSeq at end", this.numSeq.toString())
         super.stop()
         let cy = 155-14.16*2
         const svg = document.getElementById('epic-svg')!
-        console.log("is this happening?")
-        for (let i = 0; i < this.numSeq.length && i < 128; i++) {
-            console.log("in loop")
+        let max : number;
+        if (this.numSheet == 1) {
+            max = 32;
+        } else {
+            max = 128;
+        }
+        for (let i = 0; i < this.numSeq.length && i < max; i++) {
             let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
             let cx = 114.9 + this.numSeq[i*2]*7.1
             cy += 14.16*2
@@ -70,7 +81,6 @@ export class SheetMusic extends DatumOutput {
             curr.setAttribute( 'r', '4');
             svg.appendChild(curr)
         }
-        console.log("did it")
     }
 
     // scale the provided num to a value in the range
