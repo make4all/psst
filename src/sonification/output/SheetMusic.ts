@@ -1,5 +1,5 @@
 import { Datum } from '../Datum'
-import { Note, MusicSheet } from '../OutputConstants'
+import { Note, FourMusicSheet } from '../OutputConstants'
 import { DatumOutput } from './DatumOutput'
 import { Statistic } from '../stat/Statistic';
 
@@ -15,7 +15,8 @@ export class SheetMusic extends DatumOutput {
     // the range of values to be outputted
     private range : [Statistic, Statistic]
     // the current sequence of notes
-    private sheet : string[]
+    private noteSeq : string[]
+    private numSeq : number[]
 
     constructor(domain? : [number, number]) {
         super()
@@ -25,15 +26,28 @@ export class SheetMusic extends DatumOutput {
             // ask what a valid default domain
             this.domain = [new Statistic(-10), new Statistic(10)]
         }
-        this.sheet = []
+        this.noteSeq = []
+        this.numSeq = []
         this.range = [new Statistic(0), new Statistic(14)]
-        let svg = MusicSheet();
+        let svg = FourMusicSheet();
         const parser = new DOMParser();
         // parsed svg into a document, can now append to document
         const doc = parser.parseFromString(svg, "image/svg+xml")
         console.log("parsed svg", doc)
         const myElement = document.getElementById('for-svg')!
+        let cx = 114.9
+        let cy = 155
+        for (let i = 0; i < 10; i++) {
+            let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            cx += 7.1
+            cy += 14.16
+            curr.setAttribute('cx', cx.toString())
+            curr.setAttribute('cy', cy.toString())
+            curr.setAttribute( 'r', '4');
+            doc.documentElement.appendChild(curr)
+        }
         if (doc && myElement) {
+            //doc.documentElement.appendChild(circle)
             myElement.appendChild(doc.documentElement)
         }
     }
@@ -44,8 +58,9 @@ export class SheetMusic extends DatumOutput {
         // convert value to closest note and add to list of values seen
         let idx : number = Math.round(this.convertToNote(datum.value))
         let note : string = Note[idx]
-        this.sheet.push(note)
-        console.log(this.sheet.toString())
+        this.numSeq.push(idx)
+        this.noteSeq.push(note)
+        console.log(this.noteSeq.toString())
     }
 
     // scale the provided num to a value in the range
