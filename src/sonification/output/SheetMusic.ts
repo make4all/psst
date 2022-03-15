@@ -57,7 +57,7 @@ export class SheetMusic extends DatumOutput {
         console.log("stopped")
         console.log("numSeq at end", this.numSeq.toString())
         super.stop()
-        let cy = 155
+        let cy = 155-14.16*2
         const svg = document.getElementById('epic-svg')!
         console.log("is this happening?")
         for (let i = 0; i < this.numSeq.length && i < 128; i++) {
