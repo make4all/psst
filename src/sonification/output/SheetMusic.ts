@@ -33,19 +33,8 @@ export class SheetMusic extends DatumOutput {
         const parser = new DOMParser();
         // parsed svg into a document, can now append to document
         const doc = parser.parseFromString(svg, "image/svg+xml")
-        console.log("parsed svg", doc)
         const myElement = document.getElementById('for-svg')!
-        let cx = 114.9
-        let cy = 155
-        for (let i = 0; i < 10; i++) {
-            let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            cx += 7.1
-            cy += 14.16
-            curr.setAttribute('cx', cx.toString())
-            curr.setAttribute('cy', cy.toString())
-            curr.setAttribute( 'r', '4');
-            doc.documentElement.appendChild(curr)
-        }
+        doc.documentElement.id = 'epic-svg'
         if (doc && myElement) {
             //doc.documentElement.appendChild(circle)
             myElement.appendChild(doc.documentElement)
@@ -60,7 +49,28 @@ export class SheetMusic extends DatumOutput {
         let note : string = Note[idx]
         this.numSeq.push(idx)
         this.noteSeq.push(note)
-        console.log(this.noteSeq.toString())
+        //console.log(this.noteSeq.toString())
+    }
+
+    // why is stop being called twice?
+    protected stop(): void {
+        console.log("stopped")
+        console.log("numSeq at end", this.numSeq.toString())
+        super.stop()
+        let cy = 155
+        const svg = document.getElementById('epic-svg')!
+        console.log("is this happening?")
+        for (let i = 0; i < this.numSeq.length && i < 128; i++) {
+            console.log("in loop")
+            let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            let cx = 114.9 + this.numSeq[i*2]*7.1
+            cy += 14.16*2
+            curr.setAttribute('cx', cx.toString())
+            curr.setAttribute('cy', cy.toString())
+            curr.setAttribute( 'r', '4');
+            svg.appendChild(curr)
+        }
+        console.log("did it")
     }
 
     // scale the provided num to a value in the range
