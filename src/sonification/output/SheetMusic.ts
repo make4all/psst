@@ -47,6 +47,15 @@ export class SheetMusic extends DatumOutput {
         // parsed svg into a document, can now append to document
         const doc = parser.parseFromString(svg, "image/svg+xml")
         const myElement = document.getElementById('for-svg')!
+        /* for immediately generating circle
+        let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        let cx = 260
+        let cy = 155
+        curr.setAttribute('cx', cx.toString())
+        curr.setAttribute('cy', cy.toString())
+        curr.setAttribute( 'r', '4');
+        doc.documentElement.appendChild(curr)
+        */
         doc.documentElement.id = 'epic-svg'
         if (doc && myElement) {
             myElement.appendChild(doc.documentElement)
@@ -64,22 +73,33 @@ export class SheetMusic extends DatumOutput {
     // why is stop being called twice?
     protected stop(): void {
         super.stop()
+        console.log("number of datapoints", this.numSeq.length)
+        console.log("number of sheets", this.numSheet)
         let cy = 155-14.16*2
+        let baseCX = 114.9;
         const svg = document.getElementById('epic-svg')!
         let max : number;
-        if (this.numSheet == 1) {
-            max = 32;
+        if (this.numSheet == 4) {
+            max = 116;
         } else {
-            max = 128;
+            max = 29;
         }
+        console.log(max)
         for (let i = 0; i < this.numSeq.length && i < max; i++) {
+            if (i % 29 == 0 && i != 0) {
+                console.log("entered at " + i.toString())
+                baseCX += 145.1
+                cy = 155-14.16*2
+            }
             let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            let cx = 114.9 + this.numSeq[i*2]*7.1
+            let cx = baseCX + this.numSeq[i*2]*7.1
+            console.log("cx", cx)
             cy += 14.16*2
             curr.setAttribute('cx', cx.toString())
             curr.setAttribute('cy', cy.toString())
             curr.setAttribute( 'r', '4');
             svg.appendChild(curr)
+            console.log(i)
         }
     }
 
