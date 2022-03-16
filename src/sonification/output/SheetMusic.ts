@@ -85,20 +85,17 @@ export class SheetMusic extends DatumOutput {
             max = 29;
         }
         console.log(max)
-        for (let i = 0; i < this.numSeq.length && i < max; i++) {
+        for (let i = 0; i < this.numSeq.length && i < max * 2; i += 2) {
             if (i % 29 == 0 && i != 0) {
                 console.log("entered at " + i.toString())
                 baseCX += 145.1
                 cy = 155-14.16*2
             }
-            let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            let cx = baseCX + this.numSeq[i*2]*7.1
-            console.log("cx", cx)
-            cy += 14.16*2
-            curr.setAttribute('cx', cx.toString())
-            curr.setAttribute('cy', cy.toString())
-            curr.setAttribute( 'r', '4');
-            svg.appendChild(curr)
+
+            this.drawCircle({cx:(baseCX + this.numSeq[i]*7.1), 
+                cy:cy += 14.16*2,
+                r:4,
+                id:i},svg); 
 
             //get svg source.
             var serializer = new XMLSerializer();
@@ -125,6 +122,17 @@ export class SheetMusic extends DatumOutput {
             //you can download svg file by right click menu.
             console.log(i)
         }
+    }
+
+    drawCircle(o, parent) {
+        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        for (var name in o) {
+            if (o.hasOwnProperty(name)) {
+                circle.setAttributeNS(null, name, o[name]);
+            }
+        }
+        parent.appendChild(circle);
+        return circle;
     }
 
     // scale the provided num to a value in the range
