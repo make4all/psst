@@ -10,7 +10,7 @@ import * as d3 from 'd3'
 
 import { bus } from '../bus'
 
-import { JDRegister, JDService, REPORT_UPDATE, throttle } from 'jacdac-ts'
+import { JDRegister, JDService, REPORT_UPDATE, SoundLevelReg, throttle } from 'jacdac-ts'
 import { JacdacProvider, useServices, useChange, useBus } from 'react-jacdac'
 
 import {
@@ -338,6 +338,11 @@ export function DashboardView() {
             .filter((jds) => SRV_INFO_MAP[jds.specification.classIdentifier])
             .map((jds) => {
                 const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
+                if (jds.specification.classIdentifier === SRV_SOUND_LEVEL) {
+                    // If sound level service, turn on sound level
+                    const enabledRegister = jds.register(SoundLevelReg.Enabled)
+                    enabledRegister.sendSetBoolAsync(true, true)
+                }
                 const serviceWrapper = {
                     name: jds.specification.name,
                     values: serviceInfo.values.map((v, i) => {
