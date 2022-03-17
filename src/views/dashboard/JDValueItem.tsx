@@ -10,7 +10,6 @@ import { REPORT_UPDATE, throttle, JDRegister } from 'jacdac-ts'
 
 export interface JDValueItemProps {
     name: string
-    id: string
     index: number
     units: string
     format: (value: number) => string
@@ -85,7 +84,7 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                             >
                                 {currentHandlerTemplates.map((template) => (
                                     <MenuItem
-                                        key={template.id}
+                                        key={template.name}
                                         onClick={() => {
                                             onDataHandlerChange?.(true, { ...template })
                                             handleMenuClose()
@@ -105,7 +104,8 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                                 <DataHandlerItem
                                     {...dataHandler}
                                     active={true}
-                                    key={dataHandler.id}
+                                    key={dataHandler.name + index}
+                                    index={index}
                                     onParameterChange={onParameterChange}
                                     onRemove={() => {
                                         onDataHandlerChange?.(false, dataHandler)

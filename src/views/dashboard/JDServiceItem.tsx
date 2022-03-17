@@ -6,11 +6,11 @@ import JDValueItem from './JDValueItem'
 
 export interface JDServiceItemProps {
     name: string
-    id: string
     values: JDValueWrapper[]
     currentHandlerTemplates: DataHandlerWrapper[]
-    onDataHandlerChange?: (add: boolean, serviceId: string, valueId: string, template: DataHandlerWrapper) => void
+    onDataHandlerChange?: (add: boolean, serviceName: string, valueName: string, template: DataHandlerWrapper) => void
     onParameterChange?: () => void
+    // onRemoveDataHandler?: (serviceName: string, valueName: string, handlerName: string) => void
 }
 
 export default function JDServiceItem(props: React.Attributes & JDServiceItemProps): JSX.Element {
@@ -39,10 +39,10 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                         {props.values.map((value, index) => (
                             <JDValueItem
                                 {...value}
-                                key={value.id}
+                                key={value.name + index}
                                 currentHandlerTemplates={props.currentHandlerTemplates}
                                 onDataHandlerChange={(add: boolean, template: DataHandlerWrapper) => {
-                                    onDataHandlerChange?.(add, props.id, value.id, template)
+                                    onDataHandlerChange?.(add, props.name, value.name, template)
                                 }}
                                 onParameterChange={onParameterChange}
                             />

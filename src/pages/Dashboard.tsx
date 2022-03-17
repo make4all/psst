@@ -65,14 +65,12 @@ import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
 
 export interface JDServiceWrapper {
     name: string
-    id: string
     serviceObject?: JDService
     values: JDValueWrapper[]
 }
 
 export interface JDValueWrapper {
     name: string
-    id: string
     index: number
     sinkId: number
     domain: [number, number]
@@ -85,7 +83,6 @@ export interface JDValueWrapper {
 
 export interface DataHandlerWrapper {
     name: string
-    id: string
     description: string
     dataOutputs: DataOutputWrapper[]
     handlerObject?: DataHandler
@@ -96,7 +93,6 @@ export interface DataHandlerWrapper {
 
 export interface DataOutputWrapper {
     name: string
-    id: string
     createOutput: () => DatumOutput
     outputObject?: DatumOutput
     parameters?: ParameterWrapper[]
@@ -132,7 +128,6 @@ const SRV_INFO_MAP = {
 export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
     note: {
         name: 'Note',
-        id: `Note-${Math.floor(Math.random() * Date.now())}`,
         createOutput: () => new NoteSonify(),
         parameters: [
             {
@@ -153,14 +148,9 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
             },
         ],
     },
-    noise: {
-        name: 'White Noise',
-        id: `White Noise-${Math.floor(Math.random() * Date.now())}`,
-        createOutput: () => new NoiseSonify(),
-    },
+    noise: { name: 'White Noise', createOutput: () => new NoiseSonify() },
     earcon: {
         name: 'Earcon',
-        id: `Earcon-${Math.floor(Math.random() * Date.now())}`,
         createOutput: () => {
             const fo = new FileOutput()
             // Use long beep as the default
@@ -203,11 +193,7 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
             },
         ],
     },
-    speech: {
-        name: 'Speech',
-        id: `Speech-${Math.floor(Math.random() * Date.now())}`,
-        createOutput: () => new Speech(),
-    },
+    speech: { name: 'Speech', createOutput: () => new Speech() },
 }
 
 const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
@@ -217,14 +203,12 @@ const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
         name: 'Note Handler',
-        id: `Note Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Converts data to an audible note range.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
         createHandler: (domain: [number, number]) => new NoteHandler(domain),
     },
     {
         name: 'Filter Range Handler',
-        id: `Filter Range Handler-${Math.floor(Math.random() * Date.now())}`,
         description: "Filters data within the provided range. If within range, sent to this handler's outputs.",
         dataOutputs: [
             initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
@@ -276,7 +260,6 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
     {
         name: 'Extrema Handler',
-        id: `Extrema Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Finds the new extrema value (maximum and/or minimum) in the data stream.',
         dataOutputs: [
             AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
@@ -306,7 +289,6 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
     {
         name: 'Slope Change Handler',
-        id: `Slope Change Handler-${Math.floor(Math.random() * Date.now())}`,
         description:
             'Finds direction of slope changes in the data stream. When the data goes from increasing to decreasing, and vise-versa.',
         dataOutputs: [
@@ -336,7 +318,6 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
 
     {
         name: 'Simple Handler',
-        id: `Simple Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Outputs the raw data stream without processing.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
@@ -357,15 +338,13 @@ export function DashboardView() {
             .filter((jds) => SRV_INFO_MAP[jds.specification.classIdentifier])
             .map((jds) => {
                 const serviceInfo = SRV_INFO_MAP[jds.specification.classIdentifier]
-                const serviceId = jds.id
                 if (jds.specification.classIdentifier === SRV_SOUND_LEVEL) {
                     // If sound level service, turn on sound level
                     const enabledRegister = jds.register(SoundLevelReg.Enabled)
                     enabledRegister.sendSetBoolAsync(true, true)
                 }
                 const serviceWrapper = {
-                    name: `${jds.specification.name} ${jds.device.name}`,
-                    id: serviceId,
+                    name: jds.specification.name,
                     values: serviceInfo.values.map((v, i) => {
                         const sink = OutputEngine.getInstance().addSink(
                             `JacDac Service = ${jds.specification.name}; Index = ${i}`,
@@ -377,7 +356,7 @@ export function DashboardView() {
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
 
                         const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
-                            // console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
+                            console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
                             rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
                         })
 
@@ -388,7 +367,6 @@ export function DashboardView() {
                         }
                         return {
                             name: v,
-                            id: `${serviceId}:${i}`,
                             index: i,
                             sinkId: sink.id,
                             units: serviceInfo.units,
@@ -400,7 +378,6 @@ export function DashboardView() {
                         }
                     }),
                 }
-                console.log(serviceWrapper)
                 return serviceWrapper
             })
         setServices(newServices)
@@ -458,15 +435,14 @@ export function DashboardView() {
 
     const handleDataHandlerChange = (
         add: boolean,
-        serviceId: string,
-        valueId: string,
+        serviceName: string,
+        valueName: string,
         template: DataHandlerWrapper,
     ) => {
-        console.log(add, serviceId, valueId, template)
         const servicesCopy = services.map((service) => {
-            if (serviceId === service.id) {
+            if (serviceName === service.name) {
                 const values = service.values.map((value) => {
-                    if (valueId === value.id) {
+                    if (valueName === value.name) {
                         const sink = OutputEngine.getInstance().getSink(value.sinkId)
                         if (add) {
                             const handlerObject = template.createHandler?.(value.domain)
@@ -483,14 +459,13 @@ export function DashboardView() {
 
                                 value.dataHandlers.push({
                                     ...template,
-                                    id: `${template.name}-${Math.floor(Math.random() * Date.now())}`,
                                     dataOutputs: dataOutputsCopy,
                                     handlerObject,
                                 })
                             }
                         } else {
                             const indexToRemove = value.dataHandlers.findIndex(
-                                (dataHandler) => dataHandler.id === template.id,
+                                (dataHandler) => dataHandler.name === template.name,
                             )
                             const dataHandlerToRemove = value.dataHandlers[indexToRemove]
                             dataHandlerToRemove.unsubscribe?.()
@@ -508,14 +483,13 @@ export function DashboardView() {
             }
             return service
         })
-        console.log(servicesCopy)
         setServices(servicesCopy)
         resendPlaybackForOutputEngine()
     }
 
     const playbackText = playback == PlaybackState.Stopped || playback == PlaybackState.Paused ? 'Play' : 'Stop'
 
-    const modalContentStyle = {
+    const style = {
         position: 'absolute' as 'absolute',
         top: '50%',
         left: '50%',
@@ -537,7 +511,7 @@ export function DashboardView() {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={modalContentStyle}>
+                <Box sx={style}>
                     <div>
                         <CardHeader
                             title={
@@ -603,15 +577,16 @@ export function DashboardView() {
                                     </Typography>
                                     <ul>
                                         {services.map((s) => (
-                                            <li key={s.id}>{s.name}</li>
+                                            <li key={s.name}>{s.name}</li>
                                         ))}
                                     </ul>
                                 </div>
                                 <Grid container spacing={2} sx={{ my: 1 }}>
-                                    {services.map((service) => (
+                                    {services.map((s, i) => (
                                         <JDServiceItem
-                                            {...service}
-                                            id={service.id}
+                                            name={s.name}
+                                            key={s.name}
+                                            values={s.values}
                                             currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
                                             onDataHandlerChange={handleDataHandlerChange}
                                             onParameterChange={handleParameterChange}
@@ -656,7 +631,8 @@ export function DashboardView() {
                                         <DataHandlerItem
                                             {...template}
                                             active={false}
-                                            key={template.id}
+                                            key={template.name + index}
+                                            index={index}
                                             availableServices={services}
                                             onAddToService={handleDataHandlerChange}
                                         />
