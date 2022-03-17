@@ -12,7 +12,15 @@ export class Speech extends DatumOutput {
     private _utterance : SpeechSynthesisUtterance
     private _volume: number;
     private playing: boolean;
+    
     private _polite: boolean | undefined;
+    public get polite(): boolean | undefined {
+        return this._polite
+    }
+
+    public set polite(value: boolean | undefined) {
+        this._polite = value
+    }
 
     // construct the utterance and set its properties
     public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice, polite?: boolean) {
@@ -31,15 +39,7 @@ export class Speech extends DatumOutput {
             this._polite = false
         }
         this.playing = false;
-         debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
-    }
-
-    public get polite(): boolean | undefined {
-        return this._polite
-    }
-
-    public set polite(value: boolean | undefined) {
-        this._polite = value
+        debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
     }
 
     /**
