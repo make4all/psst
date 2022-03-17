@@ -30,9 +30,8 @@ export interface DataHandlerItemProps {
     description: string
     dataOutputs: DataOutputWrapper[]
     active: boolean
-    index: number
     onRemove?: () => void
-    onAddToService?: (add: boolean, serviceName: string, valueName: string, template: DataHandlerWrapper) => void
+    onAddToService?: (add: boolean, serviceId: string, valueId: string, template: DataHandlerWrapper) => void
     onParameterChange?: () => void
     parameters?: ParameterWrapper[]
     createHandler: (domain: [number, number]) => DataHandler
@@ -56,7 +55,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
         console.log(name, activated)
 
         const dataOutputsCopy = dataOutputs.map((output) => {
-            if (output.name == name) {
+            if (output.name === name) {
                 if (activated) {
                     output.outputObject = output.createOutput()
                     props.handlerObject?.addOutput(output.outputObject)
@@ -112,9 +111,11 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                     {availableServices.map((service) =>
                                         service.values.map((value) => (
                                             <MenuItem
+                                                key={value.id}
                                                 onClick={() => {
-                                                    onAddToService?.(true, service.name, value.name, {
+                                                    onAddToService?.(true, service.id, value.id, {
                                                         name: props.name,
+                                                        id: `${props.name}-${Math.floor(Math.random() * Date.now())}`,
                                                         description: props.description,
                                                         dataOutputs: dataOutputs,
                                                         parameters: props.parameters,
@@ -147,13 +148,13 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             <Typography variant="body2">{props.description}</Typography>
                             <div>
                                 {props.parameters?.map((parameter) => {
-                                    return <ParameterItem {...parameter} obj={props.handlerObject} />
+                                    return <ParameterItem key={parameter.name} {...parameter} obj={props.handlerObject} />
                                 })}
                             </div>
                             <div>
-                                {dataOutputs?.map((output, index) => {
+                                {dataOutputs?.map((output) => {
                                     return output.parameters?.map((parameter) => {
-                                        return <ParameterItem {...parameter} obj={output.outputObject} />
+                                        return <ParameterItem key={parameter.name} {...parameter} obj={output.outputObject} />
                                     })
                                 })}
                             </div>
@@ -162,10 +163,10 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             <FormControl component="fieldset" sx={{ float: 'right' }}>
                                 <FormLabel component="legend">Choose Data Outputs</FormLabel>
                                 <FormGroup>
-                                    {dataOutputs?.map((output, index) => {
+                                    {dataOutputs?.map((output) => {
                                         return (
                                             <DataOutputItem
-                                                key={output.name + index}
+                                                key={output.id}
                                                 name={output.name}
                                                 outputObject={output.outputObject}
                                                 createOutput={output.createOutput}
