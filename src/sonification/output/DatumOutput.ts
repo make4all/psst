@@ -60,7 +60,7 @@ export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
                         this.state = val
                     }
                 }),
-                debug(SonificationLoggingLevel.DEBUG, `output`, true),
+                debug(SonificationLoggingLevel.DEBUG, `output`, DEBUG),
             )
             .subscribe(this)
     }
