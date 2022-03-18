@@ -46,12 +46,16 @@ export class Speech extends DatumOutput {
      * Output the datum as speech
      */
     protected output(datum: Datum) {
+        console.log("enter speech output")
         if (!this.playing) return
         super.output(datum)
         this._utterance.text = datum.value.toString()
-        if((this._speechSynthesis.pending || this._speechSynthesis.speaking) && !this.polite)
-        this._speechSynthesis.cancel()
+        if((this._speechSynthesis.pending || this._speechSynthesis.speaking) && !this.polite) {
+            this._speechSynthesis.cancel()
+            console.log("bout to interrupt")
+        }
         this._speechSynthesis.speak(this._utterance)
+        console.log("spoken!")
     }
 
     // Start speaking

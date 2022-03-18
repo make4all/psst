@@ -213,8 +213,8 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
                 type: 'list',
                 default: (obj?: DataHandler | DatumOutput) => 0,
                 values: [
-                    { display: 'Yes', value: 1 },
-                    { display: 'No', value: 0 },
+                    { display: 'Yes', value: 0 },
+                    { display: 'No', value: 1 },
                 ],
                 handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
                     if (obj) {
