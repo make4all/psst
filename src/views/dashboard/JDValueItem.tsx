@@ -53,7 +53,7 @@ export default function JDValueItem(props: React.Attributes & JDValueItemProps):
                 <CardHeader
                     title={
                         <Box>
-                            <Typography sx={{ mr: 1 }} variant="subtitle1" component="h4">
+                            <Typography sx={{ mr: 1 }} variant="subtitle1" component="span">
                                 {name}
                             </Typography>
                             <Typography variant="h5" component="span">
