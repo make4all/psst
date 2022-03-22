@@ -612,6 +612,7 @@ export function DashboardView() {
                                         <JDServiceItem
                                             {...service}
                                             id={service.id}
+                                            key={service.id}
                                             currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
                                             onDataHandlerChange={handleDataHandlerChange}
                                             onParameterChange={handleParameterChange}
