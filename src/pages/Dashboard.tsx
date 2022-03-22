@@ -541,7 +541,7 @@ export function DashboardView() {
                     <div>
                         <CardHeader
                             title={
-                                <Typography id="modal-modal-title" variant="h6" component="h2">
+                                <Typography id="modal-modal-title" variant="h6" component="h3">
                                     JacDac Connected
                                 </Typography>
                             }
@@ -576,7 +576,7 @@ export function DashboardView() {
             </Box>
             <Container>
                 <Box sx={{ my: 2 }}>
-                    <Typography variant="h5" component="h2">
+                    <Typography variant="h5" component="h3">
                         Connect your device
                     </Typography>
                     <Box sx={{ my: 2 }}>
@@ -589,7 +589,7 @@ export function DashboardView() {
                     {!connected ? undefined : (
                         <Box>
                             <Box sx={{ mb: 2, mt: 4 }}>
-                                <Typography variant="h5" component="h2">
+                                <Typography variant="h5" component="h3">
                                     Hear your sensor data
                                 </Typography>
                                 <div
@@ -621,7 +621,7 @@ export function DashboardView() {
                                 </Grid>
                             </Box>
                             <Box sx={{ mb: 2, mt: 4 }}>
-                                <Typography variant="h5" component="h2">
+                                <Typography variant="h5" component="h3">
                                     Play your data sonification
                                 </Typography>
                                 <Box sx={{ my: 2 }}>
@@ -649,7 +649,7 @@ export function DashboardView() {
                                 </Box>
                             </Box>
                             <Box sx={{ mb: 2, mt: 4 }}>
-                                <Typography variant="h5" component="h2">
+                                <Typography variant="h5" component="h3">
                                     Configure and add sonifiers
                                 </Typography>
                                 <Grid container spacing={2} sx={{ my: 1 }}>
