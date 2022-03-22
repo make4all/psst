@@ -1,21 +1,26 @@
 
-# Jacdac micro:bit (V2)
+# Test MakeCode project
 
-Jacdac servers to surface sensors of the micro:bit V2. **Supported in MakeCode beta only for now!!**
+To build this project, install the makecode command line tool
 
-## Use as Extension
+```
+npm install -g makecode
+```
 
-This repository can be added as an **extension** in MakeCode.
+Then run `mkc` to build
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **New Project**
-* click on **Extensions** under the gearwheel menu
-* search for **https://github.com/microsoft/pxt-jacdac/devices/microbit** and import
+```
+mkc
+```
 
-## Edit this project
+To build and deploy,
 
-To edit this repository in MakeCode.
+```
+mkc -d
+```
 
-* open [https://makecode.microbit.org/](https://makecode.microbit.org/)
-* click on **Import** then click on **Import URL**
-* paste **https://github.com/microsoft/pxt-jacdac/devices/microbit** and click import
+If you are in a virtual machine without USB access, launch a webserver and navigate to `built/binary.hex` to download the generated hex file.
+
+```
+npx http-serve -c-1
+```
