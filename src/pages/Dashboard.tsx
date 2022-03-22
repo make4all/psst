@@ -541,7 +541,7 @@ export function DashboardView() {
                     <div>
                         <CardHeader
                             title={
-                                <Typography id="modal-modal-title" variant="h6" component="h3">
+                                <Typography id="modal-modal-title" variant="h6" component="h2">
                                     JacDac Connected
                                 </Typography>
                             }
@@ -576,7 +576,7 @@ export function DashboardView() {
             </Box>
             <Container>
                 <Box role="region" aria-aria-labelledby="header-connect-device" sx={{ my: 2 }}>
-                    <Typography id="header-connect-device" variant="h5" component="h3">
+                    <Typography id="header-connect-device" variant="h5" component="h2">
                         Connect your device
                     </Typography>
                     <Box sx={{ my: 2 }}>
@@ -589,7 +589,7 @@ export function DashboardView() {
                     {!connected ? undefined : (
                         <Box>
                             <Box role="region" aria-aria-labelledby="header-hear-data" sx={{ mb: 2, mt: 4 }}>
-                                <Typography id="header-hear-data" variant="h5" component="h3">
+                                <Typography id="header-hear-data" variant="h5" component="h2">
                                     Hear your sensor data
                                 </Typography>
                                 <div
