@@ -100,7 +100,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                     onClick={handleAddButtonClick}
                                     endIcon={<ArrowDropDown />}
                                 >
-                                    Add to Stream
+                                    Choose Sensor to Add
                                 </Button>
                                 <Menu
                                     open={menuOpen}

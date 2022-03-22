@@ -29,7 +29,7 @@ export default function JDServiceItem(props: React.Attributes & JDServiceItemPro
                 <CardHeader
                     sx={{ backgroundColor: '#fff' }}
                     title={
-                        <Typography variant="subtitle1" component="span" sx={{ fontSize: '1.25rem', color: '#122740' }}>
+                        <Typography variant="subtitle1" component="h4" sx={{ fontSize: '1.25rem', color: '#122740' }}>
                             {props.name}
                         </Typography>
                     }
