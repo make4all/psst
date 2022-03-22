@@ -343,14 +343,104 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
 ]
 
+/**
+ * Hook to query connection status of jacdac
+ */
+function useJacdacConnected() {
+    const bus = useBus()
+    const connected = useChange(bus, (_) => _.connected)
+    return connected
+}
+
+/**
+ * Modal dialog that appears when jacdac is connected
+ */
+function JacdacConnectedModal() {
+    const [alertOpen, setAlertOpen] = useState(false)
+    const connected = useJacdacConnected()
+
+    const modalContentStyle = {
+        position: 'absolute' as 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: 440,
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+    }
+
+    useEffect(() => {
+        setAlertOpen(connected)
+    }, [connected])
+
+    return <Modal
+        open={alertOpen}
+        onClose={() => {
+            setAlertOpen(false)
+        }}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+    >
+        <Box sx={modalContentStyle}>
+            <div>
+                <CardHeader
+                    title={
+                        <Typography id="modal-modal-title" variant="h6" component="h2">
+                            Jacdac Connected
+                        </Typography>
+                    }
+                    action={
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            size="small"
+                            onClick={() => {
+                                setAlertOpen(false)
+                            }}
+                        >
+                            <Close fontSize="inherit" />
+                        </IconButton>
+                    }
+                ></CardHeader>
+            </div>
+
+            <Alert sx={{ mb: 2 }}>
+                Your device has been successfully connected. Now you can hear your sensor data!
+            </Alert>
+        </Box>
+    </Modal>
+}
+
+/**
+ * A connect/disconnect button for jacdac
+ */
+function JacdacConnectButton() {
+    const connected = useJacdacConnected()
+
+    const handleConnect = async () => {
+        if (connected) {
+            console.log('disconnect')
+            await bus.disconnect()
+        } else {
+            console.log('connect')
+            await bus.connect()
+        }
+    }
+
+    return <Button variant="contained" onClick={handleConnect}>
+        {connected ? 'Disconnect' : 'Connect'}
+    </Button>
+
+}
+
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>([])
-    const [alertOpen, setAlertOpen] = useState(false)
     const [playback, setPlayback] = useState(PlaybackState.Stopped)
 
     const jdServices = useServices({ sensor: true })
-    const bus = useBus()
-    const connected = useChange(bus, (_) => _.connected)
+    const connected = useJacdacConnected()
 
     useEffect(() => {
         const newServices = jdServices
@@ -368,7 +458,7 @@ export function DashboardView() {
                     id: serviceId,
                     values: serviceInfo.values.map((v, i) => {
                         const sink = OutputEngine.getInstance().addSink(
-                            `JacDac Service = ${jds.specification.name}; Index = ${i}`,
+                            `Jacdac Service = ${jds.specification.name}; Index = ${i}`,
                         )
                         const sinkId = sink.id
 
@@ -406,19 +496,6 @@ export function DashboardView() {
         setServices(newServices)
     }, [jdServices.map((jdService) => jdService.id).join(' ')])
 
-    useEffect(() => {
-        setAlertOpen(connected)
-    }, [connected])
-
-    const handleConnect = async () => {
-        if (connected) {
-            console.log('disconnect')
-            await bus.disconnect()
-        } else {
-            console.log('connect')
-            await bus.connect()
-        }
-    }
 
     const handlePlaybackClick = () => {
         switch (playback) {
@@ -515,56 +592,9 @@ export function DashboardView() {
 
     const playbackText = playback == PlaybackState.Stopped || playback == PlaybackState.Paused ? 'Play' : 'Stop'
 
-    const modalContentStyle = {
-        position: 'absolute' as 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 440,
-        bgcolor: 'background.paper',
-        border: '2px solid #000',
-        boxShadow: 24,
-        p: 4,
-    }
-
     return (
         <>
-            <Modal
-                open={alertOpen}
-                onClose={() => {
-                    setAlertOpen(false)
-                }}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-            >
-                <Box sx={modalContentStyle}>
-                    <div>
-                        <CardHeader
-                            title={
-                                <Typography id="modal-modal-title" variant="h6" component="h2">
-                                    JacDac Connected
-                                </Typography>
-                            }
-                            action={
-                                <IconButton
-                                    aria-label="close"
-                                    color="inherit"
-                                    size="small"
-                                    onClick={() => {
-                                        setAlertOpen(false)
-                                    }}
-                                >
-                                    <Close fontSize="inherit" />
-                                </IconButton>
-                            }
-                        ></CardHeader>
-                    </div>
-
-                    <Alert sx={{ mb: 2 }}>
-                        Your device has been successfully connected. Now you can hear your sensor data!
-                    </Alert>
-                </Box>
-            </Modal>
+            <JacdacConnectedModal />
             <Box sx={{ flexGrow: 1 }}>
                 <AppBar position="static">
                     <Toolbar>
@@ -580,9 +610,7 @@ export function DashboardView() {
                         Connect your device
                     </Typography>
                     <Box sx={{ my: 2 }}>
-                        <Button variant="contained" onClick={handleConnect}>
-                            {connected ? 'Disconnect' : 'Connect'}
-                        </Button>
+                        <JacdacConnectButton />
                     </Box>
                 </Box>
                 <Box>
