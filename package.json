@@ -39,8 +39,8 @@
     "dependencies": {
         "@types/node": "^16.11.6",
         "d3": "^7.1.1",
-        "jacdac-ts": "^1.24.19",
-        "react-jacdac": "^1.1.2",
+        "jacdac-ts": "^1.24.20",
+        "react-jacdac": "^1.1.3",
         "rxjs": "^7.5.2",
         "rxjs-spy": "^8.0.2",
         "typedoc": "^0.22.11",

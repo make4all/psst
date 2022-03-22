@@ -8896,17 +8896,7 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
-jacdac-ts@^1.24.16:
-  version "1.24.19"
-  resolved "https://registry.yarnpkg.com/jacdac-ts/-/jacdac-ts-1.24.19.tgz#c55883aa4af0d73db2a7ef3a4035bc4fa4a1fc15"
-  integrity sha512-wr9jzuPILKTIP2tV0CuNxCehHd4s89mohC4cmp4FXyesp4HpJ4XY8zCRZvwz8pG2Cd4GlvfDTj4PECUlKAWBrA==
-  dependencies:
-    "@types/node" "^17.0.17"
-    "@types/w3c-web-serial" "^1.0.2"
-    "@types/w3c-web-usb" "^1.0.5"
-    "@types/web-bluetooth" "^0.0.12"
-
-jacdac-ts@^1.24.19:
+jacdac-ts@^1.24.20:
   version "1.24.20"
   resolved "https://registry.yarnpkg.com/jacdac-ts/-/jacdac-ts-1.24.20.tgz#6e7a37bf410f1a3785c68a7bba4023ae15781e19"
   integrity sha512-jemoxhsjP0K2SoV72pxsI0s8q98v/Kx4ooUdWIGCjd4dS0pPiYzv1LZBcpGSm+/rJxu2F1BAx4pD4rUbKwzyJw==
@@ -13004,12 +12994,12 @@ react-is@^17.0.1, react-is@^17.0.2:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==
 
-react-jacdac@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/react-jacdac/-/react-jacdac-1.1.2.tgz#9e8f6a8c2f553b0f586f742c7b5e1e0bce2efa2e"
-  integrity sha512-9lN5KRgUheEmQktcGa3WBE+rKoQMbVBpVSwOx7ot/GP1OOcfkeRd2ln7hUs06fhj3orVjNAfS6MInGUHtkl++w==
+react-jacdac@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/react-jacdac/-/react-jacdac-1.1.3.tgz#fda22c5962d283fc64ba243dd556d9cd69fde1c8"
+  integrity sha512-WFqU2Otp+CYwCClUXQKFStWJfyENpG0Rc71pZLbFMY93FobVvMf0I2ex/ByUVT8bn0UR8V6q8wt6bZpnLi/6ZQ==
   dependencies:
-    jacdac-ts "^1.24.16"
+    jacdac-ts "^1.24.20"
     use-subscription "^1.5.1"
 
 react-refresh@^0.8.3:
