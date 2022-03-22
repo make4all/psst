@@ -8896,10 +8896,20 @@ istanbul-reports@^3.0.2:
     html-escaper "^2.0.0"
     istanbul-lib-report "^3.0.0"
 
-jacdac-ts@^1.24.16, jacdac-ts@^1.24.19:
+jacdac-ts@^1.24.16:
   version "1.24.19"
   resolved "https://registry.yarnpkg.com/jacdac-ts/-/jacdac-ts-1.24.19.tgz#c55883aa4af0d73db2a7ef3a4035bc4fa4a1fc15"
   integrity sha512-wr9jzuPILKTIP2tV0CuNxCehHd4s89mohC4cmp4FXyesp4HpJ4XY8zCRZvwz8pG2Cd4GlvfDTj4PECUlKAWBrA==
+  dependencies:
+    "@types/node" "^17.0.17"
+    "@types/w3c-web-serial" "^1.0.2"
+    "@types/w3c-web-usb" "^1.0.5"
+    "@types/web-bluetooth" "^0.0.12"
+
+jacdac-ts@^1.24.19:
+  version "1.24.20"
+  resolved "https://registry.yarnpkg.com/jacdac-ts/-/jacdac-ts-1.24.20.tgz#6e7a37bf410f1a3785c68a7bba4023ae15781e19"
+  integrity sha512-jemoxhsjP0K2SoV72pxsI0s8q98v/Kx4ooUdWIGCjd4dS0pPiYzv1LZBcpGSm+/rJxu2F1BAx4pD4rUbKwzyJw==
   dependencies:
     "@types/node" "^17.0.17"
     "@types/w3c-web-serial" "^1.0.2"
