@@ -1,0 +1,24 @@
+{
+    "name": "jacdac-microbit",
+    "version": "0.8.9",
+    "description": "Jacdac servers for micro:bit V2 sensors.",
+    "dependencies": {
+        "core": "*",
+        "radio": "*",
+        "microphone": "*",
+        "jacdac": "github:microsoft/pxt-jacdac",
+        "jacdac-microbit": "github:microsoft/pxt-jacdac/devices/microbit#v0.8.10"
+    },
+    "files": [
+        "README.md",
+        "main.ts"
+    ],
+    "targetVersions": {
+        "target": "3.1.79",
+        "targetId": "microbit"
+    },
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
+}
