@@ -12,8 +12,18 @@ These are merged together into [```OutputStateChange```, ```Datum```] tuples and
 
 ## Installation and development
 
-1. Install the required packages with: `npm install`
-2. Start the development server: `npm run start`
+1. Install node.js and yarn
+2. Install the required packages with
+
+```
+yarn install
+```
+
+3. Start the development server
+
+```
+yarn start
+```
 
 ## Basic Usage
 
