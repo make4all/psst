@@ -2,7 +2,7 @@ import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
-import { filter, Observable, tap } from 'rxjs'
+import { bufferCount, filter, map, Observable, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLevel, SonificationLoggingLevel } from '../OutputConstants'
 
 const DEBUG = true
@@ -43,13 +43,14 @@ export class SimpleDataHandler extends DataHandler {
      */
      public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         super.setupSubscription(
-            sink$.pipe(
-                filter((val) => {
-                    if (val instanceof Datum){
-                        // return this.isInterestPoint(val.value)
-                        return true
-                    }
-                    else return true
+            sink$.pipe(bufferCount(this.threshold), 
+map((frames) => {
+    return frames[frames.length-1]
+}
+
+    ),                
+            filter((val) => {
+                    return true
                 }),
             ),
         )

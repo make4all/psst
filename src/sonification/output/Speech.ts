@@ -13,17 +13,17 @@ export class Speech extends DatumOutput {
     private _volume: number;
     private playing: boolean;
     
-    private _polite: boolean | undefined;
-    public get polite(): boolean | undefined {
+    private _polite: boolean;
+    public get polite(): boolean  {
         return this._polite
     }
 
-    public set polite(value: boolean | undefined) {
+    public set polite(value: boolean) {
         this._polite = value
     }
 
     // construct the utterance and set its properties
-    public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice, polite?: boolean) {
+    public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice, polite: boolean = false) {
         super()
         this._speechSynthesis = window.speechSynthesis;
         this._utterance = new SpeechSynthesisUtterance()
@@ -34,10 +34,8 @@ export class Speech extends DatumOutput {
         else {
             this._utterance.voice = this._speechSynthesis.getVoices()[0];
         }
-        if (polite) this._polite = true
-        else {
-            this._polite = false
-        }
+         this._polite = polite
+
         this.playing = false;
         debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
     }
