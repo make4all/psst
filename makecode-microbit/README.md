@@ -22,5 +22,5 @@ mkc -d
 If you are in a virtual machine without USB access, launch a webserver and navigate to `built/binary.hex` to download the generated hex file.
 
 ```
-npx http-serve -c-1
+mkc -w -s
 ```

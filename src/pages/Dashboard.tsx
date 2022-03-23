@@ -2,7 +2,7 @@ import { OutputEngine } from '../sonification/OutputEngine'
 
 import { Subject } from 'rxjs'
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 
 import '../styles/dashboard.css'
 
@@ -10,7 +10,7 @@ import * as d3 from 'd3'
 
 import { bus } from '../bus'
 
-import { JDRegister, JDService, REPORT_UPDATE, SoundLevelReg, throttle } from 'jacdac-ts'
+import { JDRegister, JDService, REPORT_UPDATE, SoundLevelReg, TraceRecorder } from 'jacdac-ts'
 import { JacdacProvider, useServices, useChange, useBus } from 'react-jacdac'
 
 import {
@@ -30,17 +30,14 @@ import {
     AppBar,
     Box,
     Button,
-    Collapse,
     Container,
     Grid,
     IconButton,
-    Input,
-    InputAdornment,
     Typography,
     Toolbar,
     Modal,
-    Stack,
     CardHeader,
+    Link,
 } from '@mui/material'
 
 import { Close } from '@mui/icons-material'
@@ -360,6 +357,75 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     },
 ]
 
+function saveText(name: string, data: string, mimeType?: string) {
+    if (!mimeType) {
+        if (/\.(csv|txt)/i.test(name)) mimeType = 'text/plain'
+        else if (/\.json/i.test(name)) mimeType = 'application/json'
+    }
+    const url = `data:${mimeType || 'text/plain'};charset=utf-8,${encodeURIComponent(data)}`
+    downloadUrl(name, url)
+
+    function downloadUrl(name: string, url: string) {
+        const a = document.createElement('a') as HTMLAnchorElement
+        document.body.appendChild(a)
+        a.style.display = 'none'
+        a.href = url
+        a.download = name
+        a.click()
+    }
+}
+
+function SaveTraceButton() {
+    const bus = useBus()
+    const recorder = useMemo(() => new TraceRecorder(bus), [])
+    useEffect(() => {
+        recorder.start()
+        return () => {
+            recorder.stop()
+        }
+    }, [recorder])
+    const onClick = () => {
+        const busText = bus.describe()
+        const traceText = recorder.trace.serializeToText()
+        const text = `# Jacdac Trace 
+        
+To import, go to https://aka.ms/jacdac, open device tree and click import icon.
+
+## bus
+
+\`\`\`yaml
+${busText}
+\`\`\`
+
+## packets
+
+\`\`\`
+${traceText}
+\`\`\`
+
+## environment
+
+\`\`\`yaml
+user-agent: ${typeof window !== undefined && window.navigator.userAgent}
+\`\`\`
+
+`
+        saveText('trace.jd.txt', text)
+    }
+
+    return (
+        <Link
+            title="save trace and environment information in a file"
+            component="button"
+            onClick={onClick}
+            underline="hover"
+        >
+            save trace
+        </Link>
+    )
+}
+
+const dbg = typeof window !== 'undefined' && /dbg=1/i.test(window.location.search)
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>([])
     const [alertOpen, setAlertOpen] = useState(false)
@@ -686,6 +752,7 @@ export function DashboardView() {
                         </Box>
                     )}
                 </Box>
+                <footer>{dbg && <SaveTraceButton />}</footer>
             </Container>
         </>
     )

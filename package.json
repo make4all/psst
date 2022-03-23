@@ -24,7 +24,8 @@
         "serve": "live-server --open=public/index.html",
         "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
-        "pretify": "prettier --write src/**"
+        "pretify": "prettier --write src/**",
+        "makecode": "cd makecode-microbit && mkc && cp built/binary.hex binary.hex"
     },
     "husky": {
         "hooks": {
