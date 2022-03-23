@@ -2,7 +2,7 @@ import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
-import { filter, Observable, tap } from 'rxjs'
+import { bufferCount, filter, map, Observable, tap } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLevel, SonificationLoggingLevel } from '../OutputConstants'
 
 const DEBUG = true
@@ -12,20 +12,27 @@ const DEBUG = true
   */
 export class SimpleDataHandler extends DataHandler {
     /**
-     * A set of points to be notified about. defaults to 0 if not specified in the constructor.
+     * a value denoting the number of points that the user should be notified after. defaults to 1 if not specified in the constructor. The user is then notified for every point.
      */
-    
+    private _threshold: number
+    public get threshold(): number {
+        return this._threshold
+    }
+    public set threshold(value: number) {
+        this._threshold = value
+    }
     /**
      * Constructor
      *
      * @param sink. DataSink that is providing data to this Handler.
      * @param output. Optional output for this data
-     * @param interestPoints [number[]. Defaults to 0 if not provided
+     * @param threshold:number Defaults to 1 if not provided
      */
-    constructor(output?: DatumOutput, interestPoints?: number[]) {
+    constructor(output?: DatumOutput, threshold: number = 1) {
         super(output)
         // if (interestPoints) this._interestPoints = interestPoints
         // else this._interestPoints = [0]
+        this._threshold = threshold
     }
 
     /**
@@ -36,13 +43,14 @@ export class SimpleDataHandler extends DataHandler {
      */
      public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         super.setupSubscription(
-            sink$.pipe(
-                filter((val) => {
-                    if (val instanceof Datum){
-                        // return this.isInterestPoint(val.value)
-                        return true
-                    }
-                    else return true
+            sink$.pipe(bufferCount(this.threshold), 
+map((frames) => {
+    return frames[frames.length-1]
+}
+
+    ),                
+            filter((val) => {
+                    return true
                 }),
             ),
         )

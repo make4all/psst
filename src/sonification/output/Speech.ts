@@ -12,9 +12,18 @@ export class Speech extends DatumOutput {
     private _utterance : SpeechSynthesisUtterance
     private _volume: number;
     private playing: boolean;
+    
+    private _polite: boolean;
+    public get polite(): boolean  {
+        return this._polite
+    }
+
+    public set polite(value: boolean) {
+        this._polite = value
+    }
 
     // construct the utterance and set its properties
-    public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice) {
+    public constructor(lang?: string, volume?: number, rate?: number, voice?: SpeechSynthesisVoice, polite: boolean = false) {
         super()
         this._speechSynthesis = window.speechSynthesis;
         this._utterance = new SpeechSynthesisUtterance()
@@ -22,23 +31,29 @@ export class Speech extends DatumOutput {
         this._volume = volume? volume : 1 // volume is 0-1
         if (lang) this._utterance.lang = lang
         if (voice) this._utterance.voice = voice
-        else{
+        else {
             this._utterance.voice = this._speechSynthesis.getVoices()[0];
         }
+         this._polite = polite
+
         this.playing = false;
-         debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
+        debugStatic (SonificationLoggingLevel.DEBUG, "initialized")
     }
 
     /**
      * Output the datum as speech
      */
     protected output(datum: Datum) {
+        console.log("enter speech output")
         if (!this.playing) return
         super.output(datum)
         this._utterance.text = datum.value.toString()
-        if(this._speechSynthesis.pending || this._speechSynthesis.speaking)
-        this._speechSynthesis.cancel()
+        if((this._speechSynthesis.pending || this._speechSynthesis.speaking) && !this.polite) {
+            this._speechSynthesis.cancel()
+            console.log("bout to interrupt")
+        }
         this._speechSynthesis.speak(this._utterance)
+        console.log("spoken!")
     }
 
     // Start speaking

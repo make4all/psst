@@ -207,6 +207,23 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
         name: 'Speech',
         id: `Speech-${Math.floor(Math.random() * Date.now())}`,
         createOutput: () => new Speech(),
+        parameters: [
+            {
+                name: 'Interrupt when new point arrives?',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Yes', value: 0 },
+                    { display: 'No', value: 1 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const sp = obj as Speech
+                        sp.polite = value == 1 ? true : false
+                    }
+                },
+            }
+        ]
     },
 }
 
@@ -634,6 +651,7 @@ export function DashboardView() {
                                         {playbackText}
                                     </Button>
                                     {/* <Button variant="contained" size="large" sx={{ mx: 2 }}>
+
                                         Go Back
                                     </Button>
                                     <Input
@@ -646,6 +664,7 @@ export function DashboardView() {
                                             type: 'number',
                                         }}
                                     /> */}
+
                                 </Box>
                             </Box>
                             <Box role="region" aria-aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
