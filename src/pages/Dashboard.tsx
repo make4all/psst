@@ -395,6 +395,7 @@ user-agent: ${typeof window !== undefined && window.navigator.userAgent}
 `
         saveText('trace.jd.txt', text)
     }
+
     return (
         <Link
             title="save trace and environment information in a file"
@@ -407,6 +408,7 @@ user-agent: ${typeof window !== undefined && window.navigator.userAgent}
     )
 }
 
+const dbg = typeof window !== 'undefined' && /dbg=1/i.test(window.location.search)
 export function DashboardView() {
     const [services, setServices] = useState<JDServiceWrapper[]>([])
     const [alertOpen, setAlertOpen] = useState(false)
@@ -731,9 +733,7 @@ export function DashboardView() {
                         </Box>
                     )}
                 </Box>
-                <footer>
-                    <SaveTraceButton />
-                </footer>
+                <footer>{dbg && <SaveTraceButton />}</footer>
             </Container>
         </>
     )
