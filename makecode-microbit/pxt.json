@@ -6,8 +6,8 @@
         "core": "*",
         "radio": "*",
         "microphone": "*",
-        "jacdac": "github:microsoft/pxt-jacdac",
-        "jacdac-microbit": "github:microsoft/pxt-jacdac/devices/microbit#v0.8.10"
+        "jacdac": "github:microsoft/pxt-jacdac#v0.8.11",
+        "jacdac-microbit": "github:microsoft/pxt-jacdac/devices/microbit#v0.8.11"
     },
     "files": [
         "README.md",
