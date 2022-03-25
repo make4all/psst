@@ -2,7 +2,7 @@ import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants';
 import { DatumOutput } from './DatumOutput'
 
-const DEBUG = true;
+const DEBUG = false;
 
 /**
  * Class for sonifying data point as speech.
@@ -12,7 +12,7 @@ export class Speech extends DatumOutput {
     private _utterance : SpeechSynthesisUtterance
     private _volume: number;
     private playing: boolean;
-    
+
     private _polite: boolean;
     public get polite(): boolean  {
         return this._polite
@@ -44,16 +44,16 @@ export class Speech extends DatumOutput {
      * Output the datum as speech
      */
     protected output(datum: Datum) {
-        console.log("enter speech output")
+        if (DEBUG) console.log("enter speech output")
         if (!this.playing) return
         super.output(datum)
         this._utterance.text = datum.value.toString()
         if((this._speechSynthesis.pending || this._speechSynthesis.speaking) && !this.polite) {
             this._speechSynthesis.cancel()
-            console.log("bout to interrupt")
+            if (DEBUG) console.log("bout to interrupt")
         }
         this._speechSynthesis.speak(this._utterance)
-        console.log("spoken!")
+        if (DEBUG) console.log("spoken!")
     }
 
     // Start speaking

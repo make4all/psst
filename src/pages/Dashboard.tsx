@@ -357,6 +357,26 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         description: 'Outputs the raw data stream without processing.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
+        parameters: [
+            {
+                name: 'Output every:',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: '1', value: 1 },
+                    { display: '2', value: 2 },
+                    { display: '3', value: 3 },
+                    { display: '4', value: 4 },
+                    { display: '500', value: 500 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const sdh = obj as SimpleDataHandler
+                        sdh.threshold = value
+                    }
+                },
+            },
+        ],
     },
 ]
 

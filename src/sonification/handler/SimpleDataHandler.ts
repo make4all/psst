@@ -20,6 +20,7 @@ export class SimpleDataHandler extends DataHandler {
     }
     public set threshold(value: number) {
         this._threshold = value
+        if (DEBUG) console.log("the threshold is set", this.threshold)
     }
     /**
      * Constructor
@@ -43,12 +44,12 @@ export class SimpleDataHandler extends DataHandler {
      */
      public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         super.setupSubscription(
-            sink$.pipe(bufferCount(this.threshold), 
+            sink$.pipe(bufferCount(this.threshold),
 map((frames) => {
     return frames[frames.length-1]
 }
 
-    ),                
+    ),
             filter((val) => {
                     return true
                 }),
