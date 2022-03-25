@@ -7,6 +7,7 @@ const MicrobitController = lazy(() => import('./pages/MicrobitController'))
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
+import { Keyboard } from './pages/Keyboard'
 
 if (module.hot) {
     module.hot.accept()
@@ -38,6 +39,14 @@ ReactDOM.render(
                 element={
                     <Suspense fallback={null}>
                         <Dashboard />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="keyboard"
+                element={
+                    <Suspense fallback={null}>
+                        <Keyboard />
                     </Suspense>
                 }
             />
