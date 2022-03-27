@@ -19,8 +19,9 @@ export interface KeyboardState {
 export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
 
     private streaming : boolean
-    private xSink : DataSink | undefined
-    private xAxisStream : Subject<Datum> | undefined
+    private sink : DataSink | undefined
+    private stream : Subject<Datum> | undefined
+    private currKey : string | undefined
 
     constructor(props : KeyboardProps) {
         super(props)
@@ -29,6 +30,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
             keyFrequencies : getKeyFreq()
         }
         this.streaming = false
+        this.currKey = undefined
     }
 
     filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Observable<T>> {
@@ -37,30 +39,30 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
 
     handleStartStreaming = () => {
         console.log('entering handle stream')
-        let xSinkID: number = 0
-        let srcX = this.xSink
+        let sinkID: number = 0
+        let src = this.sink
         if (!this.streaming) {
             console.log('streaming was false')
             /**
-             * check if a sink exists to stream X axis data to. else create one.
+             * check if a sink exists to stream data to. else create one
              */
-            if (!srcX) {
-                srcX = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
-                console.log(`added sink to stream x axis data ${this.xSink}`)
-                srcX.addDataHandler(this.state.musicHandler)
-                xSinkID = srcX.id
-                this.xSink = srcX
+            if (!src) {
+                src = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
+                console.log(`added sink to stream x axis data ${this.sink}`)
+                src.addDataHandler(this.state.musicHandler)
+                sinkID = src.id
+                this.sink = src
             }
             /**
-             * check if a observable exists for each of the axes.
+             * check if a observable exists for the data.
              * If not, create an RXJS Subject, filter out null values and change it to be typed as observable<datum>, and then set this as a stream for the source.
              */
 
-            let sourceX = this.xAxisStream
+            let sourceX = this.stream
             if (!sourceX) {
                 sourceX = new Subject<Datum>()
-                this.xAxisStream = sourceX
-                OutputEngine.getInstance().setStream(xSinkID, sourceX.pipe(this.filterNullish()))
+                this.stream = sourceX
+                OutputEngine.getInstance().setStream(sinkID, sourceX.pipe(this.filterNullish()))
             }
             OutputEngine.getInstance().next(OutputStateChange.Play)
         } else {
@@ -75,19 +77,40 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     }
 
     handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        console.log("key pressed!")
+        if (!this.streaming) this.handleStartStreaming()
         let pressedKey = event.code;
+        console.log("key pressed!", pressedKey)
         document.querySelector("p")!.textContent = event.code
-        if (this.xSink && this.xAxisStream) {
-            console.log("sink and stream init")
-            this.xAxisStream.next(new Datum(this.xSink.id, this.state.keyFrequencies.get(pressedKey)!))
+        if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
+            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
+        }
+    }
+
+    handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (!this.streaming) this.handleStartStreaming()
+        let pressedKey = event.code;
+        console.log("key pressed!", pressedKey)
+        if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
+            this.currKey = pressedKey
+            document.querySelector("p")!.textContent = pressedKey
+            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
+        }
+        this.currKey = pressedKey
+        document.querySelector("p")!.textContent = pressedKey
+    }
+
+    handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        let keyUp = event.code
+        if (keyUp == this.currKey) {
+            this.handleStartStreaming()
+            this.currKey = undefined
         }
     }
 
     public render() {
         return (
             <div id="piano" tabIndex={0} onKeyPress={this.handleKeyPress}>
-                <p onClick={this.handleStartStreaming}>Click me to start.</p>
+                <p>Click me to start.</p>
             </div>
         )
     }
