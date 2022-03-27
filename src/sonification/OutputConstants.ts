@@ -58,3 +58,31 @@ export function getSonificationLoggingLevel(): SonificationLoggingLevel {
 export function setSonificationsLoggingLevel(level: SonificationLoggingLevel) {
     sonificationLoggingLevel = level
 }
+
+const keyFreq = new Map<string, number>([
+    ['Digit1', 130.81], // C3
+    ['Digit2', 146.83], // D3
+    ['Digit3', 164.81], // E3
+    ['Digit4', 174.61], // F3
+    ['Digit5', 196.00], // G3
+    ['Digit6', 220.00], // A3
+    ['Digit7', 246.94], // B3
+    ['KeyQ', 261.63], // C4
+    ['KeyW', 293.66], // D4
+    ['KeyE', 329.63], // E4
+    ['KeyR', 349.23], // F4
+    ['KeyT', 392.00], // G4
+    ['KeyY', 440.00], // A4
+    ['KeyU', 493.88], // B4
+    ['KeyA', 523.25], // C5
+    ['KeyS', 587.33], // D5
+    ['KeyD', 659.25], // E5
+    ['KeyF', 698.46], // F5
+    ['KeyG', 783.99], // G5
+    ['KeyH', 880.00], // A5
+    ['KeyJ', 987.77] // B5
+])
+
+export function getKeyFreq() {
+    return keyFreq;
+}
