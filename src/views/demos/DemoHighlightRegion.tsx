@@ -57,7 +57,9 @@ export class DemoHighlightRegion
                     value={isNaN(maxValue) ? '' : maxValue}
                     onChange={(e) => this._handleValueChange(parseFloat(e.target.value), 'max')}
                 />
-                <div id="for-svg"></div>
+                <div id="for-svg">
+                    <a href='' id='link'>download svg</a>
+                </div>
             </div>
         )
     }
@@ -100,7 +102,7 @@ export class DemoHighlightRegion
          */
         // this.filter = new FilterRangeHandler(new NoiseSonify(undefined,undefined,-1), [this.state.minValue, this.state.maxValue])
 
-        this.filter = new FilterRangeHandler(new SheetMusic([this.state.minValue, this.state.maxValue]), [this.state.minValue, this.state.maxValue])
+        this.filter = new FilterRangeHandler(new SheetMusic([this.state.minValue, this.state.maxValue], 4), [this.state.minValue, this.state.maxValue])
         this.sink.addDataHandler(this.filter)
         this.sink.addDataHandler(new NoteHandler())
 
