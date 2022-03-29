@@ -100,7 +100,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         let keyDown = event.code;
         if (DEBUG) console.log("key down!", keyDown)
         if (this.sink && this.stream && this.state.keyFrequencies.has(keyDown)) {
-            document.getElementById(keyDown)!.style.backgroundColor = "blue"
+            document.getElementById(keyDown)!.style.backgroundColor = "#878787"
             OutputEngine.getInstance().next(OutputStateChange.Play)
             this.currKey = keyDown
             this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(keyDown)!))
@@ -109,23 +109,12 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
 
     handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
         let keyUp = event.code
-        document.getElementById(keyUp)!.style.backgroundColor = "transparent"
+        if (this.state.keyFrequencies.has(keyUp)) document.getElementById(keyUp)!.style.backgroundColor = "#f5f3ed"
         if (keyUp == this.currKey) {
             OutputEngine.getInstance().next(OutputStateChange.Pause)
             this.currKey = undefined
         }
     }
-
-    /**
-     * exclusion array : number[] = [150, 350, 500, 700, 850]
-     * loop through multiples of 50
-     * this.state.possibleKeys.map(function(id, idx) {
-     *      if (!exclusion.contains(50*idx)) {
-     *          let calc = "left: " + (50*idx)
-     *          return <div className="blackKey" style={calc}></div>
-     *      }
-     * })
-     */
 
     public render() {
         return (
@@ -140,7 +129,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
                                     // manual calc
                                     left: idx*50-8
                                 } as const;
-                                return <div style={calc}> </div>
+                                return <div style={calc} key={id}> </div>
                             }
                         })
                     }
