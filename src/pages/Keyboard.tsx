@@ -82,9 +82,8 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (!this.streaming) this.handleStartStreaming()
         let pressedKey = event.code;
-        console.log("key pressed!", pressedKey)
-        document.getElementById(pressedKey)!.style.backgroundColor = "red"
         if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
+            document.getElementById(pressedKey)!.style.backgroundColor = "red"
             this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
         }
     }
@@ -92,28 +91,27 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (!this.streaming) this.handleStartStreaming()
         let pressedKey = event.code;
-        console.log("key pressed!", pressedKey)
+        console.log("key down!", pressedKey)
         if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
+            document.getElementById(pressedKey)!.style.backgroundColor = "red"
+            OutputEngine.getInstance().next(OutputStateChange.Play)
             this.currKey = pressedKey
-            document.querySelector("p")!.textContent = pressedKey
             this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
         }
-        this.currKey = pressedKey
-        document.querySelector("p")!.textContent = pressedKey
     }
 
     handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
         let keyUp = event.code
         if (keyUp == this.currKey) {
-            this.handleStartStreaming()
+            OutputEngine.getInstance().next(OutputStateChange.Pause)
             this.currKey = undefined
         }
     }
 
     public render() {
         return (
-            <div id="piano" tabIndex={0} onKeyPress={this.handleKeyPress}>
-                <p>Click me to start.</p>
+            <div id="piano" tabIndex={0} onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>
+                <button>Click me to start.</button>
                 <div>
                     {
                         this.state.possibleKeys.map(function(id, idx){
