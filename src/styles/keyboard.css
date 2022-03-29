@@ -1,5 +1,23 @@
-#piano {
+/*#piano {
     height: 200px;
     width: 500px;
     border: 2px
+}
+*/
+
+:focus{
+    outline: none;
+}
+
+.key {
+    border: 2px solid black;
+    height: 200px;
+    width: 50px;
+    display: inline-block;
+}
+
+.key h1 {
+    font-size: medium;
+    margin-top: 170px;
+    margin-left: 15px
 }

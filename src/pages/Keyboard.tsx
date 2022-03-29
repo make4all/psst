@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React from 'react'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
 import '../styles/keyboard.css'
@@ -7,12 +7,14 @@ import { DataSink } from '../sonification/DataSink'
 import { filter, Observable, OperatorFunction, pipe, Subject, UnaryFunction } from 'rxjs'
 import { Datum } from '../sonification/Datum'
 import { OutputEngine } from '../sonification/OutputEngine'
+import { Key } from '../pages/Key'
 
 export interface KeyboardProps {}
 
 export interface KeyboardState {
     musicHandler: SimpleDataHandler
     keyFrequencies : Map<String, number>
+    possibleKeys : string[]
 }
 
 
@@ -27,7 +29,8 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         super(props)
         this.state = {
             musicHandler : new SimpleDataHandler(new NoteSonify()),
-            keyFrequencies : getKeyFreq()
+            keyFrequencies : getKeyFreq(),
+            possibleKeys : Array.from(getKeyFreq().keys())
         }
         this.streaming = false
         this.currKey = undefined
@@ -80,7 +83,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         if (!this.streaming) this.handleStartStreaming()
         let pressedKey = event.code;
         console.log("key pressed!", pressedKey)
-        document.querySelector("p")!.textContent = event.code
+        document.getElementById(pressedKey)!.style.backgroundColor = "red"
         if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
             this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
         }
@@ -111,6 +114,13 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         return (
             <div id="piano" tabIndex={0} onKeyPress={this.handleKeyPress}>
                 <p>Click me to start.</p>
+                <div>
+                    {
+                        this.state.possibleKeys.map(function(id, idx){
+                            return <Key note={id} key={id}/>
+                        })
+                    }
+                </div>
             </div>
         )
     }
