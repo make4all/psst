@@ -9,6 +9,8 @@ import { Datum } from '../sonification/Datum'
 import { OutputEngine } from '../sonification/OutputEngine'
 import { Key } from '../pages/Key'
 
+const DEBUG = false
+
 export interface KeyboardProps {}
 
 export interface KeyboardState {
@@ -36,6 +38,11 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         this.currKey = undefined
     }
 
+    /**
+     * helper function to filter out null values from subjects, and create an observable<Datum> for the sink to subscribe.
+     * Source: https://stackoverflow.com/questions/57999777/filter-undefined-from-rxjs-observable
+     * @returns observable <datum>
+     */
     filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Observable<T>> {
         return pipe(filter((x) => x != null) as OperatorFunction<T | null | undefined, T>)
     }
@@ -45,13 +52,13 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         let sinkID: number = 0
         let src = this.sink
         if (!this.streaming) {
-            console.log('streaming was false')
+            if (DEBUG) console.log('streaming was false')
             /**
              * check if a sink exists to stream data to. else create one
              */
             if (!src) {
                 src = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
-                console.log(`added sink to stream x axis data ${this.sink}`)
+                if (DEBUG) console.log(`added sink to stream x axis data ${this.sink}`)
                 src.addDataHandler(this.state.musicHandler)
                 sinkID = src.id
                 this.sink = src
@@ -75,10 +82,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         this.streaming = !this.streaming
     }
 
-    componentDidMount(): void {
-        console.log("mounted")
-    }
-
+    /*
     handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (!this.streaming) this.handleStartStreaming()
         let pressedKey = event.code;
@@ -87,21 +91,23 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
             this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
         }
     }
+    */
 
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (!this.streaming) this.handleStartStreaming()
-        let pressedKey = event.code;
-        console.log("key down!", pressedKey)
-        if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
-            document.getElementById(pressedKey)!.style.backgroundColor = "red"
+        let keyDown = event.code;
+        if (DEBUG) console.log("key down!", keyDown)
+        if (this.sink && this.stream && this.state.keyFrequencies.has(keyDown)) {
+            document.getElementById(keyDown)!.style.backgroundColor = "blue"
             OutputEngine.getInstance().next(OutputStateChange.Play)
-            this.currKey = pressedKey
-            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
+            this.currKey = keyDown
+            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(keyDown)!))
         }
     }
 
     handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
         let keyUp = event.code
+        document.getElementById(keyUp)!.style.backgroundColor = "white"
         if (keyUp == this.currKey) {
             OutputEngine.getInstance().next(OutputStateChange.Pause)
             this.currKey = undefined
