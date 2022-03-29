@@ -26,6 +26,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     private sink : DataSink | undefined
     private stream : Subject<Datum> | undefined
     private currKey : string | undefined
+    private exclusions : number[]
 
     constructor(props : KeyboardProps) {
         super(props)
@@ -36,6 +37,7 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         }
         this.streaming = false
         this.currKey = undefined
+        this.exclusions = [0, 3, 7, 10, 14, 17]
     }
 
     /**
@@ -107,20 +109,45 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
 
     handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
         let keyUp = event.code
-        document.getElementById(keyUp)!.style.backgroundColor = "white"
+        document.getElementById(keyUp)!.style.backgroundColor = "transparent"
         if (keyUp == this.currKey) {
             OutputEngine.getInstance().next(OutputStateChange.Pause)
             this.currKey = undefined
         }
     }
 
+    /**
+     * exclusion array : number[] = [150, 350, 500, 700, 850]
+     * loop through multiples of 50
+     * this.state.possibleKeys.map(function(id, idx) {
+     *      if (!exclusion.contains(50*idx)) {
+     *          let calc = "left: " + (50*idx)
+     *          return <div className="blackKey" style={calc}></div>
+     *      }
+     * })
+     */
+
     public render() {
         return (
             <div id="piano" tabIndex={0} onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>
                 <button>Click me to start.</button>
-                <div>
+                <div id="blackkeys">
                     {
-                        this.state.possibleKeys.map(function(id, idx){
+                        this.state.possibleKeys.map((id, idx) => {
+                            // 50 is width of white key
+                            if (!this.exclusions.includes(idx)) {
+                                const calc = {
+                                    // manual calc
+                                    left: idx*50-8
+                                } as const;
+                                return <div style={calc}> </div>
+                            }
+                        })
+                    }
+                </div>
+                <div id="whitekeys">
+                    {
+                        this.state.possibleKeys.map(function(id){
                             return <Key note={id} key={id}/>
                         })
                     }

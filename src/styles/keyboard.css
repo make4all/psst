@@ -10,14 +10,28 @@
 }
 
 .key {
+    box-sizing: border-box;
     border: 2px solid black;
     height: 200px;
     width: 50px;
     display: inline-block;
+    background-color: white;
 }
 
 .key h1 {
     font-size: medium;
     margin-top: 170px;
     margin-left: 15px
+}
+
+#blackkeys>div {
+    position: absolute;
+    background-color: black;
+    width: 30px;
+    height: 140px;
+    z-index: 10;
+}
+
+#whitekeys {
+    position: absolute;
 }
