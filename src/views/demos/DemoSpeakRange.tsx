@@ -17,10 +17,7 @@ export interface DemoSpeakRangeProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoSpeakRange
-    extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRangeState>
-    implements IDemoView
-{
+export class DemoSpeakRange extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRangeState> implements IDemoView {
     filter: FilterRangeHandler | undefined
 
     constructor(props: DemoSpeakRangeProps) {
@@ -88,12 +85,9 @@ export class DemoSpeakRange
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('SpeakRangeDemo')
-                this.filter = new FilterRangeHandler(new Speech(), [
-            this.state.minValue,
-            this.state.maxValue,
-        ])
-        // this.sink.addDataHandler(new NoteHandler())*/
-        // this.filter = new SpeechHandler()
+        this.filter = new FilterRangeHandler([this.state.minValue, this.state.maxValue], new Speech(undefined, undefined, undefined, undefined, true))
+        // this.sink.addDataHandler(new NoteHandler(undefined, new NoteSonify()))*/
+        // this.filter = new SpeechHandler(new Speech())
         this.sink.addDataHandler(this.filter)
         return this.sink
     }

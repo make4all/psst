@@ -50,7 +50,7 @@ export class SlopeParityHandler extends DataHandler {
      * @param output. Optional output for this data
      * @param direction. -1 for decreasing, 1 for increasing. Defaults to 0 if not provided.
      */
-    constructor(output?: DatumOutput, direction?: number) {
+    constructor(direction?: number, output?: DatumOutput) {
         super(output)
         this._prevPoint = 0
         this._prevSlope = 0

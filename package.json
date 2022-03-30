@@ -1,7 +1,7 @@
 {
     "homepage": ".",
     "name": "sonification",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "library that provides sonification primitives to make data accessible.",
     "source": "src/sonifier.ts",
     "exports": {
@@ -24,7 +24,8 @@
         "serve": "live-server --open=public/index.html",
         "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
-        "pretify": "prettier --write src/**"
+        "pretify": "prettier --write src/**",
+        "makecode": "cd makecode-microbit && mkc && cp built/binary.hex binary.hex"
     },
     "husky": {
         "hooks": {
@@ -39,8 +40,8 @@
     "dependencies": {
         "@types/node": "^16.11.6",
         "d3": "^7.1.1",
-        "jacdac-ts": "^1.24.4",
-        "react-jacdac": "^1.1.1",
+        "jacdac-ts": "^1.24.20",
+        "react-jacdac": "^1.1.3",
         "rxjs": "^7.5.2",
         "rxjs-spy": "^8.0.2",
         "typedoc": "^0.22.11",

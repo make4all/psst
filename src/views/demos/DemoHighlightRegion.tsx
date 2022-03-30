@@ -102,7 +102,7 @@ export class DemoHighlightRegion
          */
         // this.filter = new FilterRangeHandler(new NoiseSonify(undefined,undefined,-1), [this.state.minValue, this.state.maxValue])
 
-        this.filter = new FilterRangeHandler(new SheetMusic([this.state.minValue, this.state.maxValue], 4), [this.state.minValue, this.state.maxValue])
+        this.filter = new FilterRangeHandler([this.state.minValue, this.state.maxValue], new SheetMusic([this.state.minValue, this.state.maxValue], 4))
         this.sink.addDataHandler(this.filter)
         this.sink.addDataHandler(new NoteHandler())
 

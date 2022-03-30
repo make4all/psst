@@ -3,8 +3,18 @@ import React, { FC, useState, useEffect } from 'react'
 
 // import { JDBus } from "jacdac-ts/src/jdom/bus"
 
-import { SRV_ACCELEROMETER, REPORT_UPDATE, throttle, startDevTools, inIFrame } from 'jacdac-ts'
-import { useServices, useChange, useBus } from 'react-jacdac'
+import {
+    SRV_ACCELEROMETER,
+    REPORT_UPDATE,
+    throttle,
+    startDevTools,
+    inIFrame,
+    SRV_BUTTON,
+    EVENT,
+    ButtonEvent,
+    JDService,
+} from 'jacdac-ts'
+import { useServices, useChange, useBus, useEvent } from 'react-jacdac'
 import { Button } from '@mui/material'
 import { OutputEngine } from '../sonification/OutputEngine'
 import { JacdacProvider } from 'react-jacdac'
@@ -17,6 +27,7 @@ import { Datum } from '../sonification/Datum'
 import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { Speech } from '../sonification/output/Speech'
+import { SettingsInputAntennaTwoTone } from '@mui/icons-material'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 
 const TONE_THROTTLE = 100
@@ -31,10 +42,53 @@ function filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Obs
     return pipe(filter((x) => x != null) as OperatorFunction<T | null | undefined, T>)
 }
 
+function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService}) {
+    const { service, outputEngine } = props
+    const downEvent = useEvent(service, ButtonEvent.Down)
+    const upEvent = useEvent(service, ButtonEvent.Up)
+
+    const [instanceName, setInstanceName] = useState('')
+    const [state, setState] = useState('up')
+
+    // id corresponds to button functionality
+    const handleButton = (id: string, down: boolean) => {
+        // only act on an up event
+
+        if (down)
+            setState("down")
+        else
+            setState("up")
+
+        if (down) return
+
+        if (id === "A+B") {
+            if (outputEngine.value === OutputStateChange.Play)
+                outputEngine.next(OutputStateChange.Stop)
+            else
+                outputEngine.next(OutputStateChange.Play)
+        }
+    }
+    useEffect(() => {
+        if (instanceName === "") return
+        downEvent.subscribe(EVENT, () => handleButton(instanceName, true))
+    }, [downEvent, instanceName])
+    useEffect(() =>{
+        if (instanceName === "") return
+        upEvent.subscribe(EVENT, () => handleButton(instanceName, false))
+    }, [upEvent, instanceName])
+
+    useEffect(() => {
+        const resolveIName = async () => setInstanceName(await service.resolveInstanceName())
+        resolveIName()
+    }, [])
+    return (<div key={service.friendlyName}><br/><>{instanceName} {state}</></div>)
+}
+
 function ConnectButton() {
     const bus = useBus()
     const connected = useChange(bus, (_) => _.connected)
     const services = useServices({ serviceClass: SRV_ACCELEROMETER })
+    const buttons = useServices({ serviceClass: SRV_BUTTON })
     const [streaming, setStreaming] = useState(false)
     const [xSink, setXSink] = useState<DataSink>()
     const [ySink, setYSink] = useState<DataSink>()
@@ -51,8 +105,6 @@ function ConnectButton() {
     useEffect(() => {
         if (!services || services.length === 0) return
         const accelService = services[0]
-
-        console.log(accelService.specification)
         const unsubs = accelService.readingRegister.subscribe(
             REPORT_UPDATE,
             // don't trigger more than every 100ms
@@ -70,6 +122,17 @@ function ConnectButton() {
         // cleanup callback
         return () => unsubs?.()
     }, [services])
+
+    useEffect(()=>{
+        OutputEngine.getInstance().subscribe((e: OutputStateChange)=>{
+            console.log("Chaning streaming state ", e)
+            if (e === OutputStateChange.Play) 
+                setStreaming(true);
+            else 
+                setStreaming(false);
+        })
+        return () => OutputEngine.getInstance().unsubscribe()
+    }, [])
 
     const handleConnect = async () => {
         if (connected) {
@@ -89,7 +152,7 @@ function ConnectButton() {
         let srcX = xSink
         let srcY = ySink
         let srcZ = zSink
-        if (!streaming) {
+        if (OutputEngine.getInstance().value !== OutputStateChange.Play) {
             console.log('streaming was false')
             /**
              * check if a sink exists to stream X axis data to. else create one.
@@ -129,7 +192,7 @@ function ConnectButton() {
             if (!srcZ) {
                 srcZ = OutputEngine.getInstance().addSink('jacdac accelerometer Z axis')
                 console.log(`added sink to stream z axis data ${zSink}`)
-                // srcZ.addDataHandler(new NoteHandler([-1,1], new NoteSonify(0)))
+                // srcZ.addDataHandler(new NoteHandler([-1,1], NoteSonify(0)))
                 // src.addDataHandler(new FilterRangeHandler([-1, 0], new NoiseSonify()))
                 // dummy stats. Do we know the min and max for accelerometer?
                 //max:
@@ -169,9 +232,9 @@ function ConnectButton() {
         } else {
             OutputEngine.getInstance().next(OutputStateChange.Stop)
         }
-
-        setStreaming(!streaming)
     }
+
+    console.log("STREAMING STATE: ", streaming)
 
     return (
         <>
@@ -181,6 +244,8 @@ function ConnectButton() {
                     {streaming ? 'Stop streaming' : 'Start streaming'}
                 </Button>
             )}
+            {buttons &&
+                buttons.map((button,i) => <MicroBitButton key={i} service={button} outputEngine={OutputEngine.getInstance()}/>)}
         </>
     )
 }

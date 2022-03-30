@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom'
 import { Demo } from './pages/Demo'
 import { MusicSheet } from './pages/MusicSheet'
 const Jacdac = lazy(() => import('./pages/Jacdac'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const MicrobitController = lazy(() => import('./pages/MicrobitController'))
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
@@ -24,7 +26,22 @@ ReactDOM.render(
                     </Suspense>
                 }
             />
-            <Route path="music" element={<MusicSheet />} />
+            <Route
+                path="jacdacmicrobit"
+                element={
+                    <Suspense fallback={null}>
+                        <MicrobitController />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="dashboard"
+                element={
+                    <Suspense fallback={null}>
+                        <Dashboard />
+                    </Suspense>
+                }
+            />
         </Routes>
     </BrowserRouter>,
     document.getElementById('root'),

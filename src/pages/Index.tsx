@@ -1,20 +1,23 @@
 import React, { FC } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Demo } from './Demo'
-import Jacdac from './Jacdac'
-
 const Index: FC = (props) => {
     const opts = [
-        { name: 'Basic', url: '/basic', el: <Demo /> },
-        { name: 'Jacdac', url: '/jacdac', el: <Jacdac /> },
+        { name: 'Basic', url: '/basic' },
+        { name: 'Jacdac', url: '/jacdac' },
+        { name: 'Jacdac and microbit', url: '/jacdacmicrobit' },
+        { name: 'Dashboard', url: '/dashboard' },
     ]
 
     return (
         <>
-            {opts.map((opt) => (
-                <Link to={opt.url}>{opt.name}</Link>
-            ))}
+            <ul>
+                {opts.map((opt) => (
+                    <li>
+                        <Link to={opt.url}>{opt.name}</Link>
+                    </li>
+                ))}
+            </ul>
         </>
     )
 }
