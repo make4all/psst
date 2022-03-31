@@ -59,6 +59,7 @@ import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHan
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { FileOutput } from '../sonification/output/FileOutput'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
+import { SheetMusic } from '../sonification/output/SheetMusic'
 
 export interface JDServiceWrapper {
     name: string
@@ -127,6 +128,11 @@ const SRV_INFO_MAP = {
 }
 
 export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
+    musicBox: {
+        name: 'Music Box',
+        id: `MusicBox-${Math.floor(Math.random() * Date.now())}`,
+        createOutput: () => new SheetMusic(),
+    },
     note: {
         name: 'Note',
         id: `Note-${Math.floor(Math.random() * Date.now())}`,
@@ -352,7 +358,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         name: 'Simple Handler',
         id: `Simple Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Outputs the raw data stream without processing.',
-        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
+        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.musicBox)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
     },
 ]
@@ -387,8 +393,8 @@ function SaveTraceButton() {
     const onClick = () => {
         const busText = bus.describe()
         const traceText = recorder.trace.serializeToText()
-        const text = `# Jacdac Trace 
-        
+        const text = `# Jacdac Trace
+
 To import, go to https://aka.ms/jacdac, open device tree and click import icon.
 
 ## bus

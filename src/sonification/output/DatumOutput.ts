@@ -76,7 +76,8 @@ export abstract class DatumOutput extends Subject<OutputStateChange | Datum> {
     /**
      * Stop all output.
      */
-    protected stop() {}
+    protected stop() {
+    }
     /**
      * Do any setup for outputing node
      */
