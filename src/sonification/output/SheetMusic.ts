@@ -80,7 +80,7 @@ export class SheetMusic extends DatumOutput {
         let baseCX = 114.9;
         const svg = this.element
         console.log("numseq", this.numSeq)
-        let max : number = 68 // 29 for singleSheet, 58 for extendedSingle
+        let max : number = 53 // 29 for singleSheet, 58 for extendedSingle
         for (let i = 0; i < this.numSeq.length && i < max * 2; i += 2) {
             this.drawCircle({cx:(baseCX + this.numSeq[i]*7.1),
                 cy:cy += 14.16*2,
@@ -92,7 +92,8 @@ export class SheetMusic extends DatumOutput {
         var source = serializer.serializeToString(svg);
 
         console.log("finalSVG: ", source)
-/*
+
+        /*
         //add name spaces.
         if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
             source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
