@@ -9,29 +9,30 @@
     outline: none;
 }
 
-.key {
-    box-sizing: border-box;
-    border: 2px solid black;
+.black{
+    background-color: rgb(0, 0, 0);
+    width: 40px;
     height: 200px;
-    width: 50px;
-    display: inline-block;
-    background-color: #f5f3ed
-}
-
-.key h1 {
-    font-size: medium;
-    margin-top: 170px;
-    margin-left: 15px
-}
-
-#blackkeys>div {
-    position: absolute;
-    background-color: black;
-    width: 30px;
-    height: 140px;
     z-index: 10;
 }
 
-#whitekeys {
+.black.selected{
+    background-color: rgb(49, 49, 49);
+}
+
+.white{
+    background-color: #f5f3ed;
+    box-sizing: border-box;
+    border: 2px solid black;
+    height: 300px;
+    width: 70px;
+    display: inline-block;
+}
+
+.white.selected{
+    background-color: #cfcfcf;
+}
+
+.white, .black {
     position: absolute;
 }

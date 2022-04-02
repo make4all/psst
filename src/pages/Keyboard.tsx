@@ -2,7 +2,7 @@ import React from 'react'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
 import '../styles/keyboard.css'
-import { getKeyFreq, OutputStateChange } from '../sonification/OutputConstants'
+import { OutputStateChange, getPianoKeys } from '../sonification/OutputConstants'
 import { DataSink } from '../sonification/DataSink'
 import { filter, Observable, OperatorFunction, pipe, Subject, UnaryFunction } from 'rxjs'
 import { Datum } from '../sonification/Datum'
@@ -15,8 +15,8 @@ export interface KeyboardProps {}
 
 export interface KeyboardState {
     musicHandler: SimpleDataHandler
-    keyFrequencies : Map<String, number>
-    possibleKeys : string[]
+    pianoKeys : Map<string, [number, boolean]>
+    validKeys: string[]
 }
 
 
@@ -26,18 +26,16 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     private sink : DataSink | undefined
     private stream : Subject<Datum> | undefined
     private currKey : string | undefined
-    private exclusions : number[]
 
     constructor(props : KeyboardProps) {
         super(props)
         this.state = {
             musicHandler : new SimpleDataHandler(new NoteSonify()),
-            keyFrequencies : getKeyFreq(),
-            possibleKeys : Array.from(getKeyFreq().keys())
+            pianoKeys : getPianoKeys(),
+            validKeys : Array.from(getPianoKeys().keys())
         }
         this.streaming = false
         this.currKey = undefined
-        this.exclusions = [0, 3, 7, 10, 14, 17]
     }
 
     /**
@@ -84,32 +82,21 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
         this.streaming = !this.streaming
     }
 
-    /*
-    handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (!this.streaming) this.handleStartStreaming()
-        let pressedKey = event.code;
-        if (this.sink && this.stream && this.state.keyFrequencies.has(pressedKey)) {
-            document.getElementById(pressedKey)!.style.backgroundColor = "red"
-            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(pressedKey)!))
-        }
-    }
-    */
-
     handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
         if (!this.streaming) this.handleStartStreaming()
         let keyDown = event.code;
         if (DEBUG) console.log("key down!", keyDown)
-        if (this.sink && this.stream && this.state.keyFrequencies.has(keyDown)) {
-            document.getElementById(keyDown)!.style.backgroundColor = "#878787"
+        if (this.sink && this.stream && this.state.validKeys.includes(keyDown)) {
+            document.getElementById(keyDown)!.classList.add("selected")
             OutputEngine.getInstance().next(OutputStateChange.Play)
             this.currKey = keyDown
-            this.stream.next(new Datum(this.sink.id, this.state.keyFrequencies.get(keyDown)!))
+            this.stream.next(new Datum(this.sink.id, this.state.pianoKeys.get(keyDown)![0]))
         }
     }
 
     handleKeyUp = (event: React.KeyboardEvent<HTMLDivElement>) => {
         let keyUp = event.code
-        if (this.state.keyFrequencies.has(keyUp)) document.getElementById(keyUp)!.style.backgroundColor = "#f5f3ed"
+        if (this.state.validKeys.includes(keyUp)) document.getElementById(keyUp)!.classList.remove("selected")
         if (keyUp == this.currKey) {
             OutputEngine.getInstance().next(OutputStateChange.Pause)
             this.currKey = undefined
@@ -117,27 +104,20 @@ export class Keyboard extends React.Component<KeyboardProps, KeyboardState> {
     }
 
     public render() {
+        var white = 0;
         return (
             <div id="piano" tabIndex={0} onKeyDown={this.handleKeyDown} onKeyUp={this.handleKeyUp}>
                 <button>Click me to start.</button>
-                <div id="blackkeys">
+                <div id="keys">
                     {
-                        this.state.possibleKeys.map((id, idx) => {
-                            // 50 is width of white key
-                            if (!this.exclusions.includes(idx)) {
-                                const calc = {
-                                    // manual calc
-                                    left: idx*50-8
-                                } as const;
-                                return <div style={calc} key={id}> </div>
+                        this.state.validKeys.map((id) => {
+                            // if the key is black
+                            if (this.state.pianoKeys.get(id)![1]) {
+                                return <Key keyb={id} black={true} leftAdjust={white*70+50}></Key>
+                            } else { // if the key is white
+                                white++;
+                                return <Key keyb={id} black={false} leftAdjust={white*70}></Key>
                             }
-                        })
-                    }
-                </div>
-                <div id="whitekeys">
-                    {
-                        this.state.possibleKeys.map(function(id){
-                            return <Key note={id} key={id}/>
                         })
                     }
                 </div>

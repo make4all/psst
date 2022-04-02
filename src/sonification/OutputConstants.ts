@@ -59,6 +59,28 @@ export function setSonificationsLoggingLevel(level: SonificationLoggingLevel) {
     sonificationLoggingLevel = level
 }
 
+// maps from key -> frequency and if note is black
+// currently uses the 4th octave
+const pianoKeys = new Map<string, [number, boolean]>([
+    ['KeyA', [261.63, false]], // C
+    ['KeyW', [277.18, true]], // C#
+    ['KeyS', [293.66, false]], // D
+    ['KeyE', [311.13, true]], // D#
+    ['KeyD', [329.63, false]], // E
+    ['KeyF', [349.23, false]], // F
+    ['KeyT', [369.99, true]], // F#
+    ['KeyG', [392.00, false]], // G
+    ['KeyY', [415.30, true]], // G#
+    ['KeyH', [440.00, false]], // A
+    ['KeyU', [466.16, true]], // A#
+    ['KeyJ', [493.88, false]] // B
+]);
+
+export function getPianoKeys() {
+    return pianoKeys;
+}
+
+
 const keyFreq = new Map<string, number>([
     ['Digit1', 65.41], // C2
     ['Digit2', 73.42], // D2
