@@ -9,6 +9,8 @@ import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { Box, Button, Input } from '@mui/material'
 import { NoteSonify } from '../../sonification/output/NoteSonify'
+import { Speech } from '../../sonification/output/Speech'
+import { RunningAverageHandler } from '../../sonification/handler/RunningAverageHandler'
 
 const DEBUG = true
 
@@ -80,6 +82,7 @@ export class DemoSlope extends DemoSimple<DemoSlopeProps, DemoSlopeState> implem
         console.log('setting up note sonify for slope')
         this.sink = OutputEngine.getInstance().addSink('DemoSlope')
         // this.sink.addDataHandler(new SlopeHandler(new NoteSonify(-1)), false)
+                this.sink.addDataHandler(new RunningAverageHandler(new Speech()), false)
         if (DEBUG) console.log('sink initialized')
         this.sink.addDataHandler(new NoteHandler(undefined,1), false)
         return this.sink

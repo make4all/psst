@@ -101,7 +101,7 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
         let delayID = this.delaySink ? this.delaySink.id : 1
 
         let dataCopy = Object.assign([], data)
-        let data$ = of(...data) //.slice(0, 8))
+        let data$ = of(...data.slice(0,5)) //.slice(0, 8))
         let delayData$ = of(...dataCopy) //.slice(0, 8))
 
         let timer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
@@ -136,22 +136,22 @@ export class DemoSimple<DemoSimpleProps, DemoSimpleState>
 
         let delayTimer$ = timer(0, 250).pipe(debug(SonificationLoggingLevel.DEBUG, 'point number'))
 
-        let delaySource$ = zip(delayData$, delayTimer$, (num, time) => new Datum(delayID, num)).pipe(delay(1000)).pipe(
-            debug(SonificationLoggingLevel.DEBUG, 'delayPoint'),
-        )
-        OutputEngine.getInstance().setStream(delayID, delaySource$)
+        // let delaySource$ = zip(delayData$, delayTimer$, (num, time) => new Datum(delayID, num)).pipe(delay(1000)).pipe(
+            // debug(SonificationLoggingLevel.DEBUG, 'delayPoint'),
+        // )
+        // OutputEngine.getInstance().setStream(delayID, delaySource$)
 
         
         /// Make sure to delete the sink when the source is
-        delaySource$.subscribe({
+        // delaySource$.subscribe({
 
 
         /// Make sure to delete the sink when the source is
-            complete: () => {
-                this.delaySink = undefined
+            // complete: () => {
+                // this.delaySink = undefined
                 //Demo.setState({ playbackLabel: "Play" })
-            },
-        })
+            // },
+        // })
 
 
         debugStatic(SonificationLoggingLevel.DEBUG, `adding Handler to ${this.delaySink}`)
