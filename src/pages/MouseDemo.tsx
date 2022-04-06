@@ -8,6 +8,7 @@ import { filter, Observable, OperatorFunction, pipe, Subject, UnaryFunction } fr
 import { Datum } from '../sonification/Datum'
 import { OutputEngine } from '../sonification/OutputEngine'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
+import { MousePositionPianoHandler } from '../sonification/handler/MousePositionPianoHandler'
 
 const DEBUG = false
 
@@ -60,7 +61,7 @@ export class MouseDemo extends React.Component<MouseDemoProps, MouseDemoState> {
             if (!srcX) {
                 srcX = OutputEngine.getInstance().addSink('jacdac accelerometer X axis')
                 if (DEBUG) console.log(`added sink to stream x axis data ${this.xSink}`)
-                srcX.addDataHandler(new NoteHandler([0, this.state.width], new NoteSonify(-1)))
+                srcX.addDataHandler(new MousePositionPianoHandler ([0, this.state.width], new NoteSonify(-1)))
                 xSinkID = srcX.id
                 this.xSink = srcX
             }
