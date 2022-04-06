@@ -48,9 +48,10 @@ export class SheetMusic extends DatumOutput {
         // }
         const parser = new DOMParser();
         // parsed svg into a document, can now append to document
-        const doc = parser.parseFromString(svg, "image/svg+xml")
+        //const doc = parser.parseFromString(svg, "image/svg+xml")
+        const doc = parser.parseFromString('<svg width="765" height="1700"><rect width="145" height="1700" x="90" style="stroke-width:1; stroke:black; fill: none;" /></svg>', "image/svg+xml")
         this.element = doc.documentElement;
-        // const myElement = document.getElementById('for-svg')!
+        const myElement = document.getElementById('for-svg')!
         // // for immediately generating circle
         // let curr = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         // let cx = 260
@@ -59,10 +60,10 @@ export class SheetMusic extends DatumOutput {
         // curr.setAttribute('cy', cy.toString())
         // curr.setAttribute( 'r', '4');
         // doc.documentElement.appendChild(curr)
-        // doc.documentElement.id = 'epic-svg'
-        // if (doc && myElement) {
-        //     myElement.appendChild(doc.documentElement)
-        // }
+        doc.documentElement.id = 'epic-svg'
+        if (doc && myElement) {
+            myElement.appendChild(doc.documentElement)
+        }
     }
 
     protected output(datum: Datum): void {
@@ -93,7 +94,6 @@ export class SheetMusic extends DatumOutput {
 
         console.log("finalSVG: ", source)
 
-        /*
         //add name spaces.
         if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
             source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -113,7 +113,6 @@ export class SheetMusic extends DatumOutput {
         link = document.querySelector("a#link")!
         link.href = url;
         //you can download svg file by right click menu.
-        */
     }
 
     /** used for SingleSheet and FourSheets, not compatible with ExtendedSingleSheet
