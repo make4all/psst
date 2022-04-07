@@ -131,7 +131,24 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
     musicBox: {
         name: 'Music Box',
         id: `MusicBox-${Math.floor(Math.random() * Date.now())}`,
-        createOutput: () => new SheetMusic(),
+        createOutput: () => new SheetMusic(true, undefined, true),
+        parameters: [
+            {
+                name: 'Prepare for laser cut?',
+                type: 'list',
+                default: (obj?: DataHandler | DatumOutput) => 0,
+                values: [
+                    { display: 'Yes', value: 0 },
+                    { display: 'No', value: 1 },
+                ],
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const mb = obj as SheetMusic
+                        mb.cut = value == 0 ? true : false
+                    }
+                },
+            }
+        ]
     },
     note: {
         name: 'Note',
@@ -358,7 +375,7 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         name: 'Simple Handler',
         id: `Simple Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Outputs the raw data stream without processing.',
-        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.musicBox)],
+        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech), AVAILABLE_DATA_OUTPUT_TEMPLATES.musicBox],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
     },
 ]
