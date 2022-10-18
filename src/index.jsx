@@ -5,7 +5,7 @@ const Jacdac = lazy(() => import('./pages/Jacdac'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const MicrobitController = lazy(() => import('./pages/MicrobitController'))
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
 
 if (module.hot) {
@@ -13,7 +13,7 @@ if (module.hot) {
 }
 
 ReactDOM.render(
-    <BrowserRouter>
+    <HashRouter>
         <Routes>
             <Route path="/" element={<Index />} />
             <Route path="basic" element={<Demo />} />
@@ -42,6 +42,6 @@ ReactDOM.render(
                 }
             />
         </Routes>
-    </BrowserRouter>,
+    </HashRouter>,
     document.getElementById('root'),
 )

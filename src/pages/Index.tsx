@@ -10,15 +10,13 @@ const Index: FC = (props) => {
     ]
 
     return (
-        <>
-            <ul>
-                {opts.map((opt) => (
-                    <li key={opt.url}>
-                        <Link to={opt.url}>{opt.name}</Link>
-                    </li>
-                ))}
-            </ul>
-        </>
+        <ul>
+            {opts.map((opt) => (
+                <li key={opt.url}>
+                    <Link to={opt.url}>{opt.name}</Link>
+                </li>
+            ))}
+        </ul>
     )
 }
 
