@@ -1,4 +1,4 @@
-# Sonification
+# Physical Computing Streaming Sensor Tooltip (PSST)
 
 The Physical computing Streaming Sensor Sonification Toolkit (PSSST) is designed to simplify the authoring of  sonification of live sensor data for the purposes of understanding, testing, and debugging sensors. The toolkit is designed more generally to support authoring across different types of streaming data, but has prioritized features that will specifically be helpful when dealing with multiple sensor data streams.
 

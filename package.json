@@ -1,6 +1,6 @@
 {
-    "homepage": ".",
-    "name": "sonification",
+    "name": "psst",
+    "homepage": "https://make4all.github.io/psst/",
     "version": "1.1.2",
     "description": "library that provides sonification primitives to make data accessible.",
     "source": "src/sonifier.ts",
@@ -95,6 +95,6 @@
             "last 1 safari version"
         ]
     },
-    "repository": "https://github.com/make4all/sonification.git",
+    "repository": "https://github.com/make4all/psst.git",
     "author": "Jennifer Mankoff <jmankoff@cs.washington.edu>"
 }
