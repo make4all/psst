@@ -658,7 +658,7 @@ export function DashboardView() {
                 </AppBar>
             </Box>
             <Container>
-                <Box role="region" aria-aria-labelledby="header-connect-device" sx={{ my: 2 }}>
+                <Box role="region" aria-labelledby="header-connect-device" sx={{ my: 2 }}>
                     <Typography id="header-connect-device" variant="h5" component="h2">
                         Connect your device
                     </Typography>
@@ -671,7 +671,7 @@ export function DashboardView() {
                 <Box>
                     {!connected ? undefined : (
                         <Box>
-                            <Box role="region" aria-aria-labelledby="header-hear-data" sx={{ mb: 2, mt: 4 }}>
+                            <Box role="region" aria-labelledby="header-hear-data" sx={{ mb: 2, mt: 4 }}>
                                 <Typography id="header-hear-data" variant="h5" component="h2">
                                     Hear your sensor data
                                 </Typography>
@@ -703,7 +703,7 @@ export function DashboardView() {
                                     ))}
                                 </Grid>
                             </Box>
-                            <Box role="region" aria-aria-labelledby="header-play-data" sx={{ mb: 2, mt: 4 }}>
+                            <Box role="region" aria-labelledby="header-play-data" sx={{ mb: 2, mt: 4 }}>
                                 <Typography id="header-play-data" variant="h5" component="h3">
                                     Play your data sonification
                                 </Typography>
@@ -733,7 +733,7 @@ export function DashboardView() {
 
                                 </Box>
                             </Box>
-                            <Box role="region" aria-aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
+                            <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
                                 <Typography id="header-configure-add" variant="h5" component="h3">
                                     Configure and add sonifiers
                                 </Typography>

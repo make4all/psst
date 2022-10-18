@@ -13,7 +13,7 @@ const Index: FC = (props) => {
         <>
             <ul>
                 {opts.map((opt) => (
-                    <li>
+                    <li key={opt.url}>
                         <Link to={opt.url}>{opt.name}</Link>
                     </li>
                 ))}
