@@ -21,6 +21,7 @@
         "watch:bundle": "microbundle watch",
         "start": "react-scripts start",
         "eject": "react-scripts eject",
+        "build": "react-scripts build",
         "serve": "live-server --open=public/index.html",
         "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",

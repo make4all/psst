@@ -20,6 +20,14 @@ jobs:
       - run: yarn bundle
       - run: npm install -g makecode
       - run: yarn makecode
+      - run: yarn build
+      - name: github pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          enable_jekyll: false
+          publish_dir: ./build     
       - run: npx semantic-release
         if: ${{ github.ref == 'refs/heads/main' }}
         env:
