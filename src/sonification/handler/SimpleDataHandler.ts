@@ -3,13 +3,18 @@ import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
 import { DataHandler } from './DataHandler'
 import { bufferCount, filter, map, Observable, tap } from 'rxjs'
-import { getSonificationLoggingLevel, OutputStateChange, SonificationLevel, SonificationLoggingLevel } from '../OutputConstants'
+import {
+    getSonificationLoggingLevel,
+    OutputStateChange,
+    SonificationLevel,
+    SonificationLoggingLevel,
+} from '../OutputConstants'
 
 const DEBUG = true
 
 /**
  * A DataHandler that notifies if a set of point/s are seen
-  */
+ */
 export class SimpleDataHandler extends DataHandler {
     /**
      * a value denoting the number of points that the user should be notified after. defaults to 1 if not specified in the constructor. The user is then notified for every point.
@@ -41,15 +46,14 @@ export class SimpleDataHandler extends DataHandler {
      *
      * @param sink The sink that is producing data for us
      */
-     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
         super.setupSubscription(
-            sink$.pipe(bufferCount(this.threshold), 
-map((frames) => {
-    return frames[frames.length-1]
-}
-
-    ),                
-            filter((val) => {
+            sink$.pipe(
+                bufferCount(this.threshold),
+                map((frames) => {
+                    return frames[frames.length - 1]
+                }),
+                filter((val) => {
                     return true
                 }),
             ),

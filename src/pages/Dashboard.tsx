@@ -51,6 +51,7 @@ import { DatumOutput } from '../sonification/output/DatumOutput'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { NoiseSonify } from '../sonification/output/NoiseSonify'
 import { Speech } from '../sonification/output/Speech'
+import { Copy } from '../sonification/output/Copy'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { OutputStateChange } from '../sonification/OutputConstants'
 import { Datum } from '../sonification/Datum'
@@ -59,6 +60,7 @@ import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHan
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { FileOutput } from '../sonification/output/FileOutput'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
+import { CopyToClipboardHandler } from '../sonification/handler/CopyToClipboardHandler'
 
 export interface JDServiceWrapper {
     name: string
@@ -219,8 +221,8 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
                         sp.polite = value == 1 ? true : false
                     }
                 },
-            }
-        ]
+            },
+        ],
     },
 }
 
@@ -354,6 +356,13 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         description: 'Outputs the raw data stream without processing.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
+    },
+    {
+        name: 'Copy Handler',
+        id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
+        description: 'Copies the data of the chosen sensor',
+        dataOutputs: [],
+        createHandler: (domain: [number, number]) => new CopyToClipboardHandler(),
     },
 ]
 
@@ -546,6 +555,7 @@ export function DashboardView() {
         template: DataHandlerWrapper,
     ) => {
         console.log(add, serviceId, valueId, template)
+
         const servicesCopy = services.map((service) => {
             if (serviceId === service.id) {
                 const values = service.values.map((value) => {
@@ -730,7 +740,6 @@ export function DashboardView() {
                                             type: 'number',
                                         }}
                                     /> */}
-
                                 </Box>
                             </Box>
                             <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>

@@ -8,7 +8,6 @@ const DEBUG = false
  * A DataHandler class is used to decide how to output each data point.
  */
 export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
-    
     private subscription?: Subscription
     private _outputs: Array<DatumOutput>
 
@@ -23,8 +22,8 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
     }
 
     /**
-     * 
-     * @param output 
+     *
+     * @param output
      */
     public removeOutput(output: DatumOutput) {
         this._outputs = this._outputs.filter((o) => o !== output)
@@ -70,7 +69,9 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      */
     constructor(output?: DatumOutput) {
         super()
+
         this._outputs = new Array<DatumOutput>()
+
         if (output) this.addOutput(output)
     }
 }
