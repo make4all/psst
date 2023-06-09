@@ -19,7 +19,7 @@ export class NoteHandler extends ScaleHandler {
     public static melConversion(num, domain, range): number {
         let positiveVal = ((num - domain[0]) * (range[1] - range[0])) / (domain[1] - domain[0]) + range[0]
         let frequency = 700 * (Math.exp(positiveVal / 1127) - 1)
-        if (frequency == NaN || frequency == undefined) frequency = range[1]
+        if (Number.isNaN(frequency) || frequency == undefined) frequency = range[1]
         return frequency
     }
 

@@ -219,8 +219,8 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
                         sp.polite = value == 1 ? true : false
                     }
                 },
-            }
-        ]
+            },
+        ],
     },
 }
 
@@ -730,7 +730,6 @@ export function DashboardView() {
                                             type: 'number',
                                         }}
                                     /> */}
-
                                 </Box>
                             </Box>
                             <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
