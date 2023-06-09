@@ -37,7 +37,7 @@ export class Statistic extends BehaviorSubject<number> {
      *
      * @param stream$ The data being streamed
      */
-    public setupSubscription(stream$: Observable<number>): Subscription {
+    protected setupSubscription(stream$: Observable<number>): Subscription {
         this.subscription?.unsubscribe()
         this.subscription = stream$.subscribe(this)
         return this.subscription

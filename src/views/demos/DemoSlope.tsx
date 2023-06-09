@@ -1,29 +1,32 @@
 import React from 'react'
 
-import { TextField } from '@mui/material'
+import { fabClasses, TextField } from '@mui/material'
 import { IDemoView } from './IDemoView'
-import { NotificationHandler } from '../../sonification/handler/NotificationHandler'
+import { SlopeHandler } from '../../sonification/handler/SlopeHandler'
 import { FileOutput } from '../../sonification/output/FileOutput'
 import { DemoSimple, DemoSimpleProps, DemoSimpleState } from './DemoSimple'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { OutputEngine } from '../../sonification/OutputEngine'
 import { Box, Button, Input } from '@mui/material'
+import { NoteSonify } from '../../sonification/output/NoteSonify'
+import { Speech } from '../../sonification/output/Speech'
+import { RunningAverageHandler } from '../../sonification/handler/RunningAverageHandler'
 
 const DEBUG = true
 
-export interface DemoFileOutputState extends DemoSimpleState {
+export interface DemoSlopeState extends DemoSimpleState {
     targetValues: number[]
 }
-export interface DemoFileOutputProps extends DemoSimpleProps {
+export interface DemoSlopeProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoFileOutput extends DemoSimple<DemoFileOutputProps, DemoFileOutputState> implements IDemoView {
-    notifier: NotificationHandler | undefined
+export class DemoSlope extends DemoSimple<DemoSlopeProps, DemoSlopeState> implements IDemoView {
+    filter: SlopeHandler | undefined
     private _inputFile: React.RefObject<HTMLInputElement>
     private _buffer: ArrayBuffer | undefined
 
-    constructor(props: DemoFileOutputProps) {
+    constructor(props: DemoSlopeProps) {
         super(props)
         this.state = {
             // currently just chooses max as the default
@@ -52,42 +55,8 @@ export class DemoFileOutput extends DemoSimple<DemoFileOutputProps, DemoFileOutp
                         </Button>
                     </Box>
                 </label>
-                <TextField
-                    id="text-values"
-                    aria-label="Enter the target value"
-                    label="Points of interest"
-                    variant="outlined"
-                    onChange={(e) => this._handleValueChange(e.target.value)}
-                />
             </div>
         )
-    }
-
-    /**
-     * @param prevProps new min/max value
-     */
-    public componentDidUpdate(prevProps: DemoFileOutputProps) {
-        // When the data summary changes, update the min & max value
-        if (
-            this.props.dataSummary.min !== prevProps.dataSummary.min ||
-            this.props.dataSummary.max !== prevProps.dataSummary.max
-        ) {
-            let targetValues = [this.props.dataSummary.max]
-            this.setState({ targetValues })
-        }
-        if (this.notifier) this.notifier.interestPoints = this.state.targetValues
-    }
-
-    private _handleValueChange = (value: string) => {
-        let values = value.split(',')
-        let targets: number[] = []
-        for (let val of values) {
-            let numb = parseFloat(val)
-            if (!isNaN(numb)) {
-                targets.push(numb)
-            }
-        }
-        this.setState({ targetValues: targets })
     }
 
     private _handleFileChange = (event: React.FormEvent<HTMLElement>) => {
@@ -110,11 +79,12 @@ export class DemoFileOutput extends DemoSimple<DemoFileOutputProps, DemoFileOutp
 
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
-        this.sink = OutputEngine.getInstance().addSink('FileOutputDemo')
-        this.notifier = new NotificationHandler(new FileOutput(this._buffer), this.state.targetValues)
+        console.log('setting up note sonify for slope')
+        this.sink = OutputEngine.getInstance().addSink('DemoSlope')
+        // this.sink.addDataHandler(new SlopeHandler(new NoteSonify(-1)), false)
+                this.sink.addDataHandler(new RunningAverageHandler(new Speech()), false)
         if (DEBUG) console.log('sink initialized')
-        //this.sink.addDataHandler(new NoteHandler())
-        this.sink.addDataHandler(this.notifier)
+        this.sink.addDataHandler(new NoteHandler(undefined,1), false)
         return this.sink
     }
 }

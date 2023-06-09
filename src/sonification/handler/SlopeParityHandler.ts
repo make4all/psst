@@ -1,7 +1,8 @@
-import { filter, Observable, tap } from 'rxjs'
+import { filter, map, Observable, tap, withLatestFrom } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
+import { SlopeChange } from '../stat/SlopeChange'
 
 const DEBUG = true
 
@@ -26,7 +27,7 @@ export class SlopeParityHandler extends DataHandler {
      */
     private _prevPoint: number
     public get prevPoint(): number {
-        return this._prevPoint;
+        return this._prevPoint
     }
     public set prevPoint(value: number) {
         this._prevPoint = value
@@ -67,16 +68,18 @@ export class SlopeParityHandler extends DataHandler {
      *
      * @param sink The sink that is producing data for us
      */
-     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
-        debugStatic (SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+    public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic(SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        let slope$ = new SlopeChange(sink$)
+
         super.setupSubscription(
             sink$.pipe(
                 filter((val) => {
-                    if (val instanceof Datum){
+                    if (val instanceof Datum) {
                         let slope = val.value - this.prevPoint
                         this.prevPoint = val.value // no matter what, we'll need the prev point to calculate the slope
                         if (this.direction == 0) {
-                            console.log("direction 0")
+                            console.log('direction 0')
                             if (Math.sign(slope) != Math.sign(this.prevSlope)) {
                                 if (DEBUG) console.log('direction of slope changed')
                                 this.prevSlope = slope
@@ -88,7 +91,8 @@ export class SlopeParityHandler extends DataHandler {
                                 if (Math.sign(slope) != Math.sign(this.prevSlope)) {
                                     this.prevSlope = slope
                                     return true
-                                } else { // slope did not change direction
+                                } else {
+                                    // slope did not change direction
                                     this.prevSlope = slope
                                     return false
                                 }
@@ -96,8 +100,7 @@ export class SlopeParityHandler extends DataHandler {
                             this.prevSlope = slope
                             return false
                         }
-                    }
-                    else return true
+                    } else return true
                 }),
             ),
         )
@@ -114,6 +117,7 @@ export class SlopeParityHandler extends DataHandler {
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
 import { Datum } from '../Datum'
+
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(

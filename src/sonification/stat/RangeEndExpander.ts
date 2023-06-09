@@ -29,7 +29,7 @@ export class RangeEndExpander extends Statistic {
      * @param stream$ the stream of data
      * @returns a subscription
      */
-    public setupSubscription(stream$: Observable<number>): Subscription {
+    protected setupSubscription(stream$: Observable<number>): Subscription {
         return super.setupSubscription(
             stream$.pipe(
                 reduce((acc, curr) => {

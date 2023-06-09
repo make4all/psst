@@ -50,10 +50,12 @@ export class NoteSonify extends Sonify {
     protected output(datum: Datum) {
         debugStatic(SonificationLoggingLevel.DEBUG, `outputing ${datum.value} to oscillator`)
         let oscillator = this.outputNode as OscillatorNode
-
+        if (!this.isAudioPlaying) {
+            oscillator.start()
+            this.isAudioPlaying = true
+        }
         oscillator.frequency.value = datum.value
     }
-
     /**
      * Generates a new note sonifier
      */
@@ -101,7 +103,7 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 const debugStatic = (level: number, message: string) => {
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
-            console.log(message)
+            console.log('slope' + message)
         } //else console.log('debug message dumped')
     }
 }
