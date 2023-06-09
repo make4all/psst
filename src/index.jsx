@@ -7,7 +7,8 @@ const MicrobitController = lazy(() => import('./pages/MicrobitController'))
 
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
-
+import { Keyboard } from './pages/Keyboard'
+import { MouseDemo } from './pages/MouseDemo'
 if (module.hot) {
     module.hot.accept()
 }
@@ -38,6 +39,22 @@ ReactDOM.render(
                 element={
                     <Suspense fallback={null}>
                         <Dashboard />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="keyboard"
+                element={
+                    <Suspense fallback={null}>
+                        <Keyboard />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="mousedemo"
+                element={
+                    <Suspense fallback={null}>
+                        <MouseDemo />
                     </Suspense>
                 }
             />

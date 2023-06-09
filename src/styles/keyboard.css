@@ -1,0 +1,38 @@
+/*#piano {
+    height: 200px;
+    width: 500px;
+    border: 2px
+}
+*/
+
+:focus{
+    outline: none;
+}
+
+.black{
+    background-color: rgb(0, 0, 0);
+    width: 40px;
+    height: 200px;
+    z-index: 10;
+}
+
+.black.selected{
+    background-color: rgb(49, 49, 49);
+}
+
+.white{
+    background-color: #f5f3ed;
+    box-sizing: border-box;
+    border: 2px solid black;
+    height: 300px;
+    width: 70px;
+    display: inline-block;
+}
+
+.white.selected{
+    background-color: #cfcfcf;
+}
+
+.white, .black {
+    position: absolute;
+}
