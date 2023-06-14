@@ -69,7 +69,9 @@ export abstract class DataHandler extends Subject<OutputStateChange | Datum> {
      */
     constructor(output?: DatumOutput) {
         super()
+
         this._outputs = new Array<DatumOutput>()
+
         if (output) this.addOutput(output)
     }
 }
