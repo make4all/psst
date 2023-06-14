@@ -68,10 +68,10 @@ const pianoKeys = new Map<string, [number, boolean]>([
     ['Digit3', [155.56, true]], // D3#
     ['KeyE', [164.81, false]], // E3
     ['KeyR', [174.61, false]], // F3
-    ['Digit5', [185.00, true]], // F3#
-    ['KeyT', [196.00, false]], // G3
+    ['Digit5', [185.0, true]], // F3#
+    ['KeyT', [196.0, false]], // G3
     ['Digit6', [207.65, true]], // G3#
-    ['KeyY', [220.00, false]], // A3
+    ['KeyY', [220.0, false]], // A3
     ['Digit7', [233.08, true]], // A3#
     ['KeyU', [246.94, false]], // B3
     ['KeyZ', [261.63, false]], // C4
@@ -81,13 +81,13 @@ const pianoKeys = new Map<string, [number, boolean]>([
     ['KeyC', [329.63, false]], // E4
     ['KeyV', [349.23, false]], // F4
     ['KeyG', [369.99, true]], // F4#
-    ['KeyB', [392.00, false]], // G4
-    ['KeyH', [415.30, true]], // G4#
-    ['KeyN', [440.00, false]], // A4
+    ['KeyB', [392.0, false]], // G4
+    ['KeyH', [415.3, true]], // G4#
+    ['KeyN', [440.0, false]], // A4
     ['KeyJ', [466.16, true]], // A4#
-    ['KeyM', [493.88, false]] // B4
-]);
+    ['KeyM', [493.88, false]], // B4
+])
 
 export function getPianoKeys() {
-    return pianoKeys;
+    return pianoKeys
 }
