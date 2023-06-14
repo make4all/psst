@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
 
 import { blueGrey } from '@mui/material/colors'
-import { DataHandlerWrapper, JDValueWrapper } from '../../pages/Dashboard'
+import { DataHandlerWrapper } from '../../pages/templates/DataHandlerInterfaces'
+import { JDValueWrapper } from '../../pages/templates/JDInterfaces'
 import JDValueItem from './JDValueItem'
 
 export interface JDServiceItemProps {
