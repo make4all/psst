@@ -7,7 +7,6 @@ import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandle
 import { RunningExtremaHandler } from '../../sonification/handler/RunningExtremaHandler'
 import { SlopeParityHandler } from '../../sonification/handler/SlopeParityHandler'
 import { SimpleDataHandler } from '../../sonification/handler/SimpleDataHandler'
-import { CopyToClipboardHandler } from '../../sonification/handler/CopyToClipboardHandler'
 
 import { DataOutputWrapper } from './DataHandlerInterfaces'
 import { AVAILABLE_DATA_OUTPUT_TEMPLATES } from './DataOutputTemplates'
@@ -154,12 +153,5 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         description: 'Outputs the raw data stream without processing.',
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
-    },
-    {
-        name: 'Copy Handler',
-        id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
-        description: 'Copies the data of the chosen sensor',
-        dataOutputs: [],
-        createHandler: (domain: [number, number]) => new CopyToClipboardHandler(),
     },
 ]

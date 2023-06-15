@@ -9,7 +9,6 @@ const Index: FC = (props) => {
         { name: 'Dashboard', url: '/dashboard' },
         { name: 'Keyboard', url: '/keyboard' },
         { name: 'MouseDemo', url: '/mousedemo' },
-        { name: 'Demo Copy Stream', url: '/democopystream' },
     ]
 
     return (
