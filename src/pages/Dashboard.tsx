@@ -465,12 +465,15 @@ export function DashboardView() {
                         const sinkId = sink.id
 
                         const rawSubject = new Subject<Datum>()
+                        let sinkName = `${jds.specification.name} ${jds.device.name} ${v}`
 
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
 
                         const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
                             // console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
-                            rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
+                            let datum: Datum = new Datum(sinkId, jds.readingRegister.unpackedValue[i])
+                            datum.setSinkName(sinkName)
+                            rawSubject.next(datum)
                         })
 
                         const unsubscribe = () => {
