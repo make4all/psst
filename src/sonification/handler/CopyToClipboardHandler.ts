@@ -2,15 +2,35 @@ import { DataHandler } from './DataHandler'
 import { DataSink } from '../DataSink'
 import { Datum } from '../Datum'
 import { DatumOutput } from '../output/DatumOutput'
-import { OutputStateChange } from '../OutputConstants'
 import { Observable, filter } from 'rxjs'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { tap } from 'rxjs/operators'
+
+const DEBUG = false
 
 export class CopyToClipboardHandler extends DataHandler {
     private copiedData: Datum[] = []
 
-    constructor(output?: DatumOutput) {
+    private _domain: [number, number]
+    public get domain(): [number, number] {
+        return this._domain
+    }
+    public set domain(value: [number, number]) {
+        this._domain = value
+    }
+
+    public insideDomain(num: number): boolean {
+        debugStatic(SonificationLoggingLevel.DEBUG, `checking if ${num} is inside ${this.domain}`)
+        return num >= this.domain[0] && num <= this.domain[1]
+    }
+
+    constructor(domain?: [number, number], output?: DatumOutput) {
         super(output)
+        debugStatic(SonificationLoggingLevel.DEBUG, 'setting up Copy handler')
+        if (domain) {
+            debugStatic(SonificationLoggingLevel.DEBUG, `setting up copy range handeler with domain ${domain}`)
+            this._domain = domain
+        } else this._domain = [0, 0]
     }
 
     /**
@@ -23,7 +43,7 @@ export class CopyToClipboardHandler extends DataHandler {
             sink$.pipe(
                 tap((data) => {
                     if (data instanceof Datum) {
-                        this.copiedData.push(data)
+                        if (this.insideDomain(data.value)) this.copiedData.push(data)
                     }
                 }),
             ),
@@ -72,6 +92,33 @@ export class CopyToClipboardHandler extends DataHandler {
     }
 
     public toString(): string {
-        return `CopyToClipboardHandler`
+        return `CopyRangeHandler: Keeping only data in ${this.domain[0]},${this.domain[1]}`
+    }
+}
+
+//////////// DEBUGGING //////////////////
+import { tag } from 'rxjs-spy/operators/tag'
+const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
+    if (watch) {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+            tag(message),
+        )
+    } else {
+        return source.pipe(
+            tap((val) => {
+                debugStatic(level, message + ': ' + val)
+            }),
+        )
+    }
+}
+
+const debugStatic = (level: number, message: string) => {
+    if (DEBUG) {
+        if (level >= getSonificationLoggingLevel()) {
+            console.log(message)
+        } // else console.log('debug message dumped')
     }
 }

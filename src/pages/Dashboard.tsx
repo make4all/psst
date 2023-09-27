@@ -362,7 +362,49 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Copies the data of the chosen sensor',
         dataOutputs: [],
-        createHandler: (domain: [number, number]) => new CopyToClipboardHandler(),
+        createHandler: (domain: [number, number]) =>
+            new CopyToClipboardHandler([
+                (domain[1] - domain[0]) * 0.4 + domain[0],
+                (domain[1] - domain[0]) * 0.6 + domain[0],
+            ]),
+        parameters: [
+            {
+                name: 'Min',
+                type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        return frh.domain[0]
+                    } else {
+                        return 0.4
+                    }
+                },
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        frh.domain = [value, frh.domain[1]]
+                    }
+                },
+            },
+            {
+                name: 'Max',
+                type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        return frh.domain[1]
+                    } else {
+                        return 0.6
+                    }
+                },
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        frh.domain = [frh.domain[0], value]
+                    }
+                },
+            },
+        ],
     },
 ]
 
@@ -459,9 +501,10 @@ export function DashboardView() {
                     name: `${jds.specification.name} ${jds.device.name}`,
                     id: serviceId,
                     values: serviceInfo.values.map((v, i) => {
-                        const sink = OutputEngine.getInstance().addSink(
-                            `JacDac Service = ${jds.specification.name}; Index = ${i}`,
-                        )
+                        const description = `JacDac Service = ${jds.specification.name}; Index = ${i}`
+
+                        const sink = OutputEngine.getInstance().addSink(description)
+
                         const sinkId = sink.id
 
                         const rawSubject = new Subject<Datum>()

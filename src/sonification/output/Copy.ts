@@ -7,7 +7,7 @@ const DEBUG = true
 
 // Define the CopyToClipboardOutput class
 export class Copy extends DatumOutput {
-    private copyToClipboardHandler: CopyToClipboardHandler
+    private copyToClipboardHandler?: CopyToClipboardHandler
 
     constructor(copyToClipboardHandler: CopyToClipboardHandler) {
         super()
