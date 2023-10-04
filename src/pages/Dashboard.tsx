@@ -51,6 +51,7 @@ import { DatumOutput } from '../sonification/output/DatumOutput'
 import { NoteSonify } from '../sonification/output/NoteSonify'
 import { NoiseSonify } from '../sonification/output/NoiseSonify'
 import { Speech } from '../sonification/output/Speech'
+import { Copy } from '../sonification/output/Copy'
 import { NoteHandler } from '../sonification/handler/NoteHandler'
 import { OutputStateChange } from '../sonification/OutputConstants'
 import { Datum } from '../sonification/Datum'
@@ -59,6 +60,7 @@ import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHan
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { FileOutput } from '../sonification/output/FileOutput'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
+import { CopyToClipboardHandler } from '../sonification/handler/CopyToClipboardHandler'
 
 export interface JDServiceWrapper {
     name: string
@@ -219,8 +221,8 @@ export const AVAILABLE_DATA_OUTPUT_TEMPLATES = {
                         sp.polite = value == 1 ? true : false
                     }
                 },
-            }
-        ]
+            },
+        ],
     },
 }
 
@@ -355,6 +357,55 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
         createHandler: (domain: [number, number]) => new SimpleDataHandler(),
     },
+    {
+        name: 'Copy Handler',
+        id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
+        description: 'Copies the data of the chosen sensor',
+        dataOutputs: [],
+        createHandler: (domain: [number, number]) =>
+            new CopyToClipboardHandler([
+                (domain[1] - domain[0]) * 0.4 + domain[0],
+                (domain[1] - domain[0]) * 0.6 + domain[0],
+            ]),
+        parameters: [
+            {
+                name: 'Min',
+                type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        return frh.domain[0]
+                    } else {
+                        return 0.4
+                    }
+                },
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        frh.domain = [value, frh.domain[1]]
+                    }
+                },
+            },
+            {
+                name: 'Max',
+                type: 'number',
+                default: (obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        return frh.domain[1]
+                    } else {
+                        return 0.6
+                    }
+                },
+                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
+                    if (obj) {
+                        const frh = obj as CopyToClipboardHandler
+                        frh.domain = [frh.domain[0], value]
+                    }
+                },
+            },
+        ],
+    },
 ]
 
 function saveText(name: string, data: string, mimeType?: string) {
@@ -450,18 +501,21 @@ export function DashboardView() {
                     name: `${jds.specification.name} ${jds.device.name}`,
                     id: serviceId,
                     values: serviceInfo.values.map((v, i) => {
-                        const sink = OutputEngine.getInstance().addSink(
-                            `JacDac Service = ${jds.specification.name}; Index = ${i}`,
-                        )
+                        const description = `JacDac Service = ${jds.specification.name}; Index = ${i}`
+
+                        const sink = OutputEngine.getInstance().addSink(description)
                         const sinkId = sink.id
 
                         const rawSubject = new Subject<Datum>()
+                        let sinkName = `${jds.specification.name} ${jds.device.name} ${v}`
 
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
 
                         const jdUnsubscribe = jds.readingRegister.subscribe(REPORT_UPDATE, () => {
                             // console.log(jds.specification.name, v, jds.readingRegister.unpackedValue[i])
-                            rawSubject.next(new Datum(sinkId, jds.readingRegister.unpackedValue[i]))
+                            let datum: Datum = new Datum(sinkId, jds.readingRegister.unpackedValue[i])
+                            datum.setSinkName(sinkName)
+                            rawSubject.next(datum)
                         })
 
                         const unsubscribe = () => {
@@ -546,6 +600,7 @@ export function DashboardView() {
         template: DataHandlerWrapper,
     ) => {
         console.log(add, serviceId, valueId, template)
+
         const servicesCopy = services.map((service) => {
             if (serviceId === service.id) {
                 const values = service.values.map((value) => {
@@ -730,7 +785,6 @@ export function DashboardView() {
                                             type: 'number',
                                         }}
                                     /> */}
-
                                 </Box>
                             </Box>
                             <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>

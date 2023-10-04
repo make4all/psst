@@ -42,7 +42,7 @@ function filterNullish<T>(): UnaryFunction<Observable<T | null | undefined>, Obs
     return pipe(filter((x) => x != null) as OperatorFunction<T | null | undefined, T>)
 }
 
-function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService}) {
+function MicroBitButton(props: { outputEngine: OutputEngine; service: JDService }) {
     const { service, outputEngine } = props
     const downEvent = useEvent(service, ButtonEvent.Down)
     const upEvent = useEvent(service, ButtonEvent.Up)
@@ -54,26 +54,22 @@ function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService})
     const handleButton = (id: string, down: boolean) => {
         // only act on an up event
 
-        if (down)
-            setState("down")
-        else
-            setState("up")
+        if (down) setState('down')
+        else setState('up')
 
         if (down) return
 
-        if (id === "A+B") {
-            if (outputEngine.value === OutputStateChange.Play)
-                outputEngine.next(OutputStateChange.Stop)
-            else
-                outputEngine.next(OutputStateChange.Play)
+        if (id === 'A+B') {
+            if (outputEngine.value === OutputStateChange.Play) outputEngine.next(OutputStateChange.Stop)
+            else outputEngine.next(OutputStateChange.Play)
         }
     }
     useEffect(() => {
-        if (instanceName === "") return
+        if (instanceName === '') return
         downEvent.subscribe(EVENT, () => handleButton(instanceName, true))
     }, [downEvent, instanceName])
-    useEffect(() =>{
-        if (instanceName === "") return
+    useEffect(() => {
+        if (instanceName === '') return
         upEvent.subscribe(EVENT, () => handleButton(instanceName, false))
     }, [upEvent, instanceName])
 
@@ -81,7 +77,14 @@ function MicroBitButton(props: {outputEngine: OutputEngine, service: JDService})
         const resolveIName = async () => setInstanceName(await service.resolveInstanceName())
         resolveIName()
     }, [])
-    return (<div key={service.friendlyName}><br/><>{instanceName} {state}</></div>)
+    return (
+        <div key={service.friendlyName}>
+            <br />
+            <>
+                {instanceName} {state}
+            </>
+        </div>
+    )
 }
 
 function ConnectButton() {
@@ -123,13 +126,11 @@ function ConnectButton() {
         return () => unsubs?.()
     }, [services])
 
-    useEffect(()=>{
-        OutputEngine.getInstance().subscribe((e: OutputStateChange)=>{
-            console.log("Chaning streaming state ", e)
-            if (e === OutputStateChange.Play) 
-                setStreaming(true);
-            else 
-                setStreaming(false);
+    useEffect(() => {
+        OutputEngine.getInstance().subscribe((e: OutputStateChange) => {
+            console.log('Chaning streaming state ', e)
+            if (e === OutputStateChange.Play) setStreaming(true)
+            else setStreaming(false)
         })
         return () => OutputEngine.getInstance().unsubscribe()
     }, [])
@@ -234,7 +235,7 @@ function ConnectButton() {
         }
     }
 
-    console.log("STREAMING STATE: ", streaming)
+    console.log('STREAMING STATE: ', streaming)
 
     return (
         <>
@@ -245,7 +246,9 @@ function ConnectButton() {
                 </Button>
             )}
             {buttons &&
-                buttons.map((button,i) => <MicroBitButton key={i} service={button} outputEngine={OutputEngine.getInstance()}/>)}
+                buttons.map((button, i) => (
+                    <MicroBitButton key={i} service={button} outputEngine={OutputEngine.getInstance()} />
+                ))}
         </>
     )
 }
