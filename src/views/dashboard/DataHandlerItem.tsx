@@ -42,7 +42,18 @@ export interface DataHandlerItemProps {
 export default function DataHandlerItem(props: React.Attributes & DataHandlerItemProps): JSX.Element {
     const [addButtonAnchor, setAddButtonAnchor] = useState<null | HTMLElement>(null)
     const [dataOutputs, setDataOutputs] = useState<DataOutputWrapper[]>(props.dataOutputs)
+    const [showHandler, setShowHandler] = useState<boolean>(false)
     const menuOpen = Boolean(addButtonAnchor)
+
+    const toggleHandler = () => {
+        setShowHandler(!showHandler)
+    }
+
+    const handleRemove = () => {
+        if (onRemove) {
+            onRemove()
+        }
+    }
 
     const handleAddButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAddButtonAnchor(event.currentTarget)
@@ -102,6 +113,13 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                                 >
                                     Choose Sensor to Add
                                 </Button>
+                                <Button
+                                    onClick={toggleHandler}
+                                    startIcon={<ArrowDropDown />}
+                                    endIcon={<ArrowDropDown />}
+                                >
+                                    {showHandler ? 'Hide' : 'Show'}
+                                </Button>
                                 <Menu
                                     open={menuOpen}
                                     onClose={handleMenuClose}
@@ -142,44 +160,58 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                         )
                     }
                 />
-                <CardContent sx={{ minHeight: 140 }}>
-                    <Grid container spacing={1}>
-                        <Grid item xs={6} lg={8}>
-                            <Typography variant="body2">{props.description}</Typography>
-                            <div>
-                                {props.parameters?.map((parameter) => {
-                                    return <ParameterItem key={parameter.name} {...parameter} obj={props.handlerObject} />
-                                })}
-                            </div>
-                            <div>
-                                {dataOutputs?.map((output) => {
-                                    return output.parameters?.map((parameter) => {
-                                        return <ParameterItem key={parameter.name} {...parameter} obj={output.outputObject} />
-                                    })
-                                })}
-                            </div>
-                        </Grid>
-                        <Grid item xs={6} lg={4}>
-                            <FormControl component="fieldset" sx={{ float: 'right' }}>
-                                <FormLabel component="legend">Choose Data Outputs</FormLabel>
-                                <FormGroup>
-                                    {dataOutputs?.map((output) => {
+                {showHandler && (
+                    <CardContent sx={{ minHeight: 140 }}>
+                        <Grid container spacing={1}>
+                            <Grid item xs={6} lg={8}>
+                                <Typography variant="body2">{props.description}</Typography>
+                                <div>
+                                    {props.parameters?.map((parameter) => {
                                         return (
-                                            <DataOutputItem
-                                                key={output.id}
-                                                name={output.name}
-                                                outputObject={output.outputObject}
-                                                createOutput={output.createOutput}
-                                                activated={!!output.outputObject}
-                                                onChange={handleDataOutputChange}
+                                            <ParameterItem
+                                                key={parameter.name}
+                                                {...parameter}
+                                                obj={props.handlerObject}
                                             />
                                         )
                                     })}
-                                </FormGroup>
-                            </FormControl>
+                                </div>
+                                <div>
+                                    {dataOutputs?.map((output) => {
+                                        return output.parameters?.map((parameter) => {
+                                            return (
+                                                <ParameterItem
+                                                    key={parameter.name}
+                                                    {...parameter}
+                                                    obj={output.outputObject}
+                                                />
+                                            )
+                                        })
+                                    })}
+                                </div>
+                            </Grid>
+                            <Grid item xs={6} lg={4}>
+                                <FormControl component="fieldset" sx={{ float: 'right' }}>
+                                    <FormLabel component="legend">Choose Data Outputs</FormLabel>
+                                    <FormGroup>
+                                        {dataOutputs?.map((output) => {
+                                            return (
+                                                <DataOutputItem
+                                                    key={output.id}
+                                                    name={output.name}
+                                                    outputObject={output.outputObject}
+                                                    createOutput={output.createOutput}
+                                                    activated={!!output.outputObject}
+                                                    onChange={handleDataOutputChange}
+                                                />
+                                            )
+                                        })}
+                                    </FormGroup>
+                                </FormControl>
+                            </Grid>
                         </Grid>
-                    </Grid>
-                </CardContent>
+                    </CardContent>
+                )}
             </Card>
         </Grid>
     )
