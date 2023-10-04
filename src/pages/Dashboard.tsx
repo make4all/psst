@@ -504,7 +504,6 @@ export function DashboardView() {
                         const description = `JacDac Service = ${jds.specification.name}; Index = ${i}`
 
                         const sink = OutputEngine.getInstance().addSink(description)
-
                         const sinkId = sink.id
 
                         const rawSubject = new Subject<Datum>()

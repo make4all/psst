@@ -5,10 +5,13 @@ import { DatumOutput } from '../output/DatumOutput'
 import { Observable, filter } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { tap } from 'rxjs/operators'
+import { CopyEngine } from '../CopyEngine'
 
 const DEBUG = false
 
 export class CopyToClipboardHandler extends DataHandler {
+    private copyEngine: CopyEngine = CopyEngine.getInstance()
+
     private copiedData: Datum[] = []
 
     private _domain: [number, number]
@@ -69,6 +72,10 @@ export class CopyToClipboardHandler extends DataHandler {
         }
 
         const headings = Object.keys(this.copiedData[0])
+        const key: String | undefined = this.copiedData[0].getSinkName()
+
+        this.copyEngine.setCopiedData(key, this.copiedData)
+
         const csvData = [headings.join(',')]
             .concat(this.copiedData.map((datum) => Object.values(datum).join(',')))
             .join('\n')
@@ -86,6 +93,7 @@ export class CopyToClipboardHandler extends DataHandler {
     }
 
     complete(): void {
+        this.copyEngine.printCopiedData()
         this.copyToClipboard()
         this.clearCopiedData()
         super.complete()
