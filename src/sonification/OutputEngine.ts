@@ -88,21 +88,6 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         if (!sink && !sinkId) throw Error('Must specify sink or ID')
     }
 
-    /**
-     * @deprecated
-     *
-     * pushPoint is sort of legacy. It feeds data in to the sink by calling
-     * sink.next(). However this should not be used as things like automatic
-     * calls to complete() when the stream ends break when you use this approach.
-     *
-     * @param x A number
-     * @param sinkId Which sink it should go to
-     */
-    pushPoint(x: number, sinkId: number) {
-        let sink = this.getSink(sinkId)
-        sink.next(new Datum(sinkId, x))
-    }
-
     /////////////////// STREAM SUPPORT /////////////////////////////////
 
     /**
