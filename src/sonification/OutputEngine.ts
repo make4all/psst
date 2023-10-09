@@ -32,6 +32,10 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         }
     >
 
+    private copiedDataMap: Map<number, Datum[]> = new Map()
+
+    private sinkNameMap: Map<number, string> = new Map()
+
     /**
      * @returns A dataSink Id that is unique
      */
@@ -86,6 +90,52 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         }
 
         if (!sink && !sinkId) throw Error('Must specify sink or ID')
+    }
+
+    public setCopiedData(key: number, data: Datum[]): void {
+        if (key !== undefined) {
+            if (this.copiedDataMap.has(key)) {
+                const existingArray = this.copiedDataMap.get(key)
+                if (existingArray) {
+                    existingArray.push(...data)
+                }
+            } else {
+                this.copiedDataMap.set(key, data)
+            }
+        } else {
+            // Handle the case where SinkName is undefined
+            console.error('getSinkName() returned undefined')
+        }
+    }
+
+    public eraseCopiedData(key: number): void {
+        if (this.copiedDataMap.has(key)) {
+            this.copiedDataMap.delete(key)
+        }
+    }
+
+    public checkCopiedDataMapEmpty(): boolean {
+        if (this.copiedDataMap.size === 0) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public getCopiedDataMap(): Map<number, Datum[]> {
+        return this.copiedDataMap
+    }
+
+    public printCopiedData(): void {
+        console.log(this.copiedDataMap)
+    }
+
+    public setSinkName(key: number, name: string) {
+        this.sinkNameMap.set(key, name)
+    }
+
+    public getSinkName(key: number): string | undefined {
+        return this.sinkNameMap.get(key)
     }
 
     /**

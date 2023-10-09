@@ -43,6 +43,7 @@ import {
 import { Close } from '@mui/icons-material'
 
 import DataHandlerItem from '../views/dashboard/DataHandlerItem'
+import CopyHandlerItem from '../views/dashboard/CopyHandlerItem'
 import JDServiceItem from '../views/dashboard/JDServiceItem'
 
 import { DataHandler } from '../sonification/handler/DataHandler'
@@ -59,6 +60,7 @@ import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHan
 import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
 import { FileOutput } from '../sonification/output/FileOutput'
 import { SimpleDataHandler } from '../sonification/handler/SimpleDataHandler'
+import { CopyToClipboardHandler } from '../sonification/handler/CopyToClipboardHandler'
 
 export interface JDServiceWrapper {
     name: string
@@ -230,13 +232,6 @@ const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
 
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
-        name: 'Note Handler',
-        id: `Note Handler-${Math.floor(Math.random() * Date.now())}`,
-        description: 'Converts data to an audible note range.',
-        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.note)],
-        createHandler: (domain: [number, number]) => new NoteHandler(domain),
-    },
-    {
         name: 'Filter Range Handler',
         id: `Filter Range Handler-${Math.floor(Math.random() * Date.now())}`,
         description: "Filters data within the provided range. If within range, sent to this handler's outputs.",
@@ -288,72 +283,15 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             },
         ],
     },
-    {
-        name: 'Extrema Handler',
-        id: `Extrema Handler-${Math.floor(Math.random() * Date.now())}`,
-        description: 'Finds the new extrema value (maximum and/or minimum) in the data stream.',
-        dataOutputs: [
-            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
-            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
-        ],
-        createHandler: (domain: [number, number]) => new RunningExtremaHandler(),
-        parameters: [
-            {
-                name: 'Extrema to Find',
-                type: 'list',
-                default: (obj?: DataHandler | DatumOutput) => 0,
-                values: [
-                    { display: 'Maximum and Minimum', value: 0 },
-                    { display: 'Maximum Only', value: 1 },
-                    { display: 'Minimum Only', value: -1 },
-                ],
-                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const reh = obj as RunningExtremaHandler
-                        reh.direction = value
-                    }
-                },
-            },
-        ],
-    },
-    // { name: 'Outlier Detection Handler', description: 'Description of outlier detection handler' },
-    // { name: 'Slope Handler', description: 'Description of slope handler', createHandler: () => new Slope() },
-    {
-        name: 'Slope Change Handler',
-        id: `Slope Change Handler-${Math.floor(Math.random() * Date.now())}`,
-        description:
-            'Finds direction of slope changes in the data stream. When the data goes from increasing to decreasing, and vise-versa.',
-        dataOutputs: [
-            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
-            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech),
-        ],
-        createHandler: (domain: [number, number]) => new SlopeParityHandler(),
-        parameters: [
-            {
-                name: 'Direction to Find',
-                type: 'list',
-                default: (obj?: DataHandler | DatumOutput) => 0,
-                values: [
-                    { display: 'Postive and Negative', value: 0 },
-                    { display: 'Positive Only', value: 1 },
-                    { display: 'Negative Only', value: -1 },
-                ],
-                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const sph = obj as SlopeParityHandler
-                        sph.direction = value
-                    }
-                },
-            },
-        ],
-    },
+]
 
+export const COPY_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
-        name: 'Simple Handler',
-        id: `Simple Handler-${Math.floor(Math.random() * Date.now())}`,
-        description: 'Outputs the raw data stream without processing.',
-        dataOutputs: [initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.speech)],
-        createHandler: (domain: [number, number]) => new SimpleDataHandler(),
+        name: 'Copy Handler',
+        id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
+        description: 'Copies the data of the chosen sensor',
+        dataOutputs: [],
+        createHandler: () => new CopyToClipboardHandler(),
     },
 ]
 
@@ -702,6 +640,18 @@ export function DashboardView() {
                                         />
                                     ))}
                                 </Grid>
+                                <Grid container spacing={2} sx={{ my: 1 }}>
+                                    {services.map((service) => (
+                                        <JDServiceItem
+                                            {...service}
+                                            id={service.id}
+                                            key={service.id}
+                                            currentHandlerTemplates={COPY_HANDLER_TEMPLATES}
+                                            onDataHandlerChange={handleDataHandlerChange}
+                                            onParameterChange={handleParameterChange}
+                                        />
+                                    ))}
+                                </Grid>
                             </Box>
                             <Box role="region" aria-labelledby="header-play-data" sx={{ mb: 2, mt: 4 }}>
                                 <Typography id="header-play-data" variant="h5" component="h3">
@@ -739,6 +689,22 @@ export function DashboardView() {
                                 <Grid container spacing={2} sx={{ my: 1 }}>
                                     {AVAILABLE_DATA_HANDLER_TEMPLATES.map((template, index) => (
                                         <DataHandlerItem
+                                            {...template}
+                                            active={false}
+                                            key={template.id}
+                                            availableServices={services}
+                                            onAddToService={handleDataHandlerChange}
+                                        />
+                                    ))}
+                                </Grid>
+                            </Box>
+                            <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
+                                <Typography id="header-configure-add" variant="h5" component="h3">
+                                    Copy Data
+                                </Typography>
+                                <Grid container spacing={2} sx={{ my: 1 }}>
+                                    {COPY_HANDLER_TEMPLATES.map((template, index) => (
+                                        <CopyHandlerItem
                                             {...template}
                                             active={false}
                                             key={template.id}

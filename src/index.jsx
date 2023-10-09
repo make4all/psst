@@ -4,6 +4,7 @@ import { Demo } from './pages/Demo'
 const Jacdac = lazy(() => import('./pages/Jacdac'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const MicrobitController = lazy(() => import('./pages/MicrobitController'))
+const DemoCopy = lazy(() => import('./pages/DemoCopy'))
 
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
@@ -38,6 +39,14 @@ ReactDOM.render(
                 element={
                     <Suspense fallback={null}>
                         <Dashboard />
+                    </Suspense>
+                }
+            />
+            <Route
+                path="democopy"
+                element={
+                    <Suspense fallback={null}>
+                        <DemoCopy />
                     </Suspense>
                 }
             />

@@ -2,9 +2,7 @@ import { map, Observable, tap, Subject } from 'rxjs'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from './OutputConstants'
 import { DataHandler } from './handler/DataHandler'
 
-
 const DEBUG = false
-
 
 /**
  * The DataSink for a stream of data
@@ -33,14 +31,16 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
         this._dataHandlers = this._dataHandlers.filter((dataHandler) => dataHandler !== dataHandler)
     }
     public addDataHandler(dataHandler: DataHandler) {
-        debugStatic(SonificationLoggingLevel.DEBUG,`Adding data handeler: ${dataHandler}. length of _handelers of sink is ${this._dataHandlers.length}`)
+        debugStatic(
+            SonificationLoggingLevel.DEBUG,
+            `Adding data handeler: ${dataHandler}. length of _handelers of sink is ${this._dataHandlers.length}`,
+        )
         let observable = this as Observable<OutputStateChange | Datum>
 
-        if(this.overrideDatum) {
+        if (this.overrideDatum) {
             if (this._dataHandlers.length > 0)
                 observable = this._dataHandlers[this._dataHandlers.length - 1] as Observable<OutputStateChange | Datum>
         }
-
 
         debugStatic(SonificationLoggingLevel.DEBUG, `printing ${observable}`)
         dataHandler.setupSubscription(observable)
@@ -55,15 +55,13 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
      * @param description A description for the DataSink
      */
 
-    constructor(id: number, description: String,overrideDatum:boolean = false) {
-
+    constructor(id: number, description: String, overrideDatum: boolean = false) {
         super()
         this.id = id
         this._description = description
         this._dataHandlers = new Array<DataHandler>()
 
         this.overrideDatum = overrideDatum
-
     }
 
     //////////////////////////////// HELPER METHODS ///////////////////////////////////
@@ -82,7 +80,6 @@ export class DataSink extends Subject<OutputStateChange | Datum> {
                 }),
 
                 debug(SonificationLoggingLevel.DEBUG, `dataSink`, DEBUG),
-
             )
             .subscribe(this)
     }
@@ -110,11 +107,9 @@ const debug = (level: number, message: string, watch: boolean) => (source: Obser
 }
 
 const debugStatic = (level: number, message: string) => {
-
     if (DEBUG) {
         if (level >= getSonificationLoggingLevel()) {
             console.log(message)
         } //else console.log('debug message dumped')
     }
-
 }
