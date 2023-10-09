@@ -1,43 +1,25 @@
-import { DataSink } from '../DataSink'
-import { Datum } from '../Datum'
+import { filter, map, Observable, tap, withLatestFrom } from 'rxjs'
 import { DatumOutput } from '../output/DatumOutput'
+import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { DataHandler } from './DataHandler'
-import { bufferCount, filter, map, Observable, tap } from 'rxjs'
-import {
-    getSonificationLoggingLevel,
-    OutputStateChange,
-    SonificationLevel,
-    SonificationLoggingLevel,
-} from '../OutputConstants'
+import { Slope } from '../stat/Slope'
 
 const DEBUG = true
 
 /**
- * A DataHandler that notifies if a set of point/s are seen
+ * A DataHandler that tracks the slope of the data
+ * @todo change this to take a function that decides how to filter?
  */
-export class SimpleDataHandler extends DataHandler {
-    /**
-     * a value denoting the number of points that the user should be notified after. defaults to 1 if not specified in the constructor. The user is then notified for every point.
-     */
-    private _threshold: number
-    public get threshold(): number {
-        return this._threshold
-    }
-    public set threshold(value: number) {
-        this._threshold = value
-    }
+export class RunningAverageHandler extends DataHandler {
     /**
      * Constructor
      *
      * @param sink. DataSink that is providing data to this Handler.
      * @param output. Optional output for this data
-     * @param threshold:number Defaults to 1 if not provided
+     * @param direction. -1 for decreasing, 1 for increasing. Defaults to 0 if not provided.
      */
-    constructor(output?: DatumOutput, threshold: number = 1) {
+    constructor(output?: DatumOutput) {
         super(output)
-        // if (interestPoints) this._interestPoints = interestPoints
-        // else this._interestPoints = [0]
-        this._threshold = threshold
     }
 
     /**
@@ -47,15 +29,24 @@ export class SimpleDataHandler extends DataHandler {
      * @param sink The sink that is producing data for us
      */
     public setupSubscription(sink$: Observable<OutputStateChange | Datum>) {
+        debugStatic(SonificationLoggingLevel.DEBUG, `setting up subscription for ${this} ${sink$}`)
+        let runningAverage$ = new RunningAverage(sink$)
+
         super.setupSubscription(
             sink$.pipe(
-                bufferCount(this.threshold),
-                map((frames) => {
-                    return frames[frames.length - 1]
+                debug(SonificationLoggingLevel.DEBUG, 'runningAverageOutput val', true),
+                withLatestFrom(runningAverage$),
+                map((vals) => {
+                    debugStatic(SonificationLoggingLevel.DEBUG, `vals ${vals} ${vals[1]}: vals`)
+                    let datum = vals[0]
+                    try {
+                        datum.value = vals[1]
+                    } catch (e: unknown) {
+                        datum = vals[0]
+                    }
+                    return datum
                 }),
-                filter((val) => {
-                    return true
-                }),
+                debug(SonificationLoggingLevel.DEBUG, 'runningAverageOutput val', true),
             ),
         )
     }
@@ -64,13 +55,14 @@ export class SimpleDataHandler extends DataHandler {
      * @returns A string describing this class including its range.
      */
     public toString(): string {
-        return `SimpleDataHandler: notifying of all points`
+        return `RunningAverageHandler`
     }
 }
 
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
-
+import { Datum } from '../Datum'
+import { RunningAverage } from '../stat/RunningAverage'
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {
         return source.pipe(

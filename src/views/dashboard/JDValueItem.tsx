@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 
 import { Box, Button, Card, CardContent, CardHeader, Grid, Menu, MenuItem, Typography } from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
-import { AVAILABLE_DATA_OUTPUT_TEMPLATES, DataHandlerWrapper, DataOutputWrapper } from '../../pages/Dashboard'
+
+import { DataHandlerWrapper } from '../../pages/templates/DataHandlerInterfaces'
 
 import DataHandlerItem from './DataHandlerItem'
 

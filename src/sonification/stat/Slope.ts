@@ -1,49 +1,51 @@
-import { bufferCount, map, Observable, Subscription } from 'rxjs'
+import { bufferCount, map, Subscription } from 'rxjs'
 import { Datum } from '../Datum'
 import { getSonificationLoggingLevel, OutputStateChange, SonificationLoggingLevel } from '../OutputConstants'
 import { Statistic } from './Statistic'
-const DEBUG:boolean = true
+
+const DEBUG = false // true
+
 /**
- * Calculates a running average based on the last n values seen.
+ * Returns 0 if the slopes have the same parity
+ * -1 if the slopes switched from positive to negative
+ * 1 if the slopes switched from negative to positive
  */
-export class RunningAverage extends Statistic {
+export class Slope extends Statistic {
     /**
-     * What buffer should the average be calculated over?
+     * What buffer should the slope average be calculated over?
      */
-    buffer:number = 3
+    private slopeWindow = 3
 
     /**
      *
      * @param stream$ The stream of data over which to calculate the statistic
      * @param len The number of data points to calculate the running average over
      */
-    constructor(stream$: Observable<OutputStateChange | Datum>,len?: number) {
+    constructor(stream$: Observable<OutputStateChange | Datum>) {
         super(0, stream$)
-        this.buffer = len ? len : this.buffer
-   debugStatic(SonificationLoggingLevel.DEBUG, `initializing RunningAverage with ${this.buffer}` ) 
     }
 
     protected setupSubscription(stream$: Observable<number>): Subscription {
+        if (!this.slopeWindow) this.slopeWindow = 3
+        // TODO: figure out why typescript thinks slopeWindow is undefined
+        // TODO: and consider how to make window length possible to change without editing the cod
+
         return super.setupSubscription(
             stream$.pipe(
-                bufferCount(this.buffer,1),
+                bufferCount(this.slopeWindow, 1),
                 map((nums) => {
-                    const total = nums.reduce((acc, curr) => {
-                        acc += curr
-                        return acc
-                    },0 )
-                    debugStatic(SonificationLoggingLevel.DEBUG,`returning ${1 / (total / nums.length)}`)
-                    return 1 / (total / nums.length)
+                    const max = Math.max(...nums)
+                    const min = Math.min(...nums)
+                    return max - min
                 }),
             ),
         )
     }
 }
 
-
 //////////// DEBUGGING //////////////////
 import { tag } from 'rxjs-spy/operators/tag'
-import {tap } from 'rxjs'
+import { Observable, tap } from 'rxjs'
 
 const debug = (level: number, message: string, watch: boolean) => (source: Observable<any>) => {
     if (watch) {

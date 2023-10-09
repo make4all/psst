@@ -18,17 +18,23 @@ import { DemoFileOutput } from '../views/demos/DemoFileOutput'
 import { op } from 'arquero'
 import { DemoSlopeParityV1 } from '../views/demos/DemoSlopeParityV1'
 import { DemoSlopeParityV2 } from '../views/demos/DemoSlopeParityV2'
+import { DemoSlope } from '../views/demos/DemoSlope'
 import { DemoRunningExtrema } from '../views/demos/DemoRunningExtrema'
 import Table from 'arquero/dist/types/table/table'
 
 const DEMO_VIEW_MAP = {
     simple: { value: 'simple', label: 'Simple sonification', component: DemoSimple },
     highlightRegion: { value: 'highlightRegion', label: 'Highlight points for region', component: DemoHighlightRegion },
-    speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange},
-    fileOutput: {value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput},
-    slopeParityV1: {value: 'slopeParityV1', label: 'Slope direction change notification', component: DemoSlopeParityV1},
-    slopeParityV2: {value: 'slopeParityV2', label: 'Slope parity notification', component: DemoSlopeParityV2},
-    runningExtrema: {value: 'runningExtrema', label: 'Running extrema notification', component: DemoRunningExtrema}
+    speechHighlight: { value: 'speechHighlight', label: 'Speak points in range', component: DemoSpeakRange },
+    fileOutput: { value: 'fileOutput', label: 'Point of interest notification', component: DemoFileOutput },
+    slopeParityV1: {
+        value: 'slopeParityV1',
+        label: 'Slope direction change notification',
+        component: DemoSlopeParityV1,
+    },
+    slopeParityV2: { value: 'slopeParityV2', label: 'Slope parity notification', component: DemoSlopeParityV2 },
+    slope: { value: 'slope', label: 'Slope display', component: DemoSlope },
+    runningExtrema: { value: 'runningExtrema', label: 'Running extrema notification', component: DemoRunningExtrema },
 }
 
 let demoViewRef: React.RefObject<DemoSimple<DemoProps, DemoState> | DemoHighlightRegion> = React.createRef()

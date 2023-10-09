@@ -7,6 +7,8 @@ const Index: FC = (props) => {
         { name: 'Jacdac', url: '/jacdac' },
         { name: 'Jacdac and microbit', url: '/jacdacmicrobit' },
         { name: 'Dashboard', url: '/dashboard' },
+        { name: 'Keyboard', url: '/keyboard' },
+        { name: 'MouseDemo', url: '/mousedemo' },
     ]
 
     return (

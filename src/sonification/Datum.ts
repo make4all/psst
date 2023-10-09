@@ -6,10 +6,9 @@ import * as d3 from 'd3'
  *
  * All data points have certain properties and abilities, however
  * @field value The raw data value associated with this point
- * @field adjustedValue An adjusted value that may be assigned to a point for output.
- * @field previous The previous point in the sequence for this sink
  * @method toString() Returns a string describing this data point
  * @field sink The data sink this point is associated with [not sure if we need this pointer, but for completeness...]
+ * @field time The time this data point was created. Defaults to d3.now()
  */
 
 export class Datum {

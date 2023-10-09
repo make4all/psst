@@ -19,7 +19,9 @@ import {
 import { ArrowDropDown } from '@mui/icons-material'
 
 import { grey } from '@mui/material/colors'
-import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper, ParameterWrapper } from '../../pages/Dashboard'
+import { DataHandlerWrapper, DataOutputWrapper } from '../../pages/templates/DataHandlerInterfaces'
+import { JDServiceWrapper } from '../../pages/templates/JDInterfaces'
+import { ParameterWrapper } from '../../pages/templates/ParameterInterface'
 
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import DataOutputItem from './DataOutputItem'
@@ -148,13 +150,21 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                             <Typography variant="body2">{props.description}</Typography>
                             <div>
                                 {props.parameters?.map((parameter) => {
-                                    return <ParameterItem key={parameter.name} {...parameter} obj={props.handlerObject} />
+                                    return (
+                                        <ParameterItem key={parameter.name} {...parameter} obj={props.handlerObject} />
+                                    )
                                 })}
                             </div>
                             <div>
                                 {dataOutputs?.map((output) => {
                                     return output.parameters?.map((parameter) => {
-                                        return <ParameterItem key={parameter.name} {...parameter} obj={output.outputObject} />
+                                        return (
+                                            <ParameterItem
+                                                key={parameter.name}
+                                                {...parameter}
+                                                obj={output.outputObject}
+                                            />
+                                        )
                                     })
                                 })}
                             </div>

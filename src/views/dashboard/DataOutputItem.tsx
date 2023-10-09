@@ -1,6 +1,5 @@
 import { FormControlLabel, Switch } from '@mui/material'
 
-import { DataOutputWrapper } from '../../pages/Dashboard'
 import { DatumOutput } from '../../sonification/output/DatumOutput'
 
 export interface DataOutputProps {

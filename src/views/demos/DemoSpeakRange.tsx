@@ -85,7 +85,10 @@ export class DemoSpeakRange extends DemoSimple<DemoSpeakRangeProps, DemoSpeakRan
     ////////// HELPER METHODS ///////////////
     public initializeSink() {
         this.sink = OutputEngine.getInstance().addSink('SpeakRangeDemo')
-        this.filter = new FilterRangeHandler([this.state.minValue, this.state.maxValue], new Speech(undefined, undefined, undefined, undefined, true))
+        this.filter = new FilterRangeHandler(
+            [this.state.minValue, this.state.maxValue],
+            new Speech(undefined, undefined, undefined, undefined, true),
+        )
         // this.sink.addDataHandler(new NoteHandler(undefined, new NoteSonify()))*/
         // this.filter = new SpeechHandler(new Speech())
         this.sink.addDataHandler(this.filter)

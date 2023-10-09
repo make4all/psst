@@ -16,10 +16,7 @@ export interface DemoRunningExtremaProps extends DemoSimpleProps {
     dataSummary: any
 }
 
-export class DemoRunningExtrema
-    extends DemoSimple<DemoRunningExtremaProps, DemoSimpleState>
-    implements IDemoView
-{
+export class DemoRunningExtrema extends DemoSimple<DemoRunningExtremaProps, DemoSimpleState> implements IDemoView {
     minimumTracker: RunningExtremaHandler | undefined
     maximumTracker: RunningExtremaHandler | undefined
 
@@ -32,7 +29,7 @@ export class DemoRunningExtrema
         this.sink = OutputEngine.getInstance().addSink('DemoSlopeParity')
         this.maximumTracker = new RunningExtremaHandler(1, new Speech())
         this.minimumTracker = new RunningExtremaHandler(-1, new Speech())
-        if (DEBUG) console.log("sink initialized")
+        if (DEBUG) console.log('sink initialized')
         this.sink.addDataHandler(this.maximumTracker)
         this.sink.addDataHandler(this.minimumTracker)
         this.sink.addDataHandler(new NoteHandler(undefined, new NoteSonify()))
