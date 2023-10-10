@@ -7,6 +7,91 @@ import { create } from 'rxjs-spy'
 
 const DEBUG = false
 
+interface DataRow {
+    values: number[]
+    timestamp: number
+}
+
+function convertToCSVAndCopy(data): void {
+    // Convert the array of DataRow objects to a CSV string
+    const csv = data.map((row) => `${row.timestamp},${row.values.join(',')}`).join('\n')
+
+    // Use the Clipboard API to copy the CSV string to the clipboard
+    navigator.clipboard
+        .writeText(csv)
+        .then(() => {
+            console.log('CSV data copied to clipboard')
+        })
+        .catch((error) => {
+            console.error('Failed to copy CSV data to clipboard:', error)
+        })
+}
+
+function combineStreams(streams: Datum[][]): DataRow[] {
+    const n = streams.length
+    const pointers = Array(n).fill(0)
+    const result: DataRow[] = []
+
+    while (true) {
+        let minTimestamp = Number.MAX_SAFE_INTEGER
+        let minStreamIndex = -1
+
+        // Find the minimum timestamp among the streams
+        for (let i = 0; i < n; ++i) {
+            if (pointers[i] < streams[i].length && streams[i][pointers[i]].time < minTimestamp) {
+                minTimestamp = streams[i][pointers[i]].time
+                minStreamIndex = i
+            }
+        }
+
+        // Check if all streams are exhausted
+        if (minStreamIndex === -1) {
+            break
+        }
+
+        let timestampsMatch = true
+
+        // Check if timestamps are the same for all streams
+
+        for (let i = 0; i < n; i++) {
+            while (pointers[i] < streams[i].length && streams[i][pointers[i]].time < minTimestamp) {
+                pointers[i]++
+            }
+        }
+
+        for (let i = 0; i < n; ++i) {
+            if (pointers[i] < streams[i].length && streams[i][pointers[i]].time !== minTimestamp) {
+                timestampsMatch = false
+                break
+            }
+        }
+
+        if (timestampsMatch) {
+            // Create a DataRow for this timestamp
+            const row: DataRow = { values: Array(n).fill(0), timestamp: minTimestamp }
+
+            // Fill in values for each parameter from the corresponding stream
+            for (let i = 0; i < n; ++i) {
+                if (pointers[i] < streams[i].length && streams[i][pointers[i]].time === minTimestamp) {
+                    row.values[i] = streams[i][pointers[i]].value
+                    pointers[i]++
+                }
+            }
+
+            // Add the DataRow to the result
+            result.push(row)
+        } else {
+            if (minStreamIndex !== -1) {
+                pointers[minStreamIndex]++
+            } else {
+                break
+            }
+        }
+    }
+
+    return result
+}
+
 /**
  * OutputEngine class
  * Has a single instance
@@ -126,16 +211,21 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         return this.copiedDataMap
     }
 
-    public printCopiedData(): void {
-        console.log(this.copiedDataMap)
-    }
-
     public setSinkName(key: number, name: string) {
         this.sinkNameMap.set(key, name)
     }
 
     public getSinkName(key: number): string | undefined {
         return this.sinkNameMap.get(key)
+    }
+
+    /**
+     * Copies the data in the copiedData array as CSV to the clipboard
+     */
+    public copyToClipboard() {
+        const dataArray: Datum[][] = [...this.copiedDataMap.values()]
+        const result = combineStreams(dataArray)
+        convertToCSVAndCopy(result)
     }
 
     /**

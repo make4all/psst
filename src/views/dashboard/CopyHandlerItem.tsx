@@ -52,7 +52,9 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
         setAddButtonAnchor(null)
     }
 
-    const handleCopyButtonClick = () => {}
+    const handleCopyButtonClick = () => {
+        // OutputEngine.getInstance().copyToClipboard()
+    }
 
     const handleDataOutputChange = (name: string, activated: boolean) => {
         console.log(name, activated)
