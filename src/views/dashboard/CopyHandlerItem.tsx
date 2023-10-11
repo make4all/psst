@@ -25,6 +25,7 @@ import { DataHandlerWrapper, DataOutputWrapper, JDServiceWrapper, ParameterWrapp
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import DataOutputItem from './DataOutputItem'
 import ParameterItem from './ParameterItem'
+import { OutputEngine } from '../../sonification/OutputEngine'
 
 export interface DataHandlerItemProps {
     name: string
@@ -53,7 +54,8 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
     }
 
     const handleCopyButtonClick = () => {
-        // OutputEngine.getInstance().copyToClipboard()
+        OutputEngine.getInstance().printCopyMap()
+        OutputEngine.getInstance().copyToClipboard()
     }
 
     const handleDataOutputChange = (name: string, activated: boolean) => {

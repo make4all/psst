@@ -7,11 +7,6 @@ import { Observable, filter } from 'rxjs'
 import { tap } from 'rxjs/operators'
 import { OutputEngine } from '../OutputEngine'
 
-interface DataRow {
-    values: number[]
-    timestamp: number
-}
-
 export class CopyToClipboardHandler extends DataHandler {
     private sinkId: number | undefined = undefined
 
@@ -31,14 +26,14 @@ export class CopyToClipboardHandler extends DataHandler {
             sink$.pipe(
                 tap((data) => {
                     if (data instanceof Datum) {
-                        const sinkId = data.sinkId
+                        this.sinkId = data.sinkId
                         const copiedDataMap = OutputEngine.getInstance().getCopiedDataMap()
-                        if (copiedDataMap.has(sinkId)) {
+                        if (copiedDataMap.has(this.sinkId)) {
                             // Push the value to the array
-                            copiedDataMap.get(sinkId)?.push(data)
+                            copiedDataMap.get(this.sinkId)?.push(data)
                         } else {
                             // If the array doesn't exist, create a new array with the value
-                            copiedDataMap.set(sinkId, [data])
+                            copiedDataMap.set(this.sinkId, [data])
                         }
                     }
                 }),
@@ -50,10 +45,12 @@ export class CopyToClipboardHandler extends DataHandler {
      * Copies the data in the copiedData array as CSV to the clipboard
      */
     public copyToClipboard() {
+        OutputEngine.getInstance().printCopyMap()
         OutputEngine.getInstance().copyToClipboard()
     }
 
     complete(): void {
+        console.log('Sink Id', this.sinkId)
         if (this.sinkId !== undefined) {
             OutputEngine.getInstance().eraseCopiedData(this.sinkId)
         }

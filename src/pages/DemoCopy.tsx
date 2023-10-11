@@ -392,7 +392,8 @@ export function DashboardView() {
                             `JacDac Service = ${jds.specification.name}; Index = ${i}`,
                         )
                         const sinkId = sink.id
-
+                        const sinkName = `${jds.specification.name} ${jds.device.name} ${v}`
+                        OutputEngine.getInstance().setSinkName(sinkId, sinkName)
                         const rawSubject = new Subject<Datum>()
 
                         OutputEngine.getInstance().setStream(sinkId, rawSubject)
@@ -628,18 +629,7 @@ export function DashboardView() {
                                         ))}
                                     </ul>
                                 </div>
-                                <Grid container spacing={2} sx={{ my: 1 }}>
-                                    {services.map((service) => (
-                                        <JDServiceItem
-                                            {...service}
-                                            id={service.id}
-                                            key={service.id}
-                                            currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
-                                            onDataHandlerChange={handleDataHandlerChange}
-                                            onParameterChange={handleParameterChange}
-                                        />
-                                    ))}
-                                </Grid>
+
                                 <Grid container spacing={2} sx={{ my: 1 }}>
                                     {services.map((service) => (
                                         <JDServiceItem
@@ -681,22 +671,6 @@ export function DashboardView() {
                                         }}
                                     /> */}
                                 </Box>
-                            </Box>
-                            <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
-                                <Typography id="header-configure-add" variant="h5" component="h3">
-                                    Configure and add sonifiers
-                                </Typography>
-                                <Grid container spacing={2} sx={{ my: 1 }}>
-                                    {AVAILABLE_DATA_HANDLER_TEMPLATES.map((template, index) => (
-                                        <DataHandlerItem
-                                            {...template}
-                                            active={false}
-                                            key={template.id}
-                                            availableServices={services}
-                                            onAddToService={handleDataHandlerChange}
-                                        />
-                                    ))}
-                                </Grid>
                             </Box>
                             <Box role="region" aria-labelledby="header-configure-add" sx={{ mb: 2, mt: 4 }}>
                                 <Typography id="header-configure-add" variant="h5" component="h3">

@@ -12,10 +12,10 @@ interface DataRow {
     timestamp: number
 }
 
-function convertToCSVAndCopy(data): void {
+function convertToCSVAndCopy(data, headings): void {
     // Convert the array of DataRow objects to a CSV string
-    const csv = data.map((row) => `${row.timestamp},${row.values.join(',')}`).join('\n')
-
+    const header = `Time,${headings.join(',')}`
+    const csv = `${header}\n${data.map((row) => `${row.timestamp},${row.values.join(',')}`).join('\n')}`
     // Use the Clipboard API to copy the CSV string to the clipboard
     navigator.clipboard
         .writeText(csv)
@@ -174,7 +174,11 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
             this.sinks.delete(sink.id)
         }
 
-        if (!sink && !sinkId) throw Error('Must specify sink or ID')
+        if (sinkId !== undefined && this.sinkNameMap.has(sinkId)) {
+            this.sinkNameMap.delete(sinkId)
+        }
+
+        if (!sink && sinkId === undefined) throw Error('Must specify sink or ID')
     }
 
     public setCopiedData(key: number, data: Datum[]): void {
@@ -211,21 +215,39 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
         return this.copiedDataMap
     }
 
-    public setSinkName(key: number, name: string) {
-        this.sinkNameMap.set(key, name)
+    public setSinkName(sinkId: number, sinkName: string): void {
+        this.sinkNameMap.set(sinkId, sinkName)
     }
 
-    public getSinkName(key: number): string | undefined {
-        return this.sinkNameMap.get(key)
+    public getSinkName(sinkId: number): string | undefined {
+        return this.sinkNameMap.get(sinkId)
     }
 
+    public printCopyMap(): void {
+        console.log(this.copiedDataMap)
+    }
+
+    public getHeadings(): string[] {
+        const sinkIds = [...this.copiedDataMap.keys()]
+        const headings: string[] = []
+        sinkIds.forEach((sinkId) => {
+            const sinkName = this.getSinkName(sinkId)
+            if (sinkName) {
+                headings.push(sinkName)
+            } else {
+                // Handle the case where SinkName is undefined
+                headings.push('Unknown Sink')
+            }
+        })
+        return headings
+    }
     /**
      * Copies the data in the copiedData array as CSV to the clipboard
      */
     public copyToClipboard() {
         const dataArray: Datum[][] = [...this.copiedDataMap.values()]
         const result = combineStreams(dataArray)
-        convertToCSVAndCopy(result)
+        convertToCSVAndCopy(result, this.getHeadings())
     }
 
     /**
