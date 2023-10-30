@@ -12,10 +12,21 @@ interface DataRow {
     timestamp: number
 }
 
-function convertToCSVAndCopy(data, headings): void {
+function convertToCSVAndCopy(data, headings, n = 10, t = 50): void {
     // Convert the array of DataRow objects to a CSV string
     const header = `Time,${headings.join(',')}`
-    const csv = `${header}\n${data.map((row) => `${row.timestamp},${row.values.join(',')}`).join('\n')}`
+    const filteredData = data.filter((row, i, arr) => {
+        if (i === 0) {
+            return true
+        }
+        const prevTimestamp = arr[i - 1].timestamp
+        return row.timestamp - prevTimestamp >= t
+    })
+    const csv = `${header}\n${filteredData
+        .filter((_, i) => i % n === 0)
+        .map((row) => `${row.timestamp},${row.values.join(',')}`)
+        .join('\n')}`
+
     // Use the Clipboard API to copy the CSV string to the clipboard
     navigator.clipboard
         .writeText(csv)

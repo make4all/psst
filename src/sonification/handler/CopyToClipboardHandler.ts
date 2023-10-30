@@ -28,6 +28,7 @@ export class CopyToClipboardHandler extends DataHandler {
                     if (data instanceof Datum) {
                         this.sinkId = data.sinkId
                         const copiedDataMap = OutputEngine.getInstance().getCopiedDataMap()
+                        console.log(copiedDataMap)
                         if (copiedDataMap.has(this.sinkId)) {
                             // Push the value to the array
                             copiedDataMap.get(this.sinkId)?.push(data)

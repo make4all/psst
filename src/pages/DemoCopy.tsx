@@ -283,9 +283,6 @@ export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
             },
         ],
     },
-]
-
-export const COPY_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
         name: 'Copy Handler',
         id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
@@ -294,6 +291,16 @@ export const COPY_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
         createHandler: () => new CopyToClipboardHandler(),
     },
 ]
+
+// export const COPY_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
+//     {
+//         name: 'Copy Handler',
+//         id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
+//         description: 'Copies the data of the chosen sensor',
+//         dataOutputs: [],
+//         createHandler: () => new CopyToClipboardHandler(),
+//     },
+// ]
 
 function saveText(name: string, data: string, mimeType?: string) {
     if (!mimeType) {
@@ -636,7 +643,7 @@ export function DashboardView() {
                                             {...service}
                                             id={service.id}
                                             key={service.id}
-                                            currentHandlerTemplates={COPY_HANDLER_TEMPLATES}
+                                            currentHandlerTemplates={AVAILABLE_DATA_HANDLER_TEMPLATES}
                                             onDataHandlerChange={handleDataHandlerChange}
                                             onParameterChange={handleParameterChange}
                                         />
@@ -677,7 +684,7 @@ export function DashboardView() {
                                     Copy Data
                                 </Typography>
                                 <Grid container spacing={2} sx={{ my: 1 }}>
-                                    {COPY_HANDLER_TEMPLATES.map((template, index) => (
+                                    {AVAILABLE_DATA_HANDLER_TEMPLATES.map((template, index) => (
                                         <CopyHandlerItem
                                             {...template}
                                             active={false}
