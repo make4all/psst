@@ -16,6 +16,7 @@ import {
     NativeSelect,
     Typography,
     IconButton,
+    TextField,
 } from '@mui/material'
 import { ArrowDropDown } from '@mui/icons-material'
 
@@ -45,6 +46,16 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
     const [addButtonAnchor, setAddButtonAnchor] = useState<null | HTMLElement>(null)
     const [dataOutputs, setDataOutputs] = useState<DataOutputWrapper[]>(props.dataOutputs)
     const menuOpen = Boolean(addButtonAnchor)
+    const [n, setN] = useState('1')
+    const [t, setT] = useState('0')
+
+    const handleNChange = (event) => {
+        setN(event.target.value)
+    }
+
+    const handleTChange = (event) => {
+        setT(event.target.value)
+    }
 
     const handleAddButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAddButtonAnchor(event.currentTarget)
@@ -55,7 +66,7 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
 
     const handleCopyButtonClick = () => {
         OutputEngine.getInstance().printCopyMap()
-        OutputEngine.getInstance().copyToClipboard()
+        OutputEngine.getInstance().copyToClipboard(Number(n), Number(t))
     }
 
     const handleDataOutputChange = (name: string, activated: boolean) => {
@@ -179,6 +190,24 @@ export default function DataHandlerItem(props: React.Attributes & DataHandlerIte
                         </Grid>
                         <Grid item xs={6} lg={4}>
                             <FormControl component="fieldset" sx={{ float: 'right' }}>
+                                <TextField
+                                    id="input-n"
+                                    label="Input N"
+                                    variant="outlined"
+                                    value={n}
+                                    onChange={handleNChange}
+                                    type="number"
+                                    sx={{ marginTop: 2 }}
+                                />
+                                <TextField
+                                    id="input-t"
+                                    label="Input T"
+                                    variant="outlined"
+                                    value={t}
+                                    onChange={handleTChange}
+                                    type="number"
+                                    sx={{ marginTop: 2 }}
+                                />
                                 <FormLabel component="legend">Choose Data Outputs</FormLabel>
                                 <FormGroup>
                                     {dataOutputs?.map((output) => {

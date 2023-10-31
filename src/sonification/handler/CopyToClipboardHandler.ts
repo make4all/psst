@@ -9,9 +9,13 @@ import { OutputEngine } from '../OutputEngine'
 
 export class CopyToClipboardHandler extends DataHandler {
     private sinkId: number | undefined = undefined
+    private n: number = 1
+    private t: number = 0
 
-    constructor(output?: DatumOutput) {
+    constructor(output?: DatumOutput, n: number = 1, t: number = 0) {
         super(output)
+        this.n = n
+        this.t = t
     }
 
     /**
@@ -40,14 +44,6 @@ export class CopyToClipboardHandler extends DataHandler {
                 }),
             ),
         )
-    }
-
-    /**
-     * Copies the data in the copiedData array as CSV to the clipboard
-     */
-    public copyToClipboard() {
-        OutputEngine.getInstance().printCopyMap()
-        OutputEngine.getInstance().copyToClipboard()
     }
 
     complete(): void {

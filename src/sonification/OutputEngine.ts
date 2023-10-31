@@ -255,10 +255,10 @@ export class OutputEngine extends BehaviorSubject<OutputStateChange> {
     /**
      * Copies the data in the copiedData array as CSV to the clipboard
      */
-    public copyToClipboard() {
+    public copyToClipboard(n: number, t: number) {
         const dataArray: Datum[][] = [...this.copiedDataMap.values()]
         const result = combineStreams(dataArray)
-        convertToCSVAndCopy(result, this.getHeadings())
+        convertToCSVAndCopy(result, this.getHeadings(), n, t)
     }
 
     /**

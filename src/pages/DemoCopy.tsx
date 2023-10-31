@@ -232,58 +232,6 @@ const initializeDataOutput = (output: DataOutputWrapper): DataOutputWrapper => {
 
 export const AVAILABLE_DATA_HANDLER_TEMPLATES: DataHandlerWrapper[] = [
     {
-        name: 'Filter Range Handler',
-        id: `Filter Range Handler-${Math.floor(Math.random() * Date.now())}`,
-        description: "Filters data within the provided range. If within range, sent to this handler's outputs.",
-        dataOutputs: [
-            initializeDataOutput(AVAILABLE_DATA_OUTPUT_TEMPLATES.noise),
-            AVAILABLE_DATA_OUTPUT_TEMPLATES.earcon,
-        ],
-        createHandler: (domain: [number, number]) =>
-            new FilterRangeHandler([
-                (domain[1] - domain[0]) * 0.4 + domain[0],
-                (domain[1] - domain[0]) * 0.6 + domain[0],
-            ]),
-        parameters: [
-            {
-                name: 'Min',
-                type: 'number',
-                default: (obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const frh = obj as FilterRangeHandler
-                        return frh.domain[0]
-                    } else {
-                        return 0.4
-                    }
-                },
-                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const frh = obj as FilterRangeHandler
-                        frh.domain = [value, frh.domain[1]]
-                    }
-                },
-            },
-            {
-                name: 'Max',
-                type: 'number',
-                default: (obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const frh = obj as FilterRangeHandler
-                        return frh.domain[1]
-                    } else {
-                        return 0.6
-                    }
-                },
-                handleUpdate: (value: number, obj?: DataHandler | DatumOutput) => {
-                    if (obj) {
-                        const frh = obj as FilterRangeHandler
-                        frh.domain = [frh.domain[0], value]
-                    }
-                },
-            },
-        ],
-    },
-    {
         name: 'Copy Handler',
         id: `Copy Handler-${Math.floor(Math.random() * Date.now())}`,
         description: 'Copies the data of the chosen sensor',
