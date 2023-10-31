@@ -9,13 +9,9 @@ import { OutputEngine } from '../OutputEngine'
 
 export class CopyToClipboardHandler extends DataHandler {
     private sinkId: number | undefined = undefined
-    private n: number = 1
-    private t: number = 0
 
-    constructor(output?: DatumOutput, n: number = 1, t: number = 0) {
+    constructor(output?: DatumOutput) {
         super(output)
-        this.n = n
-        this.t = t
     }
 
     /**

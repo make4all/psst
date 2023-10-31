@@ -14,6 +14,11 @@ interface DataRow {
 
 function convertToCSVAndCopy(data, headings, n = 10, t = 50): void {
     // Convert the array of DataRow objects to a CSV string
+
+    if (data.length === 0) {
+        return
+    }
+
     const header = `Time,${headings.join(',')}`
     const filteredData = data.filter((row, i, arr) => {
         if (i === 0) {
