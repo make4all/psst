@@ -8,14 +8,15 @@
         "require": "./dist/sonifier.cjs",
         "default": "./dist/sonifier.modern.js"
     },
-    "main": "./dist/sonifier.cjs",
-    "module": "./dist/sonifier.module.js",
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
     "unpkg": "./dist/sonifier.umd.js",
     "license": "MIT",
     "files": [
         "dist",
         "src"
     ],
+    "types": "dist/index.d.ts",
     "scripts": {
         "bundle": "microbundle",
         "watch:bundle": "microbundle watch",
@@ -26,7 +27,8 @@
         "dev": "concurrently 'npm:watch:*'",
         "lint": "eslint '*/**/*.{js,ts}' --quiet --fix",
         "pretify": "prettier --write src/**",
-        "makecode": "cd makecode-microbit && mkc && cp built/binary.hex binary.hex"
+        "makecode": "cd makecode-microbit && mkc && cp built/binary.hex binary.hex",
+        "rollup": "rollup -c --bundleConfigAsCjs"
     },
     "husky": {
         "hooks": {
@@ -54,6 +56,9 @@
         "@mui/icons-material": "^5.2.0",
         "@mui/material": "^5.2.2",
         "@mui/x-data-grid": "^5.0.1",
+        "@rollup/plugin-commonjs": "^25.0.7",
+        "@rollup/plugin-node-resolve": "^15.2.3",
+        "@rollup/plugin-typescript": "^11.1.5",
         "@semantic-release/exec": "^6.0.2",
         "@semantic-release/git": "^10.0.1",
         "@types/chai": "^4.2.22",
@@ -77,6 +82,8 @@
         "react-dom": "^17.0.2",
         "react-router-dom": "^6.0.2",
         "react-scripts": "4.0.3",
+        "rollup": "^4.1.6",
+        "rollup-plugin-dts": "^6.1.0",
         "semantic-release": "^18.0.0",
         "ts-node": "^10.4.0",
         "typescript": "^4.4.4",
