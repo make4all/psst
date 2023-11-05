@@ -1,6 +1,8 @@
 {
+    "extends": "./tsconfig.paths.json",
     "compilerOptions": {
-        "target": "es2019",
+        "baseUrl": ".",
+        "target": "es5",
         "module": "esnext",
         "lib": ["es2019", "dom"],
         "outDir": "./dist/lib",
