@@ -25,19 +25,10 @@ app.post('/get-prompt-result', async (req, res) => {
     try {
         // Use the OpenAI SDK to create a completion
         // with the given prompt, model and maximum tokens
-
         const chatCompletion = await openai.chat.completions.create({
             messages: [{ role: 'user', content: `Please reply below question in markdown format.\n ${prompt}` }],
             model: 'gpt-4',
         })
-
-        // const completion = await openai.createCompletion({
-        //     model: model === 'gpt' ? 'gpt-4' : 'code-davinci-002', // model name
-        //     prompt: `Please reply below question in markdown format.\n ${prompt}`, // input prompt
-        //     max_tokens: model === 'gpt' ? 8000 : 8000, // Use max 8000 tokens for codex model
-        // })
-        // Send the generated text as the response
-        console.log(chatCompletion.choices)
 
         return res.send(chatCompletion.choices[0].message.content)
     } catch (error) {
