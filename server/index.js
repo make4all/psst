@@ -1,5 +1,6 @@
 const express = require('express')
 const { OpenAI } = require('openai')
+
 const app = express()
 const cors = require('cors')
 require('dotenv').config()
@@ -23,14 +24,33 @@ app.post('/get-prompt-result', async (req, res) => {
     }
 
     try {
+        let messages = []
+        messages.push({
+            role: 'system',
+            content: `
+                You are an assistant and your job is to help create audio representations of data.
+                To do this, you will use functions from the PSST toolkit, which is a library of data handlers (tools that manipulate data), and data outputs (tools that output data through audio or speech).
+                You will be given information about where the data is generated from, and a goal that the user wants to achieve with the audio representation you will help create.
+                example sources of the data can be accelerometer data, demographic data, and data sets from other large projects.
+some general rools to keep in mind:
+1. continuous audio output generally helps convey trends. a user can not process more than 2 simultaneous audio sources.
+2. speech output helps convey precise data points. abundance of speech can cause cognitive overload so these should be used wisely.
+3. extrema handlers can help communicate the limits of values.
+4. slope handlers can help convey change in trends.
+                `,
+        })
+        messages.push({ role: 'user', content: `${prompt}` })
         // Use the OpenAI SDK to create a completion
         // with the given prompt, model and maximum tokens
         const chatCompletion = await openai.chat.completions.create({
-            messages: [{ role: 'user', content: `Please reply below question in markdown format.\n ${prompt}` }],
+            messages: messages,
             model: 'gpt-4',
         })
 
-        return res.send(chatCompletion.choices[0].message.content)
+        let response = chatCompletion.choices[0].message?.content
+            ? chatCompletion.choices[0].message.content
+            : 'no response generated'
+        return res.send(response)
     } catch (error) {
         const errorMsg = error.response ? error.response.data.error : `${error}`
         console.error(errorMsg)
