@@ -4,6 +4,7 @@ import PromptInput from '../PromptInput/PromptInput'
 import './App.css'
 import { ResponseInterface } from '../PromptResponseList/response-interface'
 import PromptResponseList from '../PromptResponseList/PromptResponseList'
+import { OpenAIHelper } from 'src/chat-gpt/openAIHelper'
 
 type ModelValueType = 'gpt' | 'codex' | 'image'
 const App = () => {
@@ -14,6 +15,7 @@ const App = () => {
     const [modelValue, setModelValue] = useState<ModelValueType>('gpt')
     const [isLoading, setIsLoading] = useState(false)
     let loadInterval: number | undefined
+    let openAIHelper = new OpenAIHelper()
 
     const generateUniqueId = () => {
         const timestamp = Date.now()
@@ -107,20 +109,11 @@ const App = () => {
 
         try {
             // Send a POST request to the API with the prompt in the request body
-            const response = await axios.post('http://localhost:3001/get-prompt-result', {
-                prompt: _prompt,
-                model: modelValue,
+            const response = await openAIHelper.requestOpenAI(_prompt)
+
+            updateResponse(uniqueId, {
+                response: response.trim(),
             })
-            if (modelValue === 'image') {
-                // Show image for `Create image` model
-                updateResponse(uniqueId, {
-                    image: response.data,
-                })
-            } else {
-                updateResponse(uniqueId, {
-                    response: response.data.trim(),
-                })
-            }
 
             setPromptToRetry(null)
             setUniqueIdToRetry(null)

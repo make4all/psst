@@ -1,17 +1,12 @@
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai'
+import { OpenAI } from 'openai'
 export class OpenAIHelper {
-    private configuration = new Configuration({
-        // apiKey: p    rocess.env.EXPO_PUBLIC_OPENAI_API_KEY,
-    })
-    // });
-
-    private messages: Array<ChatCompletionRequestMessage> = new Array()
-    private openai: OpenAIApi
-    // console.log("API key")
-    // console.log(process.env)
+    private messages = new Array()
+    private openai: OpenAI
 
     constructor() {
-        this.openai = new OpenAIApi(this.configuration)
+        this.openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY,
+        })
         this.messages.push({
             role: 'system',
             content: `
@@ -29,6 +24,7 @@ some general rools to keep in mind:
 
         // console.log("OpenAIHelper constructor invoked")
     }
+
     private promptBuilder(query: string) {
         // console.log(`performing llm operation ${op}`)
 
@@ -42,16 +38,16 @@ some general rools to keep in mind:
 
     public async requestOpenAI(query: string): Promise<string> {
         this.promptBuilder(query)
-        const chatCompletion = await this.openai.createChatCompletion({
-            model: 'gpt-4',
+        const chatCompletion = await this.openai.chat.completions.create({
             messages: this.messages,
+            model: 'gpt-4',
         })
-        console.log(chatCompletion.data.choices[0].message)
-        let response: string = chatCompletion.data.choices[0].message?.content
-            ? chatCompletion.data.choices[0].message.content
+        console.log(chatCompletion.choices[0].message)
+        let response: string = chatCompletion.choices[0].message?.content
+            ? chatCompletion.choices[0].message.content
             : 'no response generated'
-        if (chatCompletion.data.choices[0].message) {
-            this.messages.push(chatCompletion.data.choices[0].message)
+        if (chatCompletion.choices[0].message) {
+            this.messages.push(chatCompletion.choices[0].message)
         }
         return response
     }

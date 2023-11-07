@@ -4,15 +4,38 @@ import { Demo } from './pages/Demo'
 const Jacdac = lazy(() => import('./pages/Jacdac'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const MicrobitController = lazy(() => import('./pages/MicrobitController'))
-
-import App from './chat-gpt/components/App/App.tsx'
+const App = lazy(() => import('./chat-gpt/components/App/App.tsx'))
 
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import Index from './pages/Index'
-import { AppBar } from '@mui/material'
 
 if (module.hot) {
     module.hot.accept()
+}
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = { hasError: false }
+    }
+
+    static getDerivedStateFromError(error) {
+        // Update state so the next render will show the fallback UI.
+        return { hasError: true }
+    }
+
+    componentDidCatch(error, errorInfo) {
+        // You can also log the error to an error reporting service
+        console.log(error, errorInfo)
+    }
+
+    render() {
+        if (this.state.hasError) {
+            // You can render any custom fallback UI
+            return <h1>Something went wrong.</h1>
+        }
+
+        return this.props.children
+    }
 }
 
 ReactDOM.render(
@@ -48,7 +71,9 @@ ReactDOM.render(
                 path="chat"
                 element={
                     <Suspense fallback={null}>
-                        <App />
+                        <ErrorBoundary>
+                            <App />
+                        </ErrorBoundary>
                     </Suspense>
                 }
             />
