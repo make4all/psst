@@ -1,11 +1,22 @@
 import { OpenAI } from 'openai'
+
+import functions from './functions.json'
+
+export interface FunctionCall {
+    // Define the properties of the returned JSON here
+    arguments: string
+    name: string
+    // etc.
+}
+
 export class OpenAIHelper {
     private messages = new Array()
     private openai: OpenAI
 
     constructor() {
         this.openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+            dangerouslyAllowBrowser: true,
         })
         this.messages.push({
             role: 'system',
@@ -36,19 +47,20 @@ some general rools to keep in mind:
         // return messages;
     }
 
-    public async requestOpenAI(query: string): Promise<string> {
+    public async requestOpenAI(query: string): Promise<FunctionCall | undefined> {
         this.promptBuilder(query)
+
+        this.openai.chat.completions.create
         const chatCompletion = await this.openai.chat.completions.create({
             messages: this.messages,
-            model: 'gpt-4',
+            model: 'gpt-3.5-turbo',
+            functions: functions,
         })
         console.log(chatCompletion.choices[0].message)
-        let response: string = chatCompletion.choices[0].message?.content
-            ? chatCompletion.choices[0].message.content
-            : 'no response generated'
-        if (chatCompletion.choices[0].message) {
-            this.messages.push(chatCompletion.choices[0].message)
-        }
-        return response
+        let response = chatCompletion.choices[0].message?.function_call
+            ? chatCompletion.choices[0].message.function_call
+            : undefined
+
+        if (response) return response
     }
 }

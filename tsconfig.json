@@ -22,5 +22,5 @@
         "noEmit": true,
         "downlevelIteration": true
     },
-    "include": ["src"]
+    "include": ["src", "src/index.jsx"]
 }
