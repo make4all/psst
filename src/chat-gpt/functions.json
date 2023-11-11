@@ -1,20 +1,53 @@
-[
-    {
-        "name": "createDataSink",
-        "description": "Create a new DataSink",
-        "parameters": {
+{
+    "definitions": {
+        "Datum": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer",
-                    "description": "A unique ID for the DataSink"
+                "value": {
+                    "type": "number"
                 },
-                "description": {
-                    "type": "string",
-                    "description": "A description for the DataSink"
+                "sinkId": {
+                    "type": "number"
+                },
+                "time": {
+                    "type": "number"
                 }
             },
-            "required": ["id"]
+            "required": ["value", "sinkId"]
+        },
+        "OutputStateChange": ["Play", "Pause", "Stop", "Undefined", "Swap"]
+    },
+    "functions": [
+        {
+            "name": "createDataSink",
+            "description": "Create a new DataSink",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "number",
+                        "description": "A unique ID for the DataSink"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A description for the DataSink"
+                    }
+                }
+            }
+        },
+        {
+            "name": "loadDataFromText",
+            "description": "Takes in data copied in csv or tsv format",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "description": "CSV/TSV data"
+                    }
+                },
+                "required": ["text"]
+            }
         }
-    }
-]
+    ]
+}

@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai'
 
-import functions from './functions.json'
+import schema from './functions.json'
 
 export interface FunctionCall {
     // Define the properties of the returned JSON here
@@ -54,7 +54,7 @@ some general rools to keep in mind:
         const chatCompletion = await this.openai.chat.completions.create({
             messages: this.messages,
             model: 'gpt-3.5-turbo',
-            functions: functions,
+            functions: schema['functions'],
         })
         console.log(chatCompletion.choices[0].message)
         let response = chatCompletion.choices[0].message?.function_call
