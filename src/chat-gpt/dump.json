@@ -1,0 +1,14 @@
+{
+    "name": "loadDataFromText",
+    "description": "Takes in data copied in csv or tsv format",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "text": {
+                "type": "string",
+                "description": "CSV/TSV data"
+            }
+        },
+        "required": ["text"]
+    }
+}

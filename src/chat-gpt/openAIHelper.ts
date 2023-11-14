@@ -2,6 +2,8 @@ import { OpenAI } from 'openai'
 
 import schema from './functions.json'
 
+import { functionMap } from '../views/demos/DemoGPT'
+
 export interface FunctionCall {
     // Define the properties of the returned JSON here
     arguments: string
@@ -57,9 +59,18 @@ some general rools to keep in mind:
             functions: schema['functions'],
         })
         console.log(chatCompletion.choices[0].message)
-        let response = chatCompletion.choices[0].message?.function_call
-            ? chatCompletion.choices[0].message.function_call
-            : undefined
+
+        let callFunction = functionMap[chatCompletion.choices[0].message?.function_call?.name ?? '']
+
+        let json = chatCompletion.choices[0].message?.function_call?.arguments ?? undefined
+        const parsedObject = JSON.parse(json || '{}')
+
+        console.log(callFunction)
+        console.log(parsedObject)
+
+        callFunction(parsedObject['data'], parsedObject['sinkName'])
+
+        let response = chatCompletion.choices[0].message?.function_call ?? undefined
 
         if (response) return response
     }

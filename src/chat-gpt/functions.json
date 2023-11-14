@@ -19,35 +19,64 @@
     },
     "functions": [
         {
-            "name": "createDataSink",
-            "description": "Create a new DataSink",
+            "name": "addSink",
+            "description": "AddSink takes optional arguments and based on what is provided either constructs a new data sink or uses a given one. In either case, it adds it to the set of sinks.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "number",
-                        "description": "A unique ID for the DataSink"
-                    },
                     "description": {
                         "type": "string",
-                        "description": "A description for the DataSink"
+                        "description": "A description for the sink"
+                    },
+                    "sinkId": {
+                        "type": "number",
+                        "description": "A unique id for the sink"
+                    },
+                    "sink": {
+                        "type": "object",
+                        "description": "The DataSink object"
+                    },
+                    "stream$": {
+                        "type": "object",
+                        "description": "Observable of Datum objects"
                     }
                 }
             }
         },
         {
-            "name": "loadDataFromText",
-            "description": "Takes in data copied in csv or tsv format",
+            "name": "getSink",
+            "description": "Returns the DataSink associated with sinkId.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "text": {
-                        "type": "string",
-                        "description": "CSV/TSV data"
+                    "sinkId": {
+                        "type": "number",
+                        "description": "A unique id for the sink"
                     }
-                },
-                "required": ["text"]
-            }
+                }
+            },
+            "required": ["sinkId"]
+        },
+        {
+            "name": "sonify1D",
+            "description": "Plays a simple sonification for an array of numbers",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "description": "An array of numbers",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "sinkName": {
+                        "type": "string",
+                        "description": "A description for the sink"
+                    }
+                }
+            },
+            "required": ["data", "sinkName"]
         }
     ]
 }
