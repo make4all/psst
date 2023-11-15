@@ -58,6 +58,23 @@
             "required": ["sinkId"]
         },
         {
+            "name": "deleteSink",
+            "description": "Removes a data sink. Once removed, that Id may be re-used.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sinkId": {
+                        "type": "number",
+                        "description": "A unique id for the sink"
+                    },
+                    "sink": {
+                        "type": "object",
+                        "description": "The DataSink object"
+                    }
+                }
+            }
+        },
+        {
             "name": "sonify1D",
             "description": "Plays a simple sonification for an array of numbers",
             "parameters": {

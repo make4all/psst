@@ -21,6 +21,10 @@ function getSink(sinkId: number): DataSink {
     return OutputEngine.getInstance().getSink(sinkId)
 }
 
+function deleteSink(sinkId?: number, sink?: DataSink) {
+    OutputEngine.getInstance().deleteSink(sink, sinkId)
+}
+
 function sonify1D(data: number[], sinkName: string) {
     let current = 0
     debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
@@ -66,5 +70,6 @@ let functionMap = {}
 functionMap['sonify1D'] = sonify1D
 functionMap['addSink'] = addSink
 functionMap['getSink'] = getSink
+functionMap['deleteSink'] = deleteSink
 
 export { functionMap }
