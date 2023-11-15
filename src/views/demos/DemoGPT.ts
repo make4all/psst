@@ -7,10 +7,19 @@ import {
 import { Observable, of, tap, timer, zip, delay } from 'rxjs'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { NoteSonify } from '../../sonification/output/NoteSonify'
+import { DataSink } from '../../sonification/DataSink'
 
 import { Datum } from '../../sonification/Datum'
 
 const DEBUG = false
+
+function addSink(description?: string, sinkId?: number, dataSink?: DataSink, stream$?: Observable<Datum>): DataSink {
+    return OutputEngine.getInstance().addSink(description, sinkId, dataSink, stream$)
+}
+
+function getSink(sinkId: number): DataSink {
+    return OutputEngine.getInstance().getSink(sinkId)
+}
 
 function sonify1D(data: number[], sinkName: string) {
     let current = 0
@@ -55,5 +64,7 @@ const debugStatic = (level: number, message: string) => {
 let functionMap = {}
 
 functionMap['sonify1D'] = sonify1D
+functionMap['addSink'] = addSink
+functionMap['getSink'] = getSink
 
 export { functionMap }
