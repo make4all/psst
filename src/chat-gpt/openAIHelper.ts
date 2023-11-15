@@ -68,10 +68,95 @@ some general rools to keep in mind:
         console.log(callFunction)
         console.log(parsedObject)
 
-        callFunction(parsedObject['data'], parsedObject['sinkName'])
+        if (callFunction === undefined) return undefined
+
+        if (callFunction === functionMap['sonify1D']) {
+            callFunction(parsedObject['data'], parsedObject['sinkName'])
+        }
+
+        if (callFunction === functionMap['addSink']) {
+            console.log(callFunction(parsedObject['description'], parsedObject['sinkId']))
+        }
+
+        if (callFunction === functionMap['getSink']) {
+            console.log(callFunction(parsedObject['sinkId']))
+        }
+
+        if (callFunction === functionMap['deleteSink']) {
+            callFunction(parsedObject['sinkId'])
+        }
 
         let response = chatCompletion.choices[0].message?.function_call ?? undefined
 
         if (response) return response
+    }
+
+    public async run_conversation(query: string): Promise<FunctionCall | undefined> {
+        this.promptBuilder(query)
+        const tools = schema['functions']
+
+        // Simulate the OpenAI client in TypeScript
+        const client = {
+            chat: {
+                completions: {
+                    create: async (params: any) => {
+                        // Simulate the response from the OpenAI API
+                        const response_message = params.messages[0]
+                        const tool_calls = response_message.tool_calls
+
+                        // Step 2: check if the model wanted to call a function
+                        if (tool_calls) {
+                            // Step 3: call the function
+                            // Note: the JSON response may not always be valid; be sure to handle errors
+                            const available_functions = {
+                                addSink: functionMap['addSink'],
+                                deleteSink: functionMap['deleteSink'],
+                                sonify1D: functionMap['sonify1D'],
+                                getSink: functionMap['getSink'],
+                            } // only one function in this example, but you can have multiple
+                            this.messages.push(response_message) // extend conversation with assistant's reply
+
+                            // Step 4: send the info for each function call and function response to the model
+                            for (const tool_call of tool_calls) {
+                                const function_name = tool_call.function.name
+                                const function_to_call = available_functions[function_name]
+                                const function_args = JSON.parse(tool_call.function.arguments)
+                                const function_response = function_to_call({
+                                    location: function_args.location,
+                                    unit: function_args.unit,
+                                })
+                                this.messages.push({
+                                    tool_call_id: tool_call.id,
+                                    role: 'tool',
+                                    name: function_name,
+                                    content: function_response,
+                                }) // extend conversation with function response
+                            }
+
+                            // Simulate the second response from the OpenAI API
+                            const second_response = await client.chat.completions.create({
+                                model: 'gpt-3.5-turbo-1106',
+                                prompt: {
+                                    messages: this.messages,
+                                },
+                            })
+
+                            return second_response
+                        }
+                    },
+                },
+            },
+        }
+
+        let response = client.chat.completions.create({
+            model: 'gpt-3.5-turbo-1106',
+            messages: this.messages,
+            tools,
+            tool_choice: 'auto', // auto is default, but we'll be explicit
+        })
+
+        console.log(response)
+
+        return response
     }
 }

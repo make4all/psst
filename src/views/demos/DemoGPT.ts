@@ -18,7 +18,9 @@ function addSink(description?: string, sinkId?: number, dataSink?: DataSink, str
 }
 
 function getSink(sinkId: number): DataSink {
-    return OutputEngine.getInstance().getSink(sinkId)
+    let sink = OutputEngine.getInstance().getSink(sinkId)
+    if (sink) return sink
+    else throw new Error('Sink not found')
 }
 
 function deleteSink(sinkId?: number, sink?: DataSink) {
