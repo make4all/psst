@@ -8,23 +8,40 @@ import { Observable, of, tap, timer, zip, delay } from 'rxjs'
 import { NoteHandler } from '../../sonification/handler/NoteHandler'
 import { NoteSonify } from '../../sonification/output/NoteSonify'
 import { DataSink } from '../../sonification/DataSink'
+import { DataHandler } from '../../sonification/handler/DataHandler'
 
 import { Datum } from '../../sonification/Datum'
 
 const DEBUG = true
 
-function addSink(description?: string, sinkId?: number, dataSink?: DataSink, stream$?: Observable<Datum>): DataSink {
-    return OutputEngine.getInstance().addSink(description, sinkId, dataSink, stream$)
+function addSink(description?: string, sinkId?: number): number {
+    let sink = OutputEngine.getInstance().addSink(description, sinkId, undefined, undefined)
+
+    if (sink) {
+        return sink.id
+    } else throw new Error('Sink not found')
 }
 
 function getSink(sinkId: number): DataSink {
-    let sink = OutputEngine.getInstance().getSink(sinkId)
-    if (sink) return sink
-    else throw new Error('Sink not found')
+    try {
+        let sink = OutputEngine.getInstance().getSink(sinkId)
+        if (sink) return sink
+        else throw new Error('Sink not found')
+    } catch (e) {
+        console.log(e)
+        throw new Error('Sink not found')
+    }
 }
 
-function deleteSink(sinkId?: number, sink?: DataSink) {
-    OutputEngine.getInstance().deleteSink(sink, sinkId)
+function deleteSink(sinkId?: number): void {
+    OutputEngine.getInstance().deleteSink(undefined, sinkId)
+}
+
+function createNoteHandler(min: number, max: number, sinkId: number): DataHandler {
+    let sink = OutputEngine.getInstance().getSink(sinkId)
+    let noteHandler = new NoteHandler([min, max], new NoteSonify(-1))
+    sink.addDataHandler(noteHandler)
+    return noteHandler
 }
 
 function sonify1D(data: number[], sinkName: string) {
@@ -40,6 +57,7 @@ function sonify1D(data: number[], sinkName: string) {
     let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
         debug(SonificationLoggingLevel.DEBUG, 'point'),
     )
+
     OutputEngine.getInstance().setStream(id, source$)
 
     sink?.addDataHandler(
@@ -51,6 +69,7 @@ function sonify1D(data: number[], sinkName: string) {
             new NoteSonify(-1),
         ),
     )
+
     OutputEngine.getInstance().next(OutputStateChange.Play)
 }
 
@@ -74,5 +93,6 @@ functionMap['sonify1D'] = sonify1D
 functionMap['addSink'] = addSink
 functionMap['getSink'] = getSink
 functionMap['deleteSink'] = deleteSink
+functionMap['createNoteHandler'] = createNoteHandler
 
 export { functionMap }

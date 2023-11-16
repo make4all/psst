@@ -94,6 +94,27 @@
                 }
             },
             "required": ["data", "sinkName"]
+        },
+        {
+            "name": "createNoteHandler",
+            "description": "A DataHandler that outputs a Datum as a note in the audible range. Assumes a note should be played in the general range of 80 to 500 Hz to sound nice",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "min": {
+                        "type": "number",
+                        "description": "The minimum value of the range for NoteOutput. The range is given in hertz"
+                    },
+                    "max": {
+                        "type": "number",
+                        "description": "The maximum value of the range for NoteOutput. The range is given in hertz"
+                    },
+                    "sinkId": {
+                        "type": "number",
+                        "description": "A unique id for the sink to which the handler will output"
+                    }
+                }
+            }
         }
     ]
 }

@@ -4,13 +4,6 @@ import schema from './functions.json'
 
 import { functionMap } from '../views/demos/DemoGPT'
 
-export interface FunctionCall {
-    // Define the properties of the returned JSON here
-    arguments: string
-    name: string
-    // etc.
-}
-
 export class OpenAIHelper {
     private messages = new Array()
     private openai: OpenAI
@@ -49,7 +42,7 @@ some general rools to keep in mind:
         // return messages;
     }
 
-    public async requestOpenAI(query: string): Promise<FunctionCall | undefined> {
+    public async requestOpenAI(query: string): Promise<OpenAI.Chat.Completions.ChatCompletion | undefined> {
         this.promptBuilder(query)
 
         this.openai.chat.completions.create
@@ -58,7 +51,8 @@ some general rools to keep in mind:
             model: 'gpt-4',
             functions: schema['functions'],
         })
-        console.log(chatCompletion.choices[0].message)
+
+        console.log(chatCompletion)
 
         let callFunction = functionMap[chatCompletion.choices[0].message?.function_call?.name ?? '']
 
@@ -67,8 +61,6 @@ some general rools to keep in mind:
 
         console.log(callFunction)
         console.log(parsedObject)
-
-        if (callFunction === undefined) return undefined
 
         if (callFunction === functionMap['sonify1D']) {
             callFunction(parsedObject['data'], parsedObject['sinkName'])
@@ -86,77 +78,62 @@ some general rools to keep in mind:
             callFunction(parsedObject['sinkId'])
         }
 
-        let response = chatCompletion.choices[0].message?.function_call ?? undefined
-
-        if (response) return response
+        if (chatCompletion) return chatCompletion
     }
 
-    public async run_conversation(query: string): Promise<FunctionCall | undefined> {
+    public async run_conversation(query: string): Promise<OpenAI.Chat.Completions.ChatCompletion | undefined> {
         this.promptBuilder(query)
         const tools = schema['functions']
 
         // Simulate the OpenAI client in TypeScript
-        const client = {
-            chat: {
-                completions: {
-                    create: async (params: any) => {
-                        // Simulate the response from the OpenAI API
-                        const response_message = params.messages[0]
-                        const tool_calls = response_message.tool_calls
-
-                        // Step 2: check if the model wanted to call a function
-                        if (tool_calls) {
-                            // Step 3: call the function
-                            // Note: the JSON response may not always be valid; be sure to handle errors
-                            const available_functions = {
-                                addSink: functionMap['addSink'],
-                                deleteSink: functionMap['deleteSink'],
-                                sonify1D: functionMap['sonify1D'],
-                                getSink: functionMap['getSink'],
-                            } // only one function in this example, but you can have multiple
-                            this.messages.push(response_message) // extend conversation with assistant's reply
-
-                            // Step 4: send the info for each function call and function response to the model
-                            for (const tool_call of tool_calls) {
-                                const function_name = tool_call.function.name
-                                const function_to_call = available_functions[function_name]
-                                const function_args = JSON.parse(tool_call.function.arguments)
-                                const function_response = function_to_call({
-                                    location: function_args.location,
-                                    unit: function_args.unit,
-                                })
-                                this.messages.push({
-                                    tool_call_id: tool_call.id,
-                                    role: 'tool',
-                                    name: function_name,
-                                    content: function_response,
-                                }) // extend conversation with function response
-                            }
-
-                            // Simulate the second response from the OpenAI API
-                            const second_response = await client.chat.completions.create({
-                                model: 'gpt-3.5-turbo-1106',
-                                prompt: {
-                                    messages: this.messages,
-                                },
-                            })
-
-                            return second_response
-                        }
-                    },
-                },
-            },
-        }
-
-        let response = client.chat.completions.create({
-            model: 'gpt-3.5-turbo-1106',
+        let response = await this.openai.chat.completions.create({
+            model: 'gpt-4',
             messages: this.messages,
-            tools,
+            tools: tools['functions'],
             tool_choice: 'auto', // auto is default, but we'll be explicit
         })
 
         console.log(response)
 
-        return response
+        let response_message = response.choices[0].message
+        let tool_calls = response_message.tool_calls
+
+        console.log(response_message)
+        console.log(tool_calls)
+
+        if (tool_calls) {
+            let available_functions = functionMap
+
+            this.messages.push({ response_message })
+
+            for (let tool_call of tool_calls) {
+                let function_name = tool_call.function.name
+                let function_to_call = available_functions[function_name]
+                let function_args = JSON.parse(tool_call.function.arguments)
+                let function_response = function_to_call(function_args)
+                this.messages.push({
+                    tool_call_id: tool_call.id,
+                    role: 'tool',
+                    name: function_name,
+                    content: function_response,
+                })
+            }
+        }
+
+        let second_response = await this.openai.chat.completions.create({
+            model: 'gpt-4',
+            messages: this.messages,
+        })
+
+        console.log(second_response)
+
+        return second_response
+
+        console.log(response_message)
+        console.log(tool_calls)
+
+        console.log(response)
+
+        return undefined
     }
 }

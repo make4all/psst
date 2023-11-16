@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import { OpenAIHelper } from '../chat-gpt/openAIHelper'
-
-import { FunctionCall } from '../chat-gpt/openAIHelper'
+import { OpenAI } from 'openai'
 
 const ChatInterface = () => {
-    const [messages, setMessages] = useState<{ role: string; content: string | FunctionCall }[]>([])
+    const [messages, setMessages] = useState<{ role: string; content: string | JSON }[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const openAIHelper = new OpenAIHelper()
 
     const sendMessage = async () => {
         setIsLoading(true)
-
-        const response = await openAIHelper.requestOpenAI(input)
+        const response: OpenAI.Chat.Completions.ChatCompletion | undefined = await openAIHelper.requestOpenAI(input)
         setIsLoading(false)
 
         if (response) {
-            setMessages([...messages, { role: 'user', content: input }, { role: 'assistant', content: response }])
-        } else {
-            setMessages([
-                ...messages,
+            setMessages((prevMessages) => [
+                ...prevMessages,
                 { role: 'user', content: input },
-                { role: 'assistant', content: 'Sorry, I could not understand your request.' },
+                { role: 'assistant', content: response.choices[0].message.content },
+                { role: 'function_call', content: response.choices[0].message?.function_call?.name ?? '' },
+                {
+                    role: 'arguments',
+                    content: JSON.parse(response.choices[0].message?.function_call?.arguments || '{}'),
+                },
             ])
         }
-        setInput('')
     }
 
     useEffect(() => {
@@ -46,31 +46,32 @@ const ChatInterface = () => {
                             background: message.role === 'user' ? '#007bff' : '#6c757d',
                         }}
                     >
-                        <strong>{message.role}:</strong>{' '}
-                        {typeof message.content === 'string' ? (
-                            message.content
-                        ) : (
-                            <div>
-                                <h2>Function Call</h2>
-                                <p>Name: {message.content.name}</p>
-                                <pre>Arguments: {JSON.stringify(JSON.parse(message.content.arguments), null, 2)}</pre>
-                            </div>
-                        )}{' '}
+                        <strong>{message.role}:</strong> <pre>{JSON.stringify(message.content)}</pre>
                     </div>
                 ))}
             </div>
-            <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                style={{ width: '70%', marginRight: '10px' }}
-            />
-            <button
-                onClick={sendMessage}
-                style={{ padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}
-            >
-                Send
-            </button>
+
+            <div style={{ display: 'flex' }}>
+                <textarea
+                    id="message-input"
+                    style={{ flex: '1', padding: '8px' }}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                ></textarea>
+                <button
+                    onClick={sendMessage}
+                    style={{
+                        padding: '8px',
+                        background: '#4caf50',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    Send
+                </button>
+            </div>
             {isLoading && <div>Loading...</div>}
         </div>
     )
