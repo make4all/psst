@@ -55,7 +55,7 @@ some general rools to keep in mind:
         this.openai.chat.completions.create
         const chatCompletion = await this.openai.chat.completions.create({
             messages: this.messages,
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4',
             functions: schema['functions'],
         })
         console.log(chatCompletion.choices[0].message)

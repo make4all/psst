@@ -11,7 +11,7 @@ import { DataSink } from '../../sonification/DataSink'
 
 import { Datum } from '../../sonification/Datum'
 
-const DEBUG = false
+const DEBUG = true
 
 function addSink(description?: string, sinkId?: number, dataSink?: DataSink, stream$?: Observable<Datum>): DataSink {
     return OutputEngine.getInstance().addSink(description, sinkId, dataSink, stream$)
@@ -30,7 +30,7 @@ function deleteSink(sinkId?: number, sink?: DataSink) {
 function sonify1D(data: number[], sinkName: string) {
     let current = 0
     debugStatic(SonificationLoggingLevel.DEBUG, `adding sink`)
-    let sink = OutputEngine.getInstance().addSink('GPTDemoSink')
+    let sink = OutputEngine.getInstance().addSink(sinkName)
     debugStatic(SonificationLoggingLevel.DEBUG, `in onPlay ${sink}, `)
 
     let dataCopy = Object.assign([], data)
@@ -40,6 +40,7 @@ function sonify1D(data: number[], sinkName: string) {
     let source$ = zip(data$, timer$, (num, time) => new Datum(id, num)).pipe(
         debug(SonificationLoggingLevel.DEBUG, 'point'),
     )
+    OutputEngine.getInstance().setStream(id, source$)
 
     sink?.addDataHandler(
         new NoteHandler(
@@ -49,8 +50,8 @@ function sonify1D(data: number[], sinkName: string) {
             ],
             new NoteSonify(-1),
         ),
-    ) // max
-    console.log('Hello')
+    )
+    OutputEngine.getInstance().next(OutputStateChange.Play)
 }
 
 const debug = (level: number, message: string) => (source: Observable<any>) =>
