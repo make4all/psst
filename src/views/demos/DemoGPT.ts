@@ -11,8 +11,19 @@ import { DataSink } from '../../sonification/DataSink'
 import { DataHandler } from '../../sonification/handler/DataHandler'
 import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
 import { Speech } from '../../sonification/output/Speech'
+import { DatumOutput } from 'src/sonification/output/DatumOutput'
 
 import { Datum } from '../../sonification/Datum'
+
+enum HandlerType {
+    NoteHandler = 'NoteHandler',
+    FilterRangeHandler = 'FilterRangeHandler',
+}
+
+enum OutputType {
+    NoteSonify = 'NoteSonify',
+    Speech = 'Speech',
+}
 
 const DEBUG = true
 
@@ -39,21 +50,14 @@ function deleteSink(sinkId?: number): void {
     OutputEngine.getInstance().deleteSink(undefined, sinkId)
 }
 
-function createNoteHandler(min: number, max: number, sinkId: number): DataHandler {
-    let sink = OutputEngine.getInstance().getSink(sinkId)
-    let noteHandler = new NoteHandler([min, max], new NoteSonify(-1))
-    sink.addDataHandler(noteHandler)
-    return noteHandler
+function createSpeechOutput(): Speech {
+    let output = new Speech(undefined, undefined, undefined, undefined, true)
+    return output
 }
 
-function createFilterRangeHandler(min: number, max: number, sinkId: number): DataHandler {
-    let sink = OutputEngine.getInstance().getSink(sinkId)
-    let filterRangeHandler = new FilterRangeHandler(
-        [min, max],
-        new Speech(undefined, undefined, undefined, undefined, true),
-    )
-    sink.addDataHandler(filterRangeHandler)
-    return filterRangeHandler
+function createNoteOutput(): NoteSonify {
+    let output = new NoteSonify(-1)
+    return output
 }
 
 // function sonify1D(data: number[], sinkName: string) {
@@ -85,6 +89,31 @@ function createFilterRangeHandler(min: number, max: number, sinkId: number): Dat
 //     OutputEngine.getInstance().next(OutputStateChange.Play)
 // }
 
+function addHandler(sinkId: number, handlerType: HandlerType, min: number = 0, max: number = 0): DataHandler {
+    let sink = OutputEngine.getInstance().getSink(sinkId)
+    let dataHandler
+    if (handlerType === HandlerType.NoteHandler) {
+        dataHandler = new NoteHandler([min, max], new NoteSonify(-1))
+        sink.addDataHandler(dataHandler)
+    } else if (handlerType === HandlerType.FilterRangeHandler) {
+        dataHandler = new FilterRangeHandler([min, max], new Speech(undefined, undefined, undefined, undefined, true))
+        sink.addDataHandler(dataHandler)
+    }
+
+    return dataHandler
+}
+
+function addOuput(dataHandler: DataHandler, outputType: OutputType) {
+    let output
+    if (outputType === OutputType.NoteSonify) {
+        output = new NoteSonify(-1)
+    } else if (outputType === OutputType.Speech) {
+        output = new Speech(undefined, undefined, undefined, undefined, true)
+    }
+
+    dataHandler.addOutput(output)
+}
+
 const debug = (level: number, message: string) => (source: Observable<any>) =>
     source.pipe(
         tap((val) => {
@@ -105,7 +134,9 @@ let functionMap = {}
 functionMap['addSink'] = addSink
 functionMap['getSink'] = getSink
 functionMap['deleteSink'] = deleteSink
-functionMap['createNoteHandler'] = createNoteHandler
-functionMap['createFilterRangeHandler'] = createFilterRangeHandler
+functionMap['createSpeechOutput'] = createSpeechOutput
+functionMap['createNoteOutput'] = createNoteOutput
+functionMap['addHandler'] = addHandler
+functionMap['addOuput'] = addOuput
 
 export { functionMap }

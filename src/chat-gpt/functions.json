@@ -75,48 +75,49 @@
             }
         },
         {
-            "name": "createNoteHandler",
-            "description": "A DataHandler that outputs a Datum as a note in the audible range. Assumes a note should be played in the general range of 80 to 500 Hz to sound nice",
+            "name": "addHandler",
+            "description": "Adds a Data Handler to the set of handlers. The handler will be called with each Datum that is output.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "min": {
-                        "type": "number",
-                        "description": "The minimum value of the range for NoteOutput. The range is given in hertz"
-                    },
-                    "max": {
-                        "type": "number",
-                        "description": "The maximum value of the range for NoteOutput. The range is given in hertz"
-                    },
                     "sinkId": {
                         "type": "number",
                         "description": "A unique id for the sink to which the handler will output"
+                    },
+                    "handlerType": {
+                        "type": "string",
+                        "description": "The type of Data Handler to add. Currently supported types are: FilterRangeHandler, NoteHandler",
+                        "enum": ["FilterRangeHandler", "NoteHandler"]
+                    },
+                    "max": {
+                        "type": "number",
+                        "description": "The maximum value of the range for NoteOutput or the FilterRangeHandler. The range is given in hertz for the NoteHandler and in numeric values for the FilterRangeHandler"
+                    },
+                    "min": {
+                        "type": "number",
+                        "description": "The minimum value of the range for NoteOutput or the FilterRangeHandler. The range is given in hertz for the NoteHandler and in numeric values for the FilterRangeHandler"
                     }
                 }
             },
-            "required": ["min", "max", "sinkId"]
+            "required": ["sinkId", "handlerType"]
         },
         {
-            "name": "createFilterRangeHandler",
-            "description": "A DataHandler that filters out things which are not betwen min and max (inclusive)",
+            "name": "addOutput",
+            "description": "Adds an OuputHandler to a DataHandler. The OutputHandler will be called with each Datum that is output from the DataHandler.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "min": {
-                        "type": "number",
-                        "description": "The minimum value of the range for NoteOutput. The range is given in hertz"
+                    "dataHandler": {
+                        "type": "object",
+                        "description": "The DataHandler to which the OutputHandler will be added. This is returned by the addHandler function."
                     },
-                    "max": {
-                        "type": "number",
-                        "description": "The maximum value of the range for NoteOutput. The range is given in hertz"
-                    },
-                    "sinkId": {
-                        "type": "number",
-                        "description": "A unique id for the sink to which the handler will output"
+                    "OutputType": {
+                        "type": "string",
+                        "description": "The type of OutputHandler to add. Currently supported types are: NoteOutput, FilterRangeOutput",
+                        "enum": ["NoteSonify", "Speech"]
                     }
                 }
-            },
-            "required": ["min", "max", "sinkId"]
+            }
         }
     ]
 }

@@ -128,12 +128,5 @@ some general rools to keep in mind:
         console.log(second_response)
 
         return second_response
-
-        console.log(response_message)
-        console.log(tool_calls)
-
-        console.log(response)
-
-        return undefined
     }
 }
