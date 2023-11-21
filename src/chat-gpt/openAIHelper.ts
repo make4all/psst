@@ -62,20 +62,16 @@ some general rools to keep in mind:
         console.log(callFunction)
         console.log(parsedObject)
 
-        if (callFunction === functionMap['sonify1D']) {
-            callFunction(parsedObject['data'], parsedObject['sinkName'])
-        }
-
-        if (callFunction === functionMap['addSink']) {
-            console.log(callFunction(parsedObject['description'], parsedObject['sinkId']))
-        }
-
-        if (callFunction === functionMap['getSink']) {
-            console.log(callFunction(parsedObject['sinkId']))
-        }
-
-        if (callFunction === functionMap['deleteSink']) {
-            callFunction(parsedObject['sinkId'])
+        if (callFunction === functionMap['createSonification']) {
+            callFunction(
+                parsedObject['handlerType'],
+                parsedObject['outputType'],
+                parsedObject['description'],
+                parsedObject['max'],
+                parsedObject['min'],
+                parsedObject['interestPoints'],
+                parsedObject['direction'],
+            )
         }
 
         if (chatCompletion) return chatCompletion

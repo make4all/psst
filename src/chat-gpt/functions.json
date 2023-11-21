@@ -118,6 +118,57 @@
                     }
                 }
             }
+        },
+        {
+            "name": "createSonification",
+            "description": "Creates a sonification end to end. First, Creates a data sink then adds a data handler and output handler to it.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string",
+                        "description": "A description for the sink"
+                    },
+                    "handlerType": {
+                        "type": "string",
+                        "description": "The type of Data Handler to add. Currently supported types are: FilterRangeHandler (A DataHandler that filters out things which are not betwen min and max (inclusive).), NoteHandler (A DataHandler that outputs a Datum as a note in the audible range. Assumes a note should be played in the general range of 80 to 500 Hz.) , NotificationHandler (A DataHandler that notifies if a set of point/s are seen.), RunningExtremaHandler (A DataHandler that tracks the extrema of the data.) , SlopeParityHandler (A DataHandler that tracks the slope of the data.) , SpeechHandler (A DataHandler that outputs a Datum as speech.)",
+                        "enum": [
+                            "FilterRangeHandler",
+                            "NoteHandler",
+                            "NotificationHandler",
+                            "RunningExtremaHandler",
+                            "SlopeParityHandler",
+                            "SpeechHandler"
+                        ]
+                    },
+                    "max": {
+                        "type": "number",
+                        "description": "The maximum value of the range for NoteOutput or the FilterRangeHandler. The range is given in hertz for the NoteHandler and in numeric values for the FilterRangeHandler"
+                    },
+                    "min": {
+                        "type": "number",
+                        "description": "The minimum value of the range for NoteOutput or the FilterRangeHandler. The range is given in hertz for the NoteHandler and in numeric values for the FilterRangeHandler"
+                    },
+                    "interestpoints": {
+                        "type": "array",
+                        "description": "An array of points to be notified about by the NotificationHandler. Defaults to [0] if not specified",
+                        "items": {
+                            "type": "number"
+                        }
+                    },
+                    "direction": {
+                        "type": "number",
+                        "description": "The direction of the slope to be notified about by the SlopeParityHandler this defaults to 0 if not specified or the maxima or minima that will be notified about by the RunningExtremaHandler this defaults to 1 if not specified",
+                        "enum": [1, -1]
+                    },
+                    "OutputType": {
+                        "type": "string",
+                        "description": "The type of OutputHandler to add. Currently supported types are: NoteSonify (Class for sonifying a data point as a pitch.) , Speech (Class for sonifying data point as speech.)",
+                        "enum": ["NoteSonify", "Speech"]
+                    }
+                },
+                "required": ["description", "handlerType", "OutputType"]
+            }
         }
     ]
 }
