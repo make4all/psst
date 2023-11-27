@@ -56,6 +56,7 @@
         "react-markdown": "^8.0.5",
         "rxjs": "^7.5.2",
         "rxjs-spy": "^8.0.2",
+        "typechat": "^0.0.10",
         "typedoc": "^0.22.11",
         "web-vitals": "^2.1.4",
         "webusb": "^2.2.0"

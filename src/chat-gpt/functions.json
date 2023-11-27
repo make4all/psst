@@ -31,14 +31,6 @@
                     "sinkId": {
                         "type": "number",
                         "description": "A unique id for the sink"
-                    },
-                    "sink": {
-                        "type": "object",
-                        "description": "The DataSink object"
-                    },
-                    "stream$": {
-                        "type": "object",
-                        "description": "Observable of Datum objects"
                     }
                 }
             }

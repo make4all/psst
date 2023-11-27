@@ -2,7 +2,7 @@ import { OpenAI } from 'openai'
 
 import schema from './functions.json'
 
-import { functionMap } from '../views/demos/DemoGPT'
+import { functionMap } from './DemoGPT'
 
 export class OpenAIHelper {
     private messages = new Array()

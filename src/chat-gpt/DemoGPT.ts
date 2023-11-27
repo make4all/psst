@@ -1,23 +1,23 @@
-import { OutputEngine } from '../../sonification/OutputEngine'
+import { OutputEngine } from '../sonification/OutputEngine'
 import {
     getSonificationLoggingLevel,
     OutputStateChange,
     SonificationLoggingLevel,
-} from '../../sonification/OutputConstants'
+} from '../sonification/OutputConstants'
 import { Observable, of, tap, timer, zip, delay } from 'rxjs'
-import { NoteSonify } from '../../sonification/output/NoteSonify'
-import { DataSink } from '../../sonification/DataSink'
-import { DataHandler } from '../../sonification/handler/DataHandler'
-import { FilterRangeHandler } from '../../sonification/handler/FilterRangeHandler'
-import { NoteHandler } from '../../sonification/handler/NoteHandler'
-import { NotificationHandler } from '../../sonification/handler/NotificationHandler'
-import { RunningExtremaHandler } from '../../sonification/handler/RunningExtremaHandler'
-import { SlopeParityHandler } from '../../sonification/handler/SlopeParityHandler'
-import { SpeechHandler } from '../../sonification/handler/SpeechHandler'
-import { Speech } from '../../sonification/output/Speech'
+import { NoteSonify } from '../sonification/output/NoteSonify'
+import { DataSink } from '../sonification/DataSink'
+import { DataHandler } from '../sonification/handler/DataHandler'
+import { FilterRangeHandler } from '../sonification/handler/FilterRangeHandler'
+import { NoteHandler } from '../sonification/handler/NoteHandler'
+import { NotificationHandler } from '../sonification/handler/NotificationHandler'
+import { RunningExtremaHandler } from '../sonification/handler/RunningExtremaHandler'
+import { SlopeParityHandler } from '../sonification/handler/SlopeParityHandler'
+import { SpeechHandler } from '../sonification/handler/SpeechHandler'
+import { Speech } from '../sonification/output/Speech'
 import { DatumOutput } from 'src/sonification/output/DatumOutput'
 
-import { Datum } from '../../sonification/Datum'
+import { Datum } from '../sonification/Datum'
 
 enum HandlerType {
     NoteHandler = 'NoteHandler', // [min, ,max] number in hertz
