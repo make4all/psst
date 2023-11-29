@@ -11,6 +11,7 @@ const ChatInterface = () => {
     const sendMessage = async () => {
         setIsLoading(true)
         const response: OpenAI.Chat.Completions.ChatCompletion | undefined = await openAIHelper.requestOpenAI(input)
+        await openAIHelper.typeChatRequest(input)
         setIsLoading(false)
 
         if (response) {

@@ -1,13 +1,25 @@
 import { OpenAI } from 'openai'
-
+import fs from 'fs'
+import path from 'path'
 import schema from './functions.json'
 
 import { functionMap } from './DemoGPT'
 
+import {
+    createLanguageModel,
+    createJsonTranslator,
+    processRequests,
+    TypeChatLanguageModel,
+    TypeChatJsonTranslator,
+} from 'typechat'
+import { PSSTActions } from './PSSTActions/PSSTActionSchema'
+
 export class OpenAIHelper {
     private messages = new Array()
     private openai: OpenAI
-
+    private model: TypeChatLanguageModel
+    private schema: string
+    private translator: TypeChatJsonTranslator<PSSTActions>
     constructor() {
         this.openai = new OpenAI({
             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
@@ -27,6 +39,12 @@ some general rools to keep in mind:
 4. slope handlers can help convey change in trends.
                 `,
         })
+
+        this.model = createLanguageModel(process.env)
+        this.schema = fs.readFileSync(path.join(__dirname, './PSSTActions/PSSTActionSchema.ts'), 'utf8')
+
+        this.translator = createJsonTranslator<PSSTActions>(this.model, this.schema, 'PSSTActions')
+        this.translator.stripNulls = true
 
         // console.log("OpenAIHelper constructor invoked")
     }
@@ -75,6 +93,23 @@ some general rools to keep in mind:
         }
 
         if (chatCompletion) return chatCompletion
+    }
+
+    public async typeChatRequest(query: string) {
+        const response = await this.translator.translate(query)
+        if (!response.success) {
+            console.log(response.message)
+            return
+        }
+        const psstActions = response.data
+        console.log(JSON.stringify(psstActions, undefined, 2))
+        if (psstActions.actions.some((item) => item.actionType === 'unknown')) {
+            console.log("I didn't understand the following:")
+            for (const action of psstActions.actions) {
+                if (action.actionType === 'unknown') console.log(action.text)
+            }
+            return
+        }
     }
 
     public async run_conversation(query: string): Promise<OpenAI.Chat.Completions.ChatCompletion | undefined> {
