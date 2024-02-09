@@ -6,7 +6,7 @@ import { Statistic } from './Statistic'
 /**
  * Calculates a running average based on the last n values seen.
  */
-class RunningAverage extends Statistic {
+export class RunningAverage extends Statistic {
     /**
      * What buffer should the average be calculated over?
      */
